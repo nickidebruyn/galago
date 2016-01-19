@@ -51,3 +51,4 @@ proguard/
 captures/
 
 */mobile/libs*
+/Galago/dist/

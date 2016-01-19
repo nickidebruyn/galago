@@ -47,7 +47,7 @@ public class MainApplication extends Base3DApplication {
 
     @Override
     protected void postInitApp() {
-        showScreen("textwrite");
+        showScreen("menu");
     }
 
     @Override
