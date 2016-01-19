@@ -49,6 +49,4 @@ proguard/
 
 # Android Studio captures folder
 captures/
-
-*/mobile/libs*
 /Galago/dist/
