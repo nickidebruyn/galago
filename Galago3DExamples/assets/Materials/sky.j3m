@@ -1,0 +1,6 @@
+Material My Material : Common/MatDefs/Misc/Sky.j3md {
+     MaterialParameters {
+     }
+    AdditionalRenderState {
+    }
+}

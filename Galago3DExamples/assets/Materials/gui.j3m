@@ -1,0 +1,6 @@
+Material My Material : Common/MatDefs/Gui/Gui.j3md {
+     MaterialParameters {
+     }
+    AdditionalRenderState {
+    }
+}

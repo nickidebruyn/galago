@@ -1,0 +1,10 @@
+Material My Material : Common/MatDefs/Gui/Gui.j3md {
+     MaterialParameters {
+        Texture : Textures/fire_16x.jpg
+        Color : 1.0 1.0 1.0 1.0
+        VertexColor : false
+     }
+    AdditionalRenderState {
+      Blend AlphaAdditive
+    }
+}

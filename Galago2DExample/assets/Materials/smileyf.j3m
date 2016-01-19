@@ -1,0 +1,11 @@
+Material My Material : Common/MatDefs/Gui/Gui.j3md {
+     MaterialParameters {
+
+        Texture : Textures/smileyf.png
+        VertexColor : false
+        Color : 1.0 1.0 1.0 1.0
+     }
+    AdditionalRenderState {
+      Blend Alpha
+    }
+}

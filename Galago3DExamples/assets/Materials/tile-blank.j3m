@@ -1,0 +1,10 @@
+Material My Material : Common/MatDefs/Misc/Unshaded.j3md {
+     MaterialParameters {
+        ColorMap : Flip Repeat Textures/tile-blank.png
+        AlphaDiscardThreshold : 0.3
+        Color : 0.2 1.0 0.2 1.0
+     }
+    AdditionalRenderState {
+      FaceCull Off
+    }
+}
