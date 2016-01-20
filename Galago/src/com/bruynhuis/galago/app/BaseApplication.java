@@ -144,7 +144,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     protected Window window;
     protected Panel splash;
     protected Label info;
-    protected String splashInfoMessage = "BruynHuis @ 2015";
+    protected String splashInfoMessage = "GalagoFramework @ 2016";
     protected VideoRecorderAppState recorderAppState;
     protected boolean record = false;
     protected StatsAppState statsAppState;
