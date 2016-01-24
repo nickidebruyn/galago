@@ -72,18 +72,22 @@ public abstract class ImageWidget extends Widget {
     public void updatePicture(String pictureFile) {
         if (picture != null) {
             if (!pictureFile.equals(currentPictureFile)) {
+                float alpha = pictureColor.a;
                 picture.setMaterial(window.getApplication().getTextureManager().getGUIMaterial(pictureFile));
                 currentPictureFile = pictureFile;
-            }
-            
-        }
-        
+                setTransparency(alpha);
+            }            
+        }        
     }
 
+    /**
+     * Update back to old file
+     */
     public void updateToOriginalPicture() {
         if (picture != null) {
-//            picture.setImage(window.getAssetManager(), this.pictureFile, true);
+            float alpha = pictureColor.a;
             picture.setMaterial(window.getApplication().getTextureManager().getGUIMaterial(pictureFile));
+            setTransparency(alpha);
         }
         
     }
@@ -116,4 +120,10 @@ public abstract class ImageWidget extends Widget {
             picture.setMaterial(material);
         }
     }
+
+    public ColorRGBA getPictureColor() {
+        return pictureColor;
+    }
+    
+    
 }

@@ -83,8 +83,7 @@ public class DirectionalTouchStick extends GridPanel {
                 public void doTouchCancel(float touchX, float touchY, float tpf, String uid) {
                     
                 }
-                
-                
+
             });
         }
         

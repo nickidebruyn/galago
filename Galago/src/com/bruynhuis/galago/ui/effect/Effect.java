@@ -87,4 +87,17 @@ public abstract class Effect extends AbstractControl {
     }    
     
     protected abstract void doEnabled(boolean enabled);
+    
+    public void fireSelected() {
+        doSelected();        
+    }
+    
+    protected abstract void doSelected();
+    
+    
+    public void fireUnselected() {
+        doUnselected();        
+    }
+    
+    protected abstract void doUnselected();
 }

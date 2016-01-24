@@ -12,6 +12,8 @@ import com.jme3.input.event.KeyInputEvent;
 import com.jme3.input.event.MouseButtonEvent;
 import com.jme3.input.event.MouseMotionEvent;
 import com.jme3.input.event.TouchEvent;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * The RawInputListener can be used by a user to detect when a joystick action
@@ -20,7 +22,8 @@ import com.jme3.input.event.TouchEvent;
  * @author NideBruyn
  */
 public class JoystickInputListener implements RawInputListener {
-    private JoystickListener joystickListener;
+    
+    private ArrayList<JoystickListener> joystickListeners = new ArrayList<>();
     private InputManager inputManager;
     private boolean enabled = true;
     private JoystickEvent joystickEvent;
@@ -57,10 +60,6 @@ public class JoystickInputListener implements RawInputListener {
 
     }
 
-    public JoystickListener getJoystickListener() {
-        return joystickListener;
-    }
-
     /**
      * Log some text to the console
      *
@@ -70,17 +69,31 @@ public class JoystickInputListener implements RawInputListener {
         System.out.println(text);
     }
 
-    public void setJoystickListener(JoystickListener joystickListener1) {
-        this.joystickListener = joystickListener1;
+    public void addJoystickListener(JoystickListener joystickListener1) {
+        this.joystickListeners.add(joystickListener1);
+    }
+    
+    public void removeJoystickListener(JoystickListener joystickListener1) {
+        this.joystickListeners.remove(joystickListener1);
     }
     
     private void fireJoystickEvent(JoystickEvent event, float tpf) {
-        if (joystickListener != null) {
-            joystickListener.stick(joystickEvent, tpf);
+        if (joystickListeners != null) {
+            for (Iterator<JoystickListener> it = joystickListeners.iterator(); it.hasNext();) {
+                JoystickListener joystickListener = it.next();
+                if (joystickListener != null) {
+                    joystickListener.stick(event, tpf);
+                }
+                
+            }
+            
         }
     }
 
     public void onJoyAxisEvent(JoyAxisEvent evt) {
+        
+//        log("joystickEvent: " + joystickEvent.isButton3());
+        
         if (evt.getAxis().getJoystick() != null && !evt.isConsumed()) {
             
 //            log("Value: " + evt.getValue());
@@ -92,6 +105,7 @@ public class JoystickInputListener implements RawInputListener {
             
             //Set the analog value
             joystickEvent.setAnalogValue(evt.getValue());
+            joystickEvent.setKeyDown(evt.getValue() >= -1.0f);
             
             //Check the directions
             if (evt.getValue() == 1) {
@@ -143,7 +157,7 @@ public class JoystickInputListener implements RawInputListener {
 
     public void onJoyButtonEvent(JoyButtonEvent evt) {
         if (evt.getButton().getJoystick() != null && !evt.isConsumed()) {
-//            log("Button: " + evt.getButton().getButtonId());
+            log("Button = " + evt.getButton().getButtonId() + ";   down = " + evt.isPressed());
             
             joystickEvent.setKeyDown(evt.isPressed());
             
@@ -157,8 +171,19 @@ public class JoystickInputListener implements RawInputListener {
             joystickEvent.setButton8(evt.getButton().getButtonId() == 7);
             joystickEvent.setButton9(evt.getButton().getButtonId() == 8);
             joystickEvent.setButton10(evt.getButton().getButtonId() == 9);
-
+                            
             fireJoystickEvent(joystickEvent, 1);
+            
+            if (evt.getButton().getButtonId() == 0) joystickEvent.setButton1(evt.isPressed());
+            if (evt.getButton().getButtonId() == 1) joystickEvent.setButton2(evt.isPressed());
+            if (evt.getButton().getButtonId() == 2) joystickEvent.setButton3(evt.isPressed());
+            if (evt.getButton().getButtonId() == 3) joystickEvent.setButton4(evt.isPressed());
+            if (evt.getButton().getButtonId() == 4) joystickEvent.setButton5(evt.isPressed());
+            if (evt.getButton().getButtonId() == 5) joystickEvent.setButton6(evt.isPressed());
+            if (evt.getButton().getButtonId() == 6) joystickEvent.setButton7(evt.isPressed());
+            if (evt.getButton().getButtonId() == 7) joystickEvent.setButton8(evt.isPressed());
+            if (evt.getButton().getButtonId() == 8) joystickEvent.setButton9(evt.isPressed());
+            if (evt.getButton().getButtonId() == 9) joystickEvent.setButton10(evt.isPressed());
         }
 
     }

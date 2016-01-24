@@ -24,6 +24,7 @@ import com.jme3.system.Platform;
 import java.util.Iterator;
 import java.util.Properties;
 import com.bruynhuis.galago.control.tween.SpatialAccessor;
+import com.bruynhuis.galago.listener.JoystickInputListener;
 import com.bruynhuis.galago.ui.listener.EscapeListener;
 import com.bruynhuis.galago.ui.listener.FadeListener;
 import com.bruynhuis.galago.ui.window.Fader;
@@ -34,6 +35,7 @@ import com.bruynhuis.galago.listener.LiveCameraListener;
 import com.bruynhuis.galago.listener.PauseListener;
 import com.bruynhuis.galago.listener.RemoteActionListener;
 import com.bruynhuis.galago.listener.SensorListener;
+import com.bruynhuis.galago.messages.MessageManager;
 import com.bruynhuis.galago.resource.EffectManager;
 import com.bruynhuis.galago.resource.ModelManager;
 import com.bruynhuis.galago.resource.ScreenManager;
@@ -89,6 +91,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     protected ScreenManager screenManager;
     protected TextureManager textureManager;
     protected ModelManager modelManager;
+    protected MessageManager messageManager;
     private int loadingCounter = 0;
     private boolean loading = false;
     protected GameSaves gameSaves;
@@ -152,9 +155,9 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     protected MidiPlayer midiPlayer;
     protected AbstractScreen currentScreen;
     private boolean firePauseAction = false;
-    
     private Texture2D cameraTexture;
     private AndroidImageLoader androidImageLoader;
+    private JoystickInputListener joystickInputListener;
 
     /**
      * Your the main java class in your game should call this constructor to
@@ -238,6 +241,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         Tween.registerAccessor(ColorRGBA.class, new ColorAccessor());
 
         tweenManager = new TweenManager();
+        messageManager = new MessageManager(this);
 
         addPauseListener(this);
 
@@ -349,6 +353,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 
             }
 
+
             if (loadingCounter >= 100) {
                 loading = false;
                 window.getFader().setVisible(true);
@@ -428,6 +433,9 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
                     new MouseAxisTrigger(MouseInput.AXIS_Y, true));
             inputManager.addListener(this, MOUSE_MOVE_EVENT);
         }
+
+        joystickInputListener = new JoystickInputListener();
+        joystickInputListener.registerWithInput(inputManager);
 
     }
 
@@ -656,6 +664,15 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     }
 
     /**
+     * This method will return an instance of the message manager.
+     *
+     * @return
+     */
+    public MessageManager getMessageManager() {
+        return messageManager;
+    }
+
+    /**
      * This method is for internal use and should not be called.
      *
      * @return BitmapFont
@@ -666,6 +683,12 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 
     @Override
     public void destroy() {
+
+        if (joystickInputListener != null) {
+            joystickInputListener.unregisterInput();
+//            joystickInputListener = null;
+        }
+
         if (midiPlayer != null) {
             midiPlayer.stop();
             midiPlayer.release();
@@ -682,6 +705,10 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 
         if (modelManager != null) {
             modelManager.destroy();
+        }
+
+        if (messageManager != null) {
+            messageManager.destroy();
         }
 
         super.destroy();
@@ -764,13 +791,13 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
      */
     public void fireLiveCameraListener(int format, int width, int height, byte[] data) {
         if (liveCameraListener != null && isMobileApp()) {
-            
+
             //Do this if not done before
             if (androidImageLoader == null) {
                 androidImageLoader = new AndroidImageLoader();
                 cameraTexture = new Texture2D();
-            }            
-            
+            }
+
             try {
                 Image image = (Image) androidImageLoader.load(new ByteArrayInfo(assetManager, data));
                 cameraTexture.setImage(image);
@@ -779,7 +806,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
             } catch (IOException e) {
                 System.out.println("IMAGE LOAD FAILED");
             }
-            
+
         }
     }
 
@@ -1355,5 +1382,9 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 
     public void setCurrentScreen(AbstractScreen currentScreen) {
         this.currentScreen = currentScreen;
+    }
+
+    public JoystickInputListener getJoystickInputListener() {
+        return joystickInputListener;
     }
 }

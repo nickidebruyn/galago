@@ -156,4 +156,5 @@ public class PagerPanel extends Panel implements TouchButtonListener {
         Debug.log("Moved distance of page: " + FastMath.abs(touchedUpX-touchedDownX));
         return FastMath.abs(touchedUpX-touchedDownX) > 10f;
     }
+
 }

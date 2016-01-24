@@ -41,7 +41,6 @@ public class TouchButton extends ImageWidget implements Touchable {
     protected String textStr;
     protected float lastTouchX = 0;
     protected float lastTouchY = 0;
-//    private Timer touchMoveTimer = new Timer(20);
 
     /**
      *
@@ -122,9 +121,9 @@ public class TouchButton extends ImageWidget implements Touchable {
         float recWidth = getWidth();
         float factor = 1f;
         float recHeight = (getHeight() * 0.5f) * factor;
-        float spacing = 10f*window.getScaleFactorWidth();
+        float spacing = 10f * window.getScaleFactorWidth();
 
-        bitmapText.setBox(new Rectangle(xP, yP, recWidth-spacing, recHeight));
+        bitmapText.setBox(new Rectangle(xP, yP, recWidth - spacing, recHeight));
         bitmapText.setSize(fontSize * window.getScaleFactorHeight());      // font size
         bitmapText.setColor(ColorRGBA.White);// font color
         bitmapText.setAlignment(BitmapFont.Align.Center);
@@ -338,6 +337,39 @@ public class TouchButton extends ImageWidget implements Touchable {
 
         if (bitmapText != null) {
             bitmapText.setAlpha(alpha);
+        }
+    }
+
+    @Override
+    public void updatePicture(String pictureFile) {
+        ColorRGBA colorRGBA = bitmapText.getColor().clone();
+        super.updatePicture(pictureFile); //To change body of generated methods, choose Tools | Templates.
+        setTextColor(colorRGBA);
+    }
+
+    @Override
+    public void updateToOriginalPicture() {
+        ColorRGBA colorRGBA = bitmapText.getColor().clone();
+        super.updateToOriginalPicture(); //To change body of generated methods, choose Tools | Templates.
+        setTextColor(colorRGBA);
+    }
+
+    public void select(float tpf) {
+        
+        if (enabled) {
+            for (Effect effect : effects) {
+                effect.fireSelected();
+            }
+
+        }
+    }
+
+    public void unselect(float tpf) {
+        if (enabled) {            
+            for (Effect effect : effects) {
+                effect.fireUnselected();
+            }
+
         }
     }
 }

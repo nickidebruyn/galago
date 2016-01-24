@@ -70,5 +70,13 @@ public class WobbleEffect extends Effect {
         }
         
     }
+
+    @Override
+    protected void doSelected() {
+    }
+
+    @Override
+    protected void doUnselected() {
+    }
     
 }

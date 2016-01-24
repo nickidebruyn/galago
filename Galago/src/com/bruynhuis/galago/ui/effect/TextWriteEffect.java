@@ -85,4 +85,12 @@ public class TextWriteEffect extends Effect {
 
         return str;
     }
+
+    @Override
+    protected void doSelected() {
+    }
+
+    @Override
+    protected void doUnselected() {
+    }
 }

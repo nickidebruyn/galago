@@ -140,7 +140,13 @@ public abstract class Physics2DGame implements PhysicsCollisionListener {
         }
 
         if (tile.getSpatial() == null) {
-            throw new RuntimeException("ERROR: Tile spatial may not be null");
+            Spatial spatial = getItem(tile.getUid());
+            if (spatial != null) {
+                tile.setSpatial(spatial);
+            } else {
+                throw new RuntimeException("ERROR: Tile spatial may not be null, check the getItem() method implementation. Missing sprite returned.");
+            }
+            
         }
 
         //Now add the tile to the levelnode
@@ -602,6 +608,10 @@ public abstract class Physics2DGame implements PhysicsCollisionListener {
         vegetationNode = new BatchNode("VEGETATION_NODE");
         levelNode.attachChild(vegetationNode);
 
+        //If no tile map exist
+        if (tileMap == null) {
+            tileMap = new TileMap();
+        }
         //Load the existing terrain tiles
         for (int i = 0; i < tileMap.getTiles().size(); i++) {
             Tile tile = tileMap.getTiles().get(i);

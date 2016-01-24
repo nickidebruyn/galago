@@ -52,7 +52,7 @@ public abstract class Platform2DEditor extends AbstractScreen implements PickLis
     private static final String KEYBOARD_DEL = "KEY-DEL-EDIT";
     protected Platform2DGame game;
     protected TouchPickListener touchPickListener;
-    protected JoystickInputListener joystickInputListener;
+
     protected float dragSpeed = 0.1f;
     protected VPanel toolsPanel;
     protected HPanel topPanel;
@@ -396,9 +396,8 @@ public abstract class Platform2DEditor extends AbstractScreen implements PickLis
         touchPickListener.setPickListener(this);
         touchPickListener.registerWithInput(inputManager);
 
-        joystickInputListener = new JoystickInputListener();
-        joystickInputListener.setJoystickListener(this);
-        joystickInputListener.registerWithInput(inputManager);
+
+        baseApplication.getJoystickInputListener().addJoystickListener(this);
 
     }
 
@@ -410,7 +409,7 @@ public abstract class Platform2DEditor extends AbstractScreen implements PickLis
          * spatials and controls and lights, etc from the rootNode
          */
         touchPickListener.unregisterInput();
-        joystickInputListener.unregisterInput();
+        baseApplication.getJoystickInputListener().removeJoystickListener(this);
         marker.removeFromParent();
         worksheet.removeFromParent();
         game.close();

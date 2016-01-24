@@ -51,6 +51,14 @@ public class TouchEffect extends Effect {
     protected void controlUpdate(float tpf) {
 
     }
+
+    @Override
+    protected void doSelected() {
+    }
+
+    @Override
+    protected void doUnselected() {
+    }
     
     
     

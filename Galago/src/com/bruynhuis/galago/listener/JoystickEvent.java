@@ -4,10 +4,6 @@
  */
 package com.bruynhuis.galago.listener;
 
-import com.jme3.math.Vector2f;
-import com.jme3.math.Vector3f;
-import com.jme3.scene.Geometry;
-
 /**
  * This class will contain pick data when a user touches the screen and drag the screen.
  * 
