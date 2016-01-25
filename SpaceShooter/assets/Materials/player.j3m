@@ -1,0 +1,9 @@
+Material My Material : Common/MatDefs/Misc/Unshaded.j3md {
+     MaterialParameters {
+        ColorMap : Textures/player.png
+        AlphaDiscardThreshold : 0.1
+     }
+    AdditionalRenderState {
+      Blend PremultAlpha
+    }
+}

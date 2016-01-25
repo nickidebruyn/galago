@@ -1,0 +1,9 @@
+Material My Material : Common/MatDefs/Misc/Unshaded.j3md {
+     MaterialParameters {
+        AlphaDiscardThreshold : 0.1
+        ColorMap : Textures/laserRed16.png
+     }
+    AdditionalRenderState {
+      Blend PremultAlpha
+    }
+}
