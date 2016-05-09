@@ -87,12 +87,23 @@ public abstract class AbstractScreen extends AbstractAppState implements EscapeL
      * dims or locks, etc.
      */
     protected abstract void pause();
+    
+    /**
+     * This method will be called on a mobile device when the application is resumed.
+     */
+    protected void resume() {
+        
+    }
 
     /**
      * For internal use only.
      */
     public void firePauseAction() {
         pause();
+    }
+    
+    public void fireResumeAction() {
+        resume();
     }
 
     @Override
@@ -290,10 +301,11 @@ public abstract class AbstractScreen extends AbstractAppState implements EscapeL
      *
      * @param nextScreen
      */
-    protected void showScreen(String nextScreen) {
+    public void showScreen(String nextScreen) {
         this.nextScreen = nextScreen;
         this.setPrevious = true;
         this.setEnabled(false);
+        window.closeAllDialogs();
     }
 
     /**

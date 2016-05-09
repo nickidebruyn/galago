@@ -148,6 +148,11 @@ public class Label extends Widget {
     }
 
     @Override
+    public float getTransparency() {
+        return bitmapText.getAlpha();
+    }
+
+    @Override
     protected boolean isBatched() {
         return false;
     }

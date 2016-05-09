@@ -19,6 +19,7 @@ import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.control.AbstractControl;
 import com.bruynhuis.galago.ui.effect.TouchEffect;
+import com.bruynhuis.galago.ui.panel.PopupDialog;
 
 /**
  * A TouchButton is the control which represents a button on the screen. It can
@@ -105,6 +106,11 @@ public class TouchButton extends ImageWidget implements Touchable {
         init();
 
     }
+    
+    protected boolean isClickable() {
+        return ((getParent() instanceof PopupDialog) && this.isVisible() && window.isDialogOpen()) ||
+                (!(getParent() instanceof PopupDialog) && this.isVisible() && !window.isDialogOpen());
+    }
 
     @Override
     protected boolean isBatched() {
@@ -116,14 +122,21 @@ public class TouchButton extends ImageWidget implements Touchable {
         bitmapText = window.getBitmapFont().createLabel(id);
         bitmapText.setText(" ");
 
+//        float xP = -getWidth() * 0.5f;
+//        float yP = getHeight() * 0.5f;
+//        float recWidth = getWidth();
+//        float factor = 1f;
+//        float recHeight = (getHeight() * 0.5f) * factor;
+//        float spacing = 10f * window.getScaleFactorWidth();
+//
+//        bitmapText.setBox(new Rectangle(xP, yP, recWidth - spacing, recHeight));
+        
         float xP = -getWidth() * 0.5f;
         float yP = getHeight() * 0.5f;
         float recWidth = getWidth();
-        float factor = 1f;
-        float recHeight = (getHeight() * 0.5f) * factor;
-        float spacing = 10f * window.getScaleFactorWidth();
-
-        bitmapText.setBox(new Rectangle(xP, yP, recWidth - spacing, recHeight));
+        float recHeight = (getHeight() * 0.5f);
+        bitmapText.setBox(new Rectangle(xP, yP, recWidth, recHeight));
+        
         bitmapText.setSize(fontSize * window.getScaleFactorHeight());      // font size
         bitmapText.setColor(ColorRGBA.White);// font color
         bitmapText.setAlignment(BitmapFont.Align.Center);
@@ -134,7 +147,7 @@ public class TouchButton extends ImageWidget implements Touchable {
         widgetNode.addControl(new AbstractControl() {
             @Override
             protected void controlUpdate(float tpf) {
-                if (isVisible() && isEnabled() && isTouched()) {
+                if (isVisible() && isEnabled() && isTouched() && isClickable()) {
                     if (touchButtonListener != null) {
                         touchButtonListener.doTouchMove(lastTouchX, lastTouchY, tpf, id);
                     }
@@ -227,7 +240,7 @@ public class TouchButton extends ImageWidget implements Touchable {
 
     @Override
     public void fireTouchDown(float x, float y, float tpf) {
-        if (enabled && !isTouched()) {
+        if (enabled && !isTouched() && isClickable()) {
             wasDown = true;
             lastTouchX = x;
             lastTouchY = y;
@@ -246,7 +259,7 @@ public class TouchButton extends ImageWidget implements Touchable {
 
     @Override
     public void fireTouchUp(float x, float y, float tpf) {
-        if (enabled && isTouched()) {
+        if (enabled && isTouched() && isClickable()) {
             lastTouchX = x;
             lastTouchY = y;
 
@@ -265,7 +278,7 @@ public class TouchButton extends ImageWidget implements Touchable {
 
     @Override
     public void fireTouchCancel(float x, float y, float tpf) {
-        if (enabled && isTouched()) {
+        if (enabled && isTouched() && isClickable()) {
             lastTouchX = x;
             lastTouchY = y;
 
@@ -284,7 +297,7 @@ public class TouchButton extends ImageWidget implements Touchable {
 
     @Override
     public void fireTouchMove(float x, float y, float tpf) {
-        if (enabled && isTouched()) {
+        if (enabled && isTouched() && isClickable()) {
             lastTouchX = x;
             lastTouchY = y;
         }
@@ -339,6 +352,16 @@ public class TouchButton extends ImageWidget implements Touchable {
             bitmapText.setAlpha(alpha);
         }
     }
+    
+    public void setMargins(float left, float top, float right, float bottom) {
+        float xP = -getWidth() * 0.5f;
+        float yP = getHeight() * 0.5f;
+        float recWidth = getWidth();
+        float recHeight = (getHeight() * 0.5f);
+
+        bitmapText.setBox(new Rectangle(xP+left, yP-top, recWidth-right, recHeight+bottom));
+        
+    }
 
     @Override
     public void updatePicture(String pictureFile) {
@@ -356,7 +379,7 @@ public class TouchButton extends ImageWidget implements Touchable {
 
     public void select(float tpf) {
         
-        if (enabled) {
+        if (enabled && isClickable()) {
             for (Effect effect : effects) {
                 effect.fireSelected();
             }
@@ -365,7 +388,7 @@ public class TouchButton extends ImageWidget implements Touchable {
     }
 
     public void unselect(float tpf) {
-        if (enabled) {            
+        if (enabled && isClickable()) {            
             for (Effect effect : effects) {
                 effect.fireUnselected();
             }

@@ -1,0 +1,12 @@
+Material My Material : Common/MatDefs/Misc/Unshaded.j3md {
+     MaterialParameters {
+        ColorMap : Textures/obstacles.png
+
+        AlphaDiscardThreshold : 0.6
+        Color : 1.0 1.0 1.0 1.0
+     }
+    AdditionalRenderState {
+      FaceCull Off
+      Blend Off
+    }
+}

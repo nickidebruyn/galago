@@ -42,6 +42,8 @@ public interface Platform2DGameListener {
     
     public void doCollisionEnemyWithObstacle(Spatial collided, Spatial collider);
     
+    public void doCollisionEnemyWithPickup(Spatial collided, Spatial collider);
+    
     public void doCollisionTerrainWithBullet(Spatial collided, Spatial collider);
     
 }

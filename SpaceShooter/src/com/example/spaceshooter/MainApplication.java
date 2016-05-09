@@ -20,12 +20,12 @@ import com.example.spaceshooter.screens.PlayScreen;
  */
 public class MainApplication extends Base2DApplication {
     
-    private int levelWidth = 16;
-    private int levelHeight = 9;
+    private int levelWidth = 5;
+    private int levelHeight = 10;
     private float levelSpeed = 0.2f;
 
     public MainApplication() {
-        super("Space Shooter", 1280, 720, "spaceshooter.save", "Interface/Fonts/KenVectorFuture.fnt", null, false);
+        super("Space Shooter", 480, 800, "spaceshooter.save", "Interface/Fonts/KenVectorFuture.fnt", null, false);
     }
 
     public static void main(String[] args) {

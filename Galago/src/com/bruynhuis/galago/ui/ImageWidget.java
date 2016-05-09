@@ -107,6 +107,15 @@ public abstract class ImageWidget extends Widget {
             picture.getMaterial().setColor("Color", pictureColor);
         }
     }
+
+    @Override
+    public float getTransparency() {
+        if (picture != null && picture.getMaterial() != null) {            
+            return pictureColor.getAlpha();
+
+        }
+        return 1f;
+    }
     
     /**
      * This method will decouple the material and clone it.

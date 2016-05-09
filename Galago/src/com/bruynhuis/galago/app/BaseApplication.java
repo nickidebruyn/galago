@@ -34,6 +34,7 @@ import com.bruynhuis.galago.listener.KeyboardInputListener;
 import com.bruynhuis.galago.listener.LiveCameraListener;
 import com.bruynhuis.galago.listener.PauseListener;
 import com.bruynhuis.galago.listener.RemoteActionListener;
+import com.bruynhuis.galago.listener.SelectionActionListener;
 import com.bruynhuis.galago.listener.SensorListener;
 import com.bruynhuis.galago.messages.MessageManager;
 import com.bruynhuis.galago.resource.EffectManager;
@@ -60,6 +61,7 @@ import com.jme3.texture.Image;
 import com.jme3.texture.Texture2D;
 import com.jme3.texture.plugins.AndroidImageLoader;
 import java.io.IOException;
+import java.util.HashMap;
 
 /**
  * When using this Galago game library you need to extend the BaseApplication.
@@ -97,6 +99,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     protected GameSaves gameSaves;
     protected KeyboardInputListener keyboardInputListener;
     protected RemoteActionListener remoteActionListener;
+    protected SelectionActionListener selectionActionListener;
     protected EscapeListener androidEscapeListener;
     protected GoogleAPIErrorListener googleAPIErrorListener;
     protected SavedGameListener savedGameListener;
@@ -155,6 +158,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     protected MidiPlayer midiPlayer;
     protected AbstractScreen currentScreen;
     private boolean firePauseAction = false;
+    private boolean fireResumeAction = false;
     private Texture2D cameraTexture;
     private AndroidImageLoader androidImageLoader;
     private JoystickInputListener joystickInputListener;
@@ -199,6 +203,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 
         settings.setVSync(true);
         settings.setUseJoysticks(true);
+        settings.setSettingsDialogImage(null);
 
 //        settings.setSettingsDialogImage(splashImage);
         setSettings(settings);
@@ -244,6 +249,11 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         messageManager = new MessageManager(this);
 
         addPauseListener(this);
+        
+        if (isMobileApp()) {
+            assetManager.registerLoader(AndroidImageLoader.class, "jpg", "bmp", "gif", "png", "jpeg");            
+
+        }
 
         preInitApp();
 
@@ -283,7 +293,11 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 
     @Override
     public void doPause(boolean pause) {
-        firePauseAction = true;
+        if (pause) {
+            firePauseAction = true;
+        } else {
+            fireResumeAction = true;
+        }
     }
 
     /**
@@ -375,6 +389,13 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
                     currentScreen.firePauseAction();
                 }
                 firePauseAction = false;
+            }
+            
+            if (fireResumeAction) {
+                if (screenManager != null && currentScreen != null) {
+                    currentScreen.fireResumeAction();
+                }
+                fireResumeAction = false;
             }
 
         }
@@ -733,6 +754,32 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
             remoteActionListener.doAction(properties);
         }
     }
+    
+    /**
+     * This method is for internal use and should not be called.
+     *
+     * @param remoteActionListener1
+     */
+    public void addSelectionActionListener(SelectionActionListener selectionActionListener1) {
+        this.selectionActionListener = selectionActionListener1;
+    }
+
+    /**
+     * This method is for internal use and should not be called.
+     *
+     * @param properties
+     */
+    protected void fireSelectionActionListener(HashMap<Integer, String> options) {
+        if (selectionActionListener != null) {
+            selectionActionListener.doSelectionOption(options);
+        }
+    }
+    
+    public void setDropdownSelectedIndex(int selectedIndex) {
+        if (getCurrentScreen() != null) {
+            getCurrentScreen().getWindow().setValueForDropdown(selectedIndex);
+        }        
+    }
 
     /**
      * This method is for internal use and should not be called.
@@ -759,6 +806,13 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
      */
     public void doPauseGame() {
         firePauseListener(true);
+    }
+    
+    /**
+     * For internal use by the android activity
+     */
+    public void doResumeGame() {
+        firePauseListener(false);
     }
 
     public void addSensorListener(SensorListener sensorListener) {
@@ -895,6 +949,14 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         properties.put(ACTION, ACTION_LINK);
         properties.put(URL, url);
         fireRemoteActionListener(properties);
+    }
+    
+        /**
+     * This method should be called to show a selection.
+     * @param items 
+     */
+    public void doShowSelection(HashMap<Integer, String> items) {
+        fireSelectionActionListener(items);
     }
 
     /**

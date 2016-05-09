@@ -1,0 +1,8 @@
+Material My Material : Common/MatDefs/Misc/Unshaded.j3md {
+     MaterialParameters {
+        ColorMap : Textures/Backgrounds/blue_land.png
+        Color : 0.6 0.6 0.6 1.0
+     }
+    AdditionalRenderState {
+    }
+}

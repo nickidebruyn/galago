@@ -30,6 +30,7 @@ import com.bruynhuis.galago.ui.field.TextArea;
 import com.bruynhuis.galago.ui.field.TextField;
 import com.bruynhuis.galago.ui.Widget;
 import com.bruynhuis.galago.ui.button.TouchButton;
+import com.bruynhuis.galago.ui.field.DropDownField;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.math.Ray;
@@ -231,12 +232,39 @@ public class Window {
         // 5. Use the results (we mark the hit object)
         if (results.size() > 0) {
 
-            for (int i = 0; i < results.size(); i++) {
-                CollisionResult cr = results.getCollision(i);
-                fireCollisionOnButtons(cr, down, move, cursorPointX, cursorPointY, tpf);
+            if (collisionResultsContainsButton(results)) {
+                for (int i = 0; i < results.size(); i++) {
+                    CollisionResult cr = results.getCollision(i);
+                    fireCollisionOnButtons(cr, down, move, cursorPointX, cursorPointY, tpf);
+
+                }
+                                
+            } else {
+                releaseSelectedButtons(null);
 
             }
+
+        } else {
+            if (down) {
+//                releaseSelectedButtons(null);
+            }
         }
+    }
+    
+    private boolean collisionResultsContainsButton(CollisionResults collisionResults) {
+        boolean contains = false;
+        for (int i = 0; i < collisionResults.size(); i++) {
+            CollisionResult cr = collisionResults.getCollision(i);
+            if (cr.getGeometry().getParent() != null
+                    && cr.getGeometry().getParent().getUserData(TouchButton.TYPE_TOUCH_BUTTON) != null
+                    && cr.getGeometry().getParent().getUserData(TouchButton.TYPE_TOUCH_BUTTON) instanceof TouchButton) {
+                contains = true;
+                break;
+            }
+
+        }
+        return contains;
+
     }
 
     /**
@@ -251,14 +279,18 @@ public class Window {
      */
     private void fireCollisionOnButtons(CollisionResult cr, boolean down, boolean move, float cursorPointX, float cursorPointY, float tpf) {
         TouchButton touchButton = null;
+
+//        if (down && cr != null) {
+//            log("Collision = " + cr.getGeometry().getName());
+//        }
+
         if (cr.getGeometry().getParent() != null
                 && cr.getGeometry().getParent().getUserData(TouchButton.TYPE_TOUCH_BUTTON) != null
                 && cr.getGeometry().getParent().getUserData(TouchButton.TYPE_TOUCH_BUTTON) instanceof TouchButton) {
 
-
             //Now we check what to do
             touchButton = (TouchButton) cr.getGeometry().getParent().getUserData(TouchButton.TYPE_TOUCH_BUTTON);
-           
+
             if (touchButton.isEnabled() && touchButton.isVisible()) {
                 if (move) {
                     touchButton.fireTouchMove(cursorPointX, cursorPointY, tpf);
@@ -282,6 +314,14 @@ public class Window {
 
     public float getScaleFactorHeight() {
         return getAppSettings().getHeight() / getHeight();
+    }
+    
+    public float getWidthScaled() {
+        return getAppSettings().getWidth();
+    }
+
+    public float getHeightScaled() {
+        return getAppSettings().getHeight();
     }
 
     public float getWidth() {
@@ -356,7 +396,120 @@ public class Window {
         }
     }
 
+    public void removeFocusFromDropdown() {
+        for (Iterator<Panel> it = panels.iterator(); it.hasNext();) {
+            Panel panel = it.next();
+            removeFocusFromDropdownOnPanel(panel);
+
+        }
+    }
+
+    protected void removeFocusFromDropdownOnPanel(Panel panel) {
+        for (Iterator<Widget> it1 = panel.getWidgets().iterator(); it1.hasNext();) {
+            Widget widget = it1.next();
+            if (widget instanceof DropDownField) {
+                ((DropDownField) widget).blur();
+
+            } else if (widget instanceof Panel) {
+                removeFocusFromDropdownOnPanel((Panel) widget);
+            }
+
+        }
+    }
+
+    public void setValueForDropdown(int selectedIndex) {
+        for (Iterator<Panel> it = panels.iterator(); it.hasNext();) {
+            Panel panel = it.next();
+            setValueForDropdownOnPanel(panel, selectedIndex);
+
+        }
+    }
+
+    protected void setValueForDropdownOnPanel(Panel panel, int selectedIndex) {
+        for (Iterator<Widget> it1 = panel.getWidgets().iterator(); it1.hasNext();) {
+            Widget widget = it1.next();
+            if (widget instanceof DropDownField) {
+                if (((DropDownField) widget).isFocus()) {
+                    ((DropDownField) widget).setSelectedIndex(selectedIndex);
+                }
+            } else if (widget instanceof Panel) {
+                setValueForDropdownOnPanel((Panel) widget, selectedIndex);
+            }
+
+        }
+    }
+
     public Node getWindowNode() {
         return windowNode;
+    }
+
+    public void releaseSelectedButtons(Widget widget) {
+        for (Iterator<Panel> it = panels.iterator(); it.hasNext();) {
+            Panel panel = it.next();
+            releaseSelectedButtonsPanel(panel, widget);
+
+        }
+    }
+
+    protected void releaseSelectedButtonsPanel(Panel panel, Widget widget) {
+        for (Iterator<Widget> it1 = panel.getWidgets().iterator(); it1.hasNext();) {
+            Widget w = it1.next();
+            if (w instanceof TouchButton) {
+                TouchButton touchButton = (TouchButton) w;
+                if (touchButton.isEnabled() && touchButton.isVisible() && touchButton.isTouched()) {
+                    touchButton.fireTouchCancel(getInputManager().getCursorPosition().x,
+                            getInputManager().getCursorPosition().y, 1);
+                }
+//                //TODO:
+//                if (widget != null && !touchButton.equals(widget) && touchButton.isTouched()) {
+//                    touchButton.fireTouchCancel(getInputManager().getCursorPosition().x,
+//                            getInputManager().getCursorPosition().y, 1);
+//                    
+//                } else if (widget == null && touchButton.isTouched()) {
+//                    touchButton.fireTouchCancel(getInputManager().getCursorPosition().x,
+//                            getInputManager().getCursorPosition().y, 1);
+//                    
+//                }
+
+            } else if (w instanceof Panel) {
+                releaseSelectedButtonsPanel((Panel) w, widget);
+            }
+
+        }
+    }
+    
+    /**
+     * This will determine if a dialog is currently open.
+     * 
+     * @return 
+     */
+    public boolean isDialogOpen() {
+        boolean open = false;
+        if (panels != null && panels.size() > 0) {
+            for (Iterator<Panel> it = panels.iterator(); it.hasNext();) {
+                Panel panel = it.next();
+                if (panel instanceof PopupDialog && panel.isVisible()) {
+                    open = true;
+                    break;
+                }
+            }
+            
+        }        
+        return open;
+    }
+    
+    /**
+     * This helper method will close all dialogs.
+     */
+    public void closeAllDialogs() {
+        if (panels != null && panels.size() > 0) {
+            for (Iterator<Panel> it = panels.iterator(); it.hasNext();) {
+                Panel panel = it.next();
+                if (panel instanceof PopupDialog && panel.isVisible()) {
+                    panel.hide();
+                }
+            }
+            
+        }
     }
 }

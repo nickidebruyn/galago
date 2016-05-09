@@ -37,6 +37,10 @@ public class WidgetAccessor implements TweenAccessor<Widget> {
             case ROTATION_Y:
                 returnValues[0] = target.getRotationY();
                 return 1;
+                
+            case OPACITY:
+                returnValues[0] = target.getTransparency();
+                return 1;
 
             default:
                 assert false;
@@ -48,7 +52,7 @@ public class WidgetAccessor implements TweenAccessor<Widget> {
     public void setValues(Widget target, int tweenType, float[] newValues) {
         switch (tweenType) {
             case POS_XY:
-                target.setPosition(newValues[0]* target.getWindow().getScaleFactorWidth(), newValues[1]* target.getWindow().getScaleFactorHeight());
+                target.setPosition(newValues[0], newValues[1]);
                 break;
             case SCALE_XY:
                 target.setScales(newValues[0], newValues[1]);
@@ -58,6 +62,9 @@ public class WidgetAccessor implements TweenAccessor<Widget> {
                 break;
             case ROTATION_Y:
                 target.setRotationY(newValues[0]);
+                break;
+            case OPACITY:
+                target.setTransparency(newValues[0]);
                 break;
             default:
                 assert false;

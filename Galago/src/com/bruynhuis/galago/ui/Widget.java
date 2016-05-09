@@ -25,7 +25,7 @@ import java.util.ArrayList;
  * @author nidebruyn
  */
 public abstract class Widget implements Savable {
-    
+
     protected boolean animated = false;
     protected Window window;
     protected Widget parent;
@@ -34,27 +34,29 @@ public abstract class Widget implements Savable {
     protected float height;
     protected Node widgetNode;
     protected ArrayList<Effect> effects = new ArrayList<Effect>();
+    protected boolean lockScaling = false;
 
     /**
-     * 
+     *
      * @param window
      * @param parent
      * @param width
      * @param height
-     * @param lockscaling 
+     * @param lockscaling
      */
     public Widget(Window window, Widget parent, float width, float height, boolean lockscaling) {
         this.window = window;
         this.parent = parent;
         this.width = width;
         this.height = height;
-        
+        this.lockScaling = lockscaling;
+
         if (lockscaling) {
             this.width = width * window.getScaleFactorHeight();
         } else {
             this.width = width * window.getScaleFactorWidth();
-        }        
-        
+        }
+
         this.height = height * window.getScaleFactorHeight();
 
         this.appSettings = window.getAppSettings();
@@ -63,11 +65,11 @@ public abstract class Widget implements Savable {
             widgetNode = new BatchNode("WidgetNode");
         } else {
             widgetNode = new Node("WidgetNode");
-        }        
-        
-        
+        }
+
+
     }
-    
+
     protected abstract boolean isBatched();
 
     public boolean isAnimated() {
@@ -75,8 +77,8 @@ public abstract class Widget implements Savable {
     }
 
     /**
-     * 
-     * @param animated 
+     *
+     * @param animated
      */
     public void setAnimated(boolean animated) {
         this.animated = animated;
@@ -142,8 +144,8 @@ public abstract class Widget implements Savable {
     }
 
     /**
-     * 
-     * @param visible 
+     *
+     * @param visible
      */
     public void setVisible(boolean visible) {
         if (visible && widgetNode.getCullHint().equals(Spatial.CullHint.Always)) {
@@ -160,17 +162,17 @@ public abstract class Widget implements Savable {
     }
 
     /**
-     * 
+     *
      * @param x
-     * @param y 
+     * @param y
      */
     public void setPosition(float x, float y) {
         widgetNode.setLocalTranslation(x, y, widgetNode.getLocalTranslation().z);
     }
-    
+
     /**
-     * 
-     * @param z 
+     *
+     * @param z
      */
     public void setDepthPosition(float z) {
         widgetNode.setLocalTranslation(widgetNode.getLocalTranslation().x, widgetNode.getLocalTranslation().y, z);
@@ -179,16 +181,16 @@ public abstract class Widget implements Savable {
     public Vector3f getPosition() {
         return widgetNode.getLocalTranslation();
     }
-    
+
     public Vector3f getScreenPosition() {
 //        return new Vector3f(-(window.getWidth()*0.5f*window.getScaleFactorWidth()) + getPosition().x, width, getPosition().z);
-        return new Vector3f(getPosition().x + (window.getWidth()*0.5f*window.getScaleFactorWidth()), getPosition().y + (window.getHeight()*0.5f*window.getScaleFactorHeight()), getPosition().z);
+        return new Vector3f(getPosition().x + (window.getWidth() * 0.5f * window.getScaleFactorWidth()), getPosition().y + (window.getHeight() * 0.5f * window.getScaleFactorHeight()), getPosition().z);
     }
 
     /**
-     * 
+     *
      * @param x
-     * @param y 
+     * @param y
      */
     public void move(float x, float y) {
         widgetNode.setLocalTranslation(getPosition().x + x, getPosition().y + y, widgetNode.getLocalTranslation().z);
@@ -222,109 +224,175 @@ public abstract class Widget implements Savable {
 
     /**
      * Center the widget to the Top of the screen.
+     *
      * @param offsetX
-     * @param offsetY 
+     * @param offsetY
      */
     public void centerTop(float offsetX, float offsetY) {
-        float xPos = offsetX * window.getScaleFactorWidth();
-        float yPos = (getParentHeight() *0.5f) - (height * 0.5f) - (offsetY * window.getScaleFactorHeight());
-        setPosition(xPos, yPos);
+        if (hasParent() && getParent().isLockScaling()) {
+            float xPos = offsetX * window.getScaleFactorHeight();
+            float yPos = (getParentHeight() * 0.5f) - (height * 0.5f) - (offsetY * window.getScaleFactorHeight());
+            setPosition(xPos, yPos);
+        } else {
+            float xPos = offsetX * window.getScaleFactorWidth();
+            float yPos = (getParentHeight() * 0.5f) - (height * 0.5f) - (offsetY * window.getScaleFactorHeight());
+            setPosition(xPos, yPos);
+        }
+
 
     }
 
     /**
-     * 
+     *
      * @param offsetX
-     * @param offsetY 
+     * @param offsetY
      */
     public void centerBottom(float offsetX, float offsetY) {
-        float xPos = offsetX * window.getScaleFactorWidth();
-        float yPos = -(getParentHeight() * 0.5f) + (height * 0.5f) + (offsetY * window.getScaleFactorHeight());
-        setPosition(xPos, yPos);
+        if (hasParent() && getParent().isLockScaling()) {
+            float xPos = offsetX * window.getScaleFactorHeight();
+            float yPos = -(getParentHeight() * 0.5f) + (height * 0.5f) + (offsetY * window.getScaleFactorHeight());
+            setPosition(xPos, yPos);
+        } else {
+            float xPos = offsetX * window.getScaleFactorWidth();
+            float yPos = -(getParentHeight() * 0.5f) + (height * 0.5f) + (offsetY * window.getScaleFactorHeight());
+            setPosition(xPos, yPos);
+        }
+
 
     }
 
     /**
-     * 
+     *
      * @param offsetX
-     * @param offsetY 
+     * @param offsetY
      */
     public void rightBottom(float offsetX, float offsetY) {
-        float xPos = (getParentWidth() * 0.5f) - (width * 0.5f) - (offsetX * window.getScaleFactorWidth());
-        float yPos = -(getParentHeight() * 0.5f) + (height * 0.5f) + (offsetY * window.getScaleFactorHeight());
-        setPosition(xPos, yPos);
+        if (hasParent() && getParent().isLockScaling()) {
+            float xPos = (getParentWidth() * 0.5f) - (width * 0.5f) - (offsetX * window.getScaleFactorHeight());
+            float yPos = -(getParentHeight() * 0.5f) + (height * 0.5f) + (offsetY * window.getScaleFactorHeight());
+            setPosition(xPos, yPos);
+        } else {
+            float xPos = (getParentWidth() * 0.5f) - (width * 0.5f) - (offsetX * window.getScaleFactorWidth());
+            float yPos = -(getParentHeight() * 0.5f) + (height * 0.5f) + (offsetY * window.getScaleFactorHeight());
+            setPosition(xPos, yPos);
+        }
+
 
     }
 
     /**
-     * 
+     *
      * @param offsetX
-     * @param offsetY 
+     * @param offsetY
      */
     public void rightTop(float offsetX, float offsetY) {
-        float xPos = (getParentWidth() * 0.5f) - (width * 0.5f) - (offsetX * window.getScaleFactorWidth());
-        float yPos = (getParentHeight() * 0.5f) - (height * 0.5f) - (offsetY * window.getScaleFactorHeight());
-        setPosition(xPos, yPos);
+        if (hasParent() && getParent().isLockScaling()) {
+            float xPos = (getParentWidth() * 0.5f) - (width * 0.5f) - (offsetX * window.getScaleFactorHeight());
+            float yPos = (getParentHeight() * 0.5f) - (height * 0.5f) - (offsetY * window.getScaleFactorHeight());
+            setPosition(xPos, yPos);
+        } else {
+            float xPos = (getParentWidth() * 0.5f) - (width * 0.5f) - (offsetX * window.getScaleFactorWidth());
+            float yPos = (getParentHeight() * 0.5f) - (height * 0.5f) - (offsetY * window.getScaleFactorHeight());
+            setPosition(xPos, yPos);
+        }
 
     }
 
     /**
-     * 
+     *
      * @param offsetX
-     * @param offsetY 
+     * @param offsetY
      */
     public void rightCenter(float offsetX, float offsetY) {
-        float xPos = (getParentWidth() * 0.5f) - (width * 0.5f) - (offsetX * window.getScaleFactorWidth());
-        float yPos = (offsetY * window.getScaleFactorHeight());
-        setPosition(xPos, yPos);
+        if (hasParent() && getParent().isLockScaling()) {
+            float xPos = (getParentWidth() * 0.5f) - (width * 0.5f) - (offsetX * window.getScaleFactorHeight());
+            float yPos = (offsetY * window.getScaleFactorHeight());
+            setPosition(xPos, yPos);
+        } else {
+            float xPos = (getParentWidth() * 0.5f) - (width * 0.5f) - (offsetX * window.getScaleFactorWidth());
+            float yPos = (offsetY * window.getScaleFactorHeight());
+            setPosition(xPos, yPos);
+        }
+
 
     }
 
     /**
-     * 
+     *
      * @param offsetX
-     * @param offsetY 
+     * @param offsetY
      */
     public void leftCenter(float offsetX, float offsetY) {
-        float xPos = -(getParentWidth() * 0.5f) + (width * 0.5f) + offsetX * window.getScaleFactorWidth();
-        float yPos = (offsetY * window.getScaleFactorHeight());
-        setPosition(xPos, yPos);
+        if (hasParent() && getParent().isLockScaling()) {
+            float xPos = -(getParentWidth() * 0.5f) + (width * 0.5f) + offsetX * window.getScaleFactorHeight();
+            float yPos = (offsetY * window.getScaleFactorHeight());
+            setPosition(xPos, yPos);
+
+        } else {
+            float xPos = -(getParentWidth() * 0.5f) + (width * 0.5f) + offsetX * window.getScaleFactorWidth();
+            float yPos = (offsetY * window.getScaleFactorHeight());
+            setPosition(xPos, yPos);
+
+        }
+
 
     }
 
     /**
-     * 
+     *
      * @param offsetX
-     * @param offsetY 
+     * @param offsetY
      */
     public void leftBottom(float offsetX, float offsetY) {
-        float xPos = -(getParentWidth() * 0.5f) + (width * 0.5f) + offsetX * window.getScaleFactorWidth();
-        float yPos = -(getParentHeight() * 0.5f) + (height * 0.5f) + (offsetY * window.getScaleFactorHeight());
-        setPosition(xPos, yPos);
+        if (hasParent() && getParent().isLockScaling()) {
+            float xPos = -(getParentWidth() * 0.5f) + (width * 0.5f) + offsetX * window.getScaleFactorHeight();
+            float yPos = -(getParentHeight() * 0.5f) + (height * 0.5f) + (offsetY * window.getScaleFactorHeight());
+            setPosition(xPos, yPos);
+
+        } else {
+            float xPos = -(getParentWidth() * 0.5f) + (width * 0.5f) + offsetX * window.getScaleFactorWidth();
+            float yPos = -(getParentHeight() * 0.5f) + (height * 0.5f) + (offsetY * window.getScaleFactorHeight());
+            setPosition(xPos, yPos);
+        }
+
 
     }
 
     /**
-     * 
+     *
      * @param offsetX
-     * @param offsetY 
+     * @param offsetY
      */
     public void leftTop(float offsetX, float offsetY) {
-        float xPos = -(getParentWidth() * 0.5f) + (width * 0.5f) + offsetX * window.getScaleFactorWidth();
-        float yPos = (getParentHeight() * 0.5f) - (height * 0.5f) - (offsetY * window.getScaleFactorHeight());
-        setPosition(xPos, yPos);
+        if (hasParent() && getParent().isLockScaling()) {
+            float xPos = -(getParentWidth() * 0.5f) + (width * 0.5f) + offsetX * window.getScaleFactorHeight();
+            float yPos = (getParentHeight() * 0.5f) - (height * 0.5f) - (offsetY * window.getScaleFactorHeight());
+            setPosition(xPos, yPos);
+        } else {
+            float xPos = -(getParentWidth() * 0.5f) + (width * 0.5f) + offsetX * window.getScaleFactorWidth();
+            float yPos = (getParentHeight() * 0.5f) - (height * 0.5f) - (offsetY * window.getScaleFactorHeight());
+            setPosition(xPos, yPos);
+        }
 
     }
 
     /**
-     * 
+     *
      * @param offsetX
-     * @param offsetY 
+     * @param offsetY
      */
     public void centerAt(float offsetX, float offsetY) {
-        float xPos = (offsetX * window.getScaleFactorWidth());
-        float yPos = (offsetY * window.getScaleFactorHeight());
-        setPosition(xPos, yPos);
+
+        if (hasParent() && getParent().isLockScaling()) {
+            float xPos = (offsetX * window.getScaleFactorHeight());
+            float yPos = (offsetY * window.getScaleFactorHeight());
+            setPosition(xPos, yPos);
+
+        } else {
+            float xPos = (offsetX * window.getScaleFactorWidth());
+            float yPos = (offsetY * window.getScaleFactorHeight());
+            setPosition(xPos, yPos);
+        }
 
     }
 
@@ -333,22 +401,26 @@ public abstract class Widget implements Savable {
 
     }
 
+    public boolean isLockScaling() {
+        return lockScaling;
+    }
+
     public float getHeight() {
         return height;
 
     }
 
     /**
-     * 
-     * @param scale 
+     *
+     * @param scale
      */
     public void scale(float scale) {
         setScale(getScale() + scale);
     }
 
     /**
-     * 
-     * @param scale 
+     *
+     * @param scale
      */
     public void setScale(float scale) {
         widgetNode.setLocalScale(scale);
@@ -357,32 +429,32 @@ public abstract class Widget implements Savable {
     public float getScale() {
         return widgetNode.getLocalScale().x;
     }
-    
+
     public Vector3f getScales() {
         return widgetNode.getLocalScale();
     }
-    
+
     /**
-     * 
+     *
      * @param x
-     * @param y 
+     * @param y
      */
     public void setScales(float x, float y) {
         widgetNode.setLocalScale(new Vector3f(x, y, 1));
     }
 
     /**
-     * 
+     *
      * @param x
      * @param y
-     * @param z 
+     * @param z
      */
     public void rotate(float x, float y, float z) {
         widgetNode.rotate(x, y, z);
     }
-    
+
     /**
-     * 
+     *
      * @param rotationAmountZ
      */
     public void rotate(float rotationAmountZ) {
@@ -391,63 +463,73 @@ public abstract class Widget implements Savable {
 
     /**
      * Rotation in degrees
-     * @return 
+     *
+     * @return
      */
     public float getRotation() {
-        return widgetNode.getLocalRotation().toAngles(null)[2]* FastMath.RAD_TO_DEG;
+        return widgetNode.getLocalRotation().toAngles(null)[2] * FastMath.RAD_TO_DEG;
     }
-    
+
     /**
      * Rotation in degrees
-     * @return 
+     *
+     * @return
      */
     public float getRotationY() {
-        return widgetNode.getLocalRotation().toAngles(null)[1]* FastMath.RAD_TO_DEG;
+        return widgetNode.getLocalRotation().toAngles(null)[1] * FastMath.RAD_TO_DEG;
     }
-    
+
     /**
      * Sets the rotation of a widget in degrees
-     * @param angle 
+     *
+     * @param angle
      */
     public void setRotation(float angle) {
         Quaternion q = new Quaternion();
-        q.fromAngleAxis(angle*FastMath.DEG_TO_RAD, Vector3f.UNIT_Z);
+        q.fromAngleAxis(angle * FastMath.DEG_TO_RAD, Vector3f.UNIT_Z);
         widgetNode.setLocalRotation(q);
     }
-    
+
     /**
      * Sets the rotation of a widget in degrees
-     * @param angle 
+     *
+     * @param angle
      */
     public void setRotationY(float angle) {
         Quaternion q = new Quaternion();
-        q.fromAngleAxis(angle*FastMath.DEG_TO_RAD, Vector3f.UNIT_Y);
+        q.fromAngleAxis(angle * FastMath.DEG_TO_RAD, Vector3f.UNIT_Y);
         widgetNode.setLocalRotation(q);
     }
-    
+
     /**
-     * 
-     * @param effect 
+     *
+     * @param effect
      */
     public void addEffect(Effect effect) {
         effects.add(effect);
         widgetNode.addControl(effect);
     }
-    
+
     /**
-     * 
-     * @param effect 
+     *
+     * @param effect
      */
     public void removeEffect(Effect effect) {
         effects.remove(effect);
         widgetNode.removeControl(effect);
     }
+
+    /**
+     *
+     * @param alpha
+     */
+    public abstract void setTransparency(float alpha);
     
     /**
      * 
-     * @param alpha 
+     * @return 
      */
-    public abstract void setTransparency(float alpha);
+    public abstract float getTransparency();
 
     @Override
     public void write(JmeExporter ex) throws IOException {
@@ -458,6 +540,4 @@ public abstract class Widget implements Savable {
     public void read(JmeImporter im) throws IOException {
 //        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
-
 }

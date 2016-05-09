@@ -9,7 +9,6 @@ import com.bruynhuis.galago.listener.JoystickListener;
 import com.bruynhuis.galago.sprite.Sprite;
 import com.bruynhuis.galago.sprite.physics.RigidBodyControl;
 import com.bruynhuis.galago.sprite.physics.shape.BoxCollisionShape;
-import com.bruynhuis.galago.util.Debug;
 import com.example.spaceshooter.MainApplication;
 import com.example.spaceshooter.bullet.BulletCollisionControl;
 import com.example.spaceshooter.bullet.BulletControl;
@@ -60,12 +59,12 @@ public class PlayerShootControl extends AbstractControl implements AnalogListene
 //        Debug.log("Shoot bullet from: " + position);
 
         if (spatial.getParent() != null) {
-            Sprite sprite = new Sprite("bullet", 0.2f, 0.5f);
+            Sprite sprite = new Sprite("bullet", 0.1f, 0.3f);
             sprite.setMaterial(mainApplication.getModelManager().getMaterial("Materials/bullets.j3m"));
             sprite.setLocalTranslation(position);
             spatial.getParent().attachChild(sprite);
 
-            RigidBodyControl rbc = new RigidBodyControl(new BoxCollisionShape(0.2f, 0.5f), 0);
+            RigidBodyControl rbc = new RigidBodyControl(new BoxCollisionShape(0.1f, 0.3f), 0);
             rbc.setSensor(true);
             rbc.setGravityScale(0);
             rbc.setPhysicLocation(position);

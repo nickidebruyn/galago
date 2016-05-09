@@ -42,3 +42,5 @@ proguard/
 # Android Studio captures folder
 captures/
 /Galago/dist/
+/Platform2DRunner/nbproject/private/
+/Platform2DRunner/dist/

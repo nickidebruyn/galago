@@ -76,19 +76,19 @@ public class EnemySpawnControl extends AbstractControl {
         int shield = 1;
         
         if (type == TYPE_MOTHER_SHIP) {
-            size = 5f;
+            size = 4f;
             vSpeed = FastMath.nextRandomInt(4, 4);
             hSpeed = FastMath.nextRandomInt(10, 16);
             shield = 10;
             
         } else if (type == TYPE_ZIGZAG) {
-            size = 3.0f;
+            size = 2.2f;
             vSpeed = FastMath.nextRandomInt(10, 14);
             hSpeed = FastMath.nextRandomInt(20, 26);
             shield = 3;
             
         } else if (type == TYPE_ZIGZAG_AGRESSIVE) {
-            size = 2.5f;
+            size = 2.0f;
             vSpeed = FastMath.nextRandomInt(12, 16);
             hSpeed = FastMath.nextRandomInt(20, 26);
             shield = 2;

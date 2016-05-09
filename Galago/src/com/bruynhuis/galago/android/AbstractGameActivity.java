@@ -29,6 +29,8 @@ import com.google.android.gms.appstate.AppStateManager;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.games.Games;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
@@ -38,6 +40,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.AsyncTask;
 import android.util.Log;
+import com.bruynhuis.galago.listener.SelectionActionListener;
 import com.jme3.system.android.AndroidConfigChooser.ConfigType;
 import com.bruynhuis.galago.sound.AndroidMidiPlayer;
 import com.bruynhuis.galago.sound.MidiPlayer;
@@ -56,6 +59,7 @@ import com.google.android.gms.games.snapshot.Snapshots;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.Random;
 
 /**
@@ -68,11 +72,11 @@ import java.util.Random;
  */
 public abstract class AbstractGameActivity extends AndroidHarness
         implements KeyboardInputListener, RemoteActionListener, EscapeListener,
-        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SensorEventListener {
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SensorEventListener, SelectionActionListener {
 
-    private SensorManager sensorManager = null;
-    private Sensor accelerometer;
-    private Sensor magnetometer;
+    protected SensorManager sensorManager = null;
+    protected Sensor accelerometer;
+    protected Sensor magnetometer;
     private float[] gravity;
     private float[] geomagnetic;
     private float R[] = new float[9];
@@ -82,14 +86,14 @@ public abstract class AbstractGameActivity extends AndroidHarness
     private static final int GOOGLE_RESOLUTION_REQUEST_CODE = 444;
     private static final int SAVED_GAMES_REQUEST_CODE = 555;
     private static final int ACHIEVEMENTS_REQUEST_CODE = 666;
-    private RelativeLayout addViewLayout;
-    private AdView adView;
-    private InterstitialAd interstitialAd;
-    private GoogleApiClient googleApiClient;
-    private GoogleAnalytics analytics;
+    protected RelativeLayout addViewLayout;
+    protected AdView adView;
+    protected InterstitialAd interstitialAd;
+    protected GoogleApiClient googleApiClient;
+    protected GoogleAnalytics analytics;
 //    private Snapshot openedSnapshot;
 //    private byte[] openedLevelData;
-    private Tracker tracker;
+    protected Tracker tracker;
     private boolean isAccessingScores = false;
     private int scoreToAdd = 0;
     private String leaderboard = "";
@@ -104,6 +108,7 @@ public abstract class AbstractGameActivity extends AndroidHarness
     protected String ANALYTICS_TRACKER_ID = "";
     protected boolean useAdmob = false;
     protected boolean useAdmobInterstitials = false;
+    protected boolean admobBannerBottom = true;
     protected boolean useMidiMusicTracks = false;
     protected boolean useSensor = false;
     protected boolean usePlayServices = false;
@@ -191,6 +196,46 @@ public abstract class AbstractGameActivity extends AndroidHarness
         });
 
         return null;
+    }
+    
+    /**
+     * Show a selection dialog
+     *
+     * @param prprts
+     */
+    public void doSelectionOption(final HashMap<Integer, String> items) {
+       
+        this.runOnUiThread(new Runnable() {
+            public void run() {
+                AlertDialog.Builder builder = new AlertDialog.Builder(AbstractGameActivity.this);
+                builder.setTitle("Select Options");
+                String[] options = {"- None -"};
+
+                if (items != null) {
+                    int size = items.values().size();
+                    options = new String[size];
+                    options = items.values().toArray(options);
+                }
+
+                builder.setItems(options, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        //Set the selection
+                        if (getJmeApplication() != null) {
+                            ((BaseApplication) getJmeApplication()).setDropdownSelectedIndex(which);
+                        }                        
+                    }
+                });
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+
+            }
+        });
+
     }
 
     public void doAddScores(Properties prprts) {
@@ -749,6 +794,7 @@ public abstract class AbstractGameActivity extends AndroidHarness
         ((BaseApplication) getJmeApplication()).addKeyboardInputListener(this);
         ((BaseApplication) getJmeApplication()).addRemoteActionListener(this);
         ((BaseApplication) getJmeApplication()).addAndroidEscapeListener(this);
+        ((BaseApplication) getJmeApplication()).addSelectionActionListener(this);
 
         if (useSensor) {
             sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -924,7 +970,7 @@ public abstract class AbstractGameActivity extends AndroidHarness
 
         adView = new AdView(this);
         adView.setAdUnitId(ADMOB_ID);
-        adView.setAdSize(AdSize.BANNER);
+        adView.setAdSize(AdSize.SMART_BANNER);
 
         adView.setAdListener(new AdListener() {
             public void onAdLoaded() {
@@ -948,7 +994,12 @@ public abstract class AbstractGameActivity extends AndroidHarness
         adView.loadAd(adRequest);
 
         addViewLayout.addView(adView);
-        addViewLayout.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+        if (admobBannerBottom) {
+            addViewLayout.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+        } else {
+            addViewLayout.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+        }
+        
         addViewLayout.bringToFront();
         adView.bringToFront();
 
@@ -1038,6 +1089,10 @@ public abstract class AbstractGameActivity extends AndroidHarness
 
         if (useCamera && mCamera == null) {
             initLiveCamera();
+        }
+        
+        if (getJmeApplication() != null) {
+            ((BaseApplication) getJmeApplication()).doResumeGame();
         }
     }
 

@@ -6,7 +6,6 @@ package com.bruynhuis.galago.games.platform2d;
 
 import static com.bruynhuis.galago.games.tilemap.TileMapGame.BLANK;
 import com.bruynhuis.galago.listener.JoystickEvent;
-import com.bruynhuis.galago.listener.JoystickInputListener;
 import com.bruynhuis.galago.listener.JoystickListener;
 import com.bruynhuis.galago.listener.PickEvent;
 import com.bruynhuis.galago.listener.PickListener;

@@ -64,6 +64,7 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
     protected Base2DApplication baseApplication;
     protected Node rootNode;
     protected Node levelNode;
+    protected Node skyNode;
     protected Node terrainNode;
     protected Node vegetationNode;
     protected Vector3f startPosition = Vector3f.ZERO;
@@ -189,16 +190,16 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
             addSky((Sprite) tile.getSpatial(), 1f);
 
         } else if (frontLayer1List.contains(uid)) {
-            addSky((Sprite) tile.getSpatial(), -0.94f);
+            addSky((Sprite) tile.getSpatial(), -0.90f);
 
         } else if (frontLayer2List.contains(uid)) {
-            addSky((Sprite) tile.getSpatial(), -0.98f);
+            addSky((Sprite) tile.getSpatial(), -0.95f);
 
         } else if (backLayer1List.contains(uid)) {
-            addSky((Sprite) tile.getSpatial(), 0.94f);
+            addSky((Sprite) tile.getSpatial(), 0.90f);
 
         } else if (backLayer2List.contains(uid)) {
-            addSky((Sprite) tile.getSpatial(), 0.98f);
+            addSky((Sprite) tile.getSpatial(), 0.95f);
 
         } else if (startList.contains(uid)) {
             addStart((Sprite) tile.getSpatial());
@@ -341,6 +342,9 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
 
             } else if (checkCollisionWithType(spatialA, spatialB, TYPE_ENEMY, TYPE_BULLET)) {
                 fireCollisionEnemyWithBulletListener(lastCollidedSpatial, lastColliderSpatial);
+                
+            } else if (checkCollisionWithType(spatialA, spatialB, TYPE_ENEMY, TYPE_PICKUP)) {
+                fireCollisionEnemyWithPickupListener(lastCollidedSpatial, lastColliderSpatial);
 
             } else if (checkCollisionWithType(spatialA, spatialB, TYPE_TERRAIN, TYPE_BULLET)) {
                 fireCollisionTerrainWithBulletListener(lastCollidedSpatial, lastColliderSpatial);
@@ -470,6 +474,12 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
             gameListener.doCollisionPlayerWithPickup(collided, collider);
         }
     }
+    
+    protected void fireCollisionEnemyWithPickupListener(Spatial collided, Spatial collider) {
+        if (gameListener != null) {
+            gameListener.doCollisionEnemyWithPickup(collided, collider);
+        }
+    }
 
     protected void fireCollisionPlayerWithEnemyListener(Spatial collided, Spatial collider) {
         if (gameListener != null) {
@@ -597,6 +607,9 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
         levelNode = new Node("LEVEL_NODE");
         rootNode.attachChild(levelNode);
 
+        skyNode = new Node("SKY_NODE");
+        rootNode.attachChild(skyNode);
+
         terrainNode = new BatchNode("TERRAIN_NODE");
         levelNode.attachChild(terrainNode);
 
@@ -723,29 +736,34 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
      */
     public Spatial addPickup(Sprite sprite) {
         sprite.setName(TYPE_PICKUP);
-        levelNode.attachChild(sprite);
-        sprite.addControl(new AbstractControl() {
-            @Override
-            protected void controlUpdate(float tpf) {
-                if (isStarted() && !isGameOver() && !isPaused()) {
 
-                    float distance = new Vector2f(player.getPosition().x, player.getPosition().y).distance(new Vector2f(spatial.getLocalTranslation().x, spatial.getLocalTranslation().y));
+        //Add it as a physics object
+        if (sprite.getControl(RigidBodyControl.class) != null) {
+            if (!edit) {
+                baseApplication.getDyn4jAppState().getPhysicsSpace().add(sprite.getControl(RigidBodyControl.class));
+            }
+            levelNode.attachChild(sprite);
 
-                    //Check if the player is in range
-//                    log("player=" + player.getPosition());
-//                    log("pickup=" + spatial.getLocalTranslation());
-//                    log("distance=" + distance);
-                    if (distance < player.getSize()) {
-                        fireCollisionPlayerWithPickupListener(spatial, player.getPlayerNode());
+        } else {
+            //This is collision when it is a non physics object
+            sprite.addControl(new AbstractControl() {
+                @Override
+                protected void controlUpdate(float tpf) {
+                    if (isStarted() && !isGameOver() && !isPaused()) {
+                        float distance = new Vector2f(player.getPosition().x, player.getPosition().y).distance(new Vector2f(spatial.getLocalTranslation().x, spatial.getLocalTranslation().y));
+                        if (distance < player.getSize()) {
+                            fireCollisionPlayerWithPickupListener(spatial, player.getPlayerNode());
+                        }
+
                     }
-
                 }
-            }
 
-            @Override
-            protected void controlRender(RenderManager rm, ViewPort vp) {
-            }
-        });
+                @Override
+                protected void controlRender(RenderManager rm, ViewPort vp) {
+                }
+            });
+        }
+
         return sprite;
 
     }
@@ -779,7 +797,7 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
             @Override
             protected void controlUpdate(float tpf) {
                 if (isStarted() && !isGameOver() && !isPaused()) {
-                    
+
                     float distance = new Vector2f(player.getPosition().x, player.getPosition().y).distance(new Vector2f(spatial.getLocalTranslation().x, spatial.getLocalTranslation().y));
 
                     if (distance < player.getSize() * 0.5f) {
@@ -816,16 +834,15 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
      * Create background sky
      */
     protected void addSky(Sprite sprite, final float parallaxEffectSpeed) {
-        log("Add sky");
         sprite.setQueueBucket(RenderQueue.Bucket.Opaque);
-        addVegetation(sprite);
         sprite.setName(TYPE_SKY);
+        skyNode.attachChild(sprite);
 
         sprite.addControl(new AbstractControl() {
             @Override
             protected void controlUpdate(float tpf) {
                 //Make the background stick to the camera
-                spatial.setLocalTranslation(baseApplication.getCamera().getLocation().x * parallaxEffectSpeed, baseApplication.getCamera().getLocation().y * parallaxEffectSpeed, spatial.getLocalTranslation().z);
+                spatial.setLocalTranslation(baseApplication.getCamera().getLocation().x * parallaxEffectSpeed, spatial.getLocalTranslation().y, spatial.getLocalTranslation().z);
             }
 
             @Override
@@ -846,12 +863,16 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
     public void clear() {
 
         levelNode.removeFromParent();
+        skyNode.removeFromParent();
         baseApplication.getDyn4jAppState().getPhysicsSpace().clear();
 
         tileMap.getTiles().clear();
 
         levelNode = new Node("LEVEL_NODE");
         rootNode.attachChild(levelNode);
+
+        skyNode = new Node("SKY_NODE");
+        rootNode.attachChild(skyNode);
 
         terrainNode = new BatchNode("TERRAIN_NODE");
         levelNode.attachChild(terrainNode);
