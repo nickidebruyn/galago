@@ -13,6 +13,12 @@ package com.bruynhuis.galago.ui.listener;
 public abstract class TouchStickAdapter implements TouchStickListener {
 
     @Override
+    public void doMove(float x, float y, float distance) {
+    }
+    
+    
+
+    @Override
     public void doLeft(float x, float y, float distance) {
 
     }

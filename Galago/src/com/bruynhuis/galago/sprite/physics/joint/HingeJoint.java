@@ -29,4 +29,20 @@ public class HingeJoint extends PhysicsJoint {
         return revoluteJoint;
     }
 
+    public void setLimits(float lowerLimit, float upperLimit) {
+        ((org.dyn4j.dynamics.joint.RevoluteJoint)joint).setLimits(lowerLimit, upperLimit);
+        
+    }
+    
+    public void setLimitsEnabled(boolean enable) {
+        ((org.dyn4j.dynamics.joint.RevoluteJoint)joint).setLimitEnabled(enable);        
+    }
+    
+    public float getUpperLimit() {
+        return (float)((org.dyn4j.dynamics.joint.RevoluteJoint)joint).getUpperLimit();
+    }
+    
+    public float getLowerLimit() {
+        return (float)((org.dyn4j.dynamics.joint.RevoluteJoint)joint).getLowerLimit();
+    }
 }

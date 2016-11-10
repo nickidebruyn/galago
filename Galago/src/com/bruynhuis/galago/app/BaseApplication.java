@@ -251,7 +251,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         addPauseListener(this);
         
         if (isMobileApp()) {
-            assetManager.registerLoader(AndroidImageLoader.class, "jpg", "bmp", "gif", "png", "jpeg");            
+//            assetManager.registerLoader(AndroidImageLoader.class, "jpg", "bmp", "gif", "png", "jpeg");            
 
         }
 

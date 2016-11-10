@@ -58,6 +58,7 @@ public class TextField extends ImageWidget {
     private boolean focus = false;
     protected int maxLength = 10;    
     protected boolean caps = false;
+    protected boolean shift = false;
     
     protected KeyboardListener keyboardListener;
     protected FocusListener focusListener;
@@ -82,6 +83,10 @@ public class TextField extends ImageWidget {
     public TextField(Panel panel, String id, String pictureFile) {
         this(panel, id, pictureFile, 300, 40);
     }
+    
+    public TextField(Panel panel, String id, String pictureFile, float width, float height) {
+        this(panel, id, pictureFile, width, height, false);
+    }
 
     /**
      * 
@@ -91,8 +96,8 @@ public class TextField extends ImageWidget {
      * @param width
      * @param height 
      */
-    public TextField(Panel panel, String id, String pictureFile, float width, float height) {
-        super(panel.getWindow(), panel, pictureFile, width, height, false);
+    public TextField(Panel panel, String id, String pictureFile, float width, float height, boolean lockScale) {
+        super(panel.getWindow(), panel, pictureFile, width, height, lockScale);
         this.id = id;
         setName(id);
         
@@ -102,10 +107,11 @@ public class TextField extends ImageWidget {
         float recWidth = getWidth();
         float factor = 1f;
         float recHeight = (getHeight()*0.5f) * factor;
+        float padding = 0f;
                
         bitmapText = window.getBitmapFont().createLabel(id);
         bitmapText.setText(" ");
-        bitmapText.setBox(new Rectangle(xP, yP, recWidth, recHeight));
+        bitmapText.setBox(new Rectangle(xP+padding, yP, recWidth+padding, recHeight));
         bitmapText.setSize(fontSize * window.getScaleFactorHeight());      // font size
         bitmapText.setColor(ColorRGBA.DarkGray);// font color
         bitmapText.setAlignment(BitmapFont.Align.Left);
@@ -228,22 +234,50 @@ public class TextField extends ImageWidget {
             public void onTouchEvent(TouchEvent evt) {
 //                System.out.println("Touchinput ***************** Keycode = " + evt.getKeyCode());
                 
-                if (enabled && focus && evt.getType().equals(TouchEvent.Type.KEY_UP)) {
+                if (enabled && focus && evt.getType().equals(TouchEvent.Type.KEY_DOWN)) {
                     String keyChar = touchKeyNames.getName(evt.getKeyCode());
-//                    System.out.println("Touchinput ***************** KeyChar = " + keyChar);
+                    System.out.println("\n\n\nTouchinput ***************** KeyCode = " + evt.getKeyCode());
                     
-                    if (evt.getKeyCode() == 67) {
+                    if (evt.getKeyCode() == 67) { //backspace
                         if (getText().length() > 0) {
                             setText(getText().substring(0, getText().length()-1));
                         }                        
                         
+                    } else if (keyChar != null && evt.getKeyCode() == 62) { //space
+                        setText(getText() + " ");
+                        
+                    } else if (keyChar != null && evt.getKeyCode() == 59) { //shift
+                        caps = !caps;
+                        
                     } else if (keyChar != null && keyChar.length() == 1) {
+                        //TODO:
+//                        if (!caps) {
+                            keyChar = keyChar.toLowerCase();                            
+//                        }
                         setText(getText() + keyChar);
                     }
                     
                     if (getText().length() > maxLength) {
                         setText(getText().substring(0, maxLength));
                     }
+                    
+//                    if (evt.getKeyCode() == 67) {
+//                        if (getText().length() > 0) {
+//                            setText(getText().substring(0, getText().length()-1));
+//                        }                        
+//                        
+//                    } else if (evt.getKeyCode() == 59) {
+//                        if (getText().length() > 0) {
+//                            setText(getText().substring(0, getText().length()-1));
+//                        }                        
+//                        
+//                    } else if (keyChar != null && keyChar.length() == 1) {
+//                        setText(getText() + keyChar);
+//                    }
+//                    
+//                    if (getText().length() > maxLength) {
+//                        setText(getText().substring(0, maxLength));
+//                    }
                     
                 }
 
@@ -280,6 +314,22 @@ public class TextField extends ImageWidget {
         if (focusListener != null) {
             focusListener.doFocus(id);
         }
+    }
+    
+    /**
+     *
+     * @param align
+     */
+    public void setTextAlignment(BitmapFont.Align align) {
+        bitmapText.setAlignment(align);
+    }
+
+    /**
+     *
+     * @param vAlign
+     */
+    public void setTextVerticalAlignment(BitmapFont.VAlign vAlign) {
+        bitmapText.setVerticalAlignment(vAlign);
     }
 
     /**

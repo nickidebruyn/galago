@@ -17,7 +17,7 @@ import java.util.ArrayList;
  * 
  * @author nidebruyn
  */
-public class PagerPanel extends Panel implements TouchButtonListener {
+public class HPagerPanel extends Panel implements TouchButtonListener {
     
     private ControlButton controlButton;
     private ArrayList<Widget> pages = new ArrayList<Widget>();
@@ -37,7 +37,7 @@ public class PagerPanel extends Panel implements TouchButtonListener {
      * @param width
      * @param height 
      */
-    public PagerPanel(Widget parent, float width, float height) {
+    public HPagerPanel(Widget parent, float width, float height) {
         super(parent.getWindow(), parent, null, width, height);
         
         controlButton = new ControlButton((Panel)parent, "pager-panel-controlbutton", width, height);
@@ -52,7 +52,7 @@ public class PagerPanel extends Panel implements TouchButtonListener {
         if (!widget.equals(controlButton)) {
             pages.add(widget);
         } else {
-//            window.log("Control found");
+            window.log("Control found");
         }
         
         super.add(widget); //To change body of generated methods, choose Tools | Templates.
@@ -153,7 +153,7 @@ public class PagerPanel extends Panel implements TouchButtonListener {
     }
     
     public boolean isPageMoved() {
-//        Debug.log("Moved distance of page: " + FastMath.abs(touchedUpX-touchedDownX));
+        Debug.log("Moved distance of page: " + FastMath.abs(touchedUpX-touchedDownX));
         return FastMath.abs(touchedUpX-touchedDownX) > 10f;
     }
 

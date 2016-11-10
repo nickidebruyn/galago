@@ -10,6 +10,8 @@ package com.bruynhuis.galago.ui.listener;
  */
 public interface TouchStickListener {
     
+    public void doMove(float x, float y, float distance);
+    
     public void doLeft(float x, float y, float distance);
     
     public void doRight(float x, float y, float distance);

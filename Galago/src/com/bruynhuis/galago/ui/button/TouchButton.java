@@ -317,6 +317,10 @@ public class TouchButton extends ImageWidget implements Touchable {
     public void addTouchButtonListener(TouchButtonListener touchButtonListener1) {
         this.touchButtonListener = touchButtonListener1;
     }
+    
+    public void removeTouchButtonListener(TouchButtonListener touchButtonListener1) {
+        this.touchButtonListener = null;
+    }
 
     @Override
     public void setVisible(boolean visible) {

@@ -19,8 +19,18 @@ public class ControlButton extends TouchButton {
         setText(" ");
     }
     
+    public ControlButton(Panel panel, String uid, float width, float height, boolean lockScale) {
+        super(panel, uid, "Resources/blank.png", width, height, lockScale);
+        setText(" ");
+    }
+    
     public ControlButton(Panel panel, String uid, String image, float width, float height) {
         super(panel, uid, image, width, height, true);
+        setText(" ");
+    }
+    
+    public ControlButton(Panel panel, String uid, String image, float width, float height, boolean lockScale) {
+        super(panel, uid, image, width, height, lockScale);
         setText(" ");
     }
 }

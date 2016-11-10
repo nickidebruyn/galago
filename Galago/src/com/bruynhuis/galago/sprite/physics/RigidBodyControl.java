@@ -62,8 +62,8 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
     protected BodyFixture bodyFixture;
     protected CollisionShape collisionShape;
     protected PhysicsSpace physicsSpace;
-    protected float restitution = 0.1f;
-    protected float friction = 0.5f;
+    protected float restitution = 0.0f;
+    protected float friction = 1f;
     protected float mass;
     protected float density = 1f;
     protected float xOffset = 0f;
@@ -86,10 +86,10 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
 
         if (mass != 0) {
             body.setMass(Mass.Type.NORMAL);
-            body.setAutoSleepingEnabled(false);
+//            body.setAutoSleepingEnabled(false);
 
         } else {
-            body.setAutoSleepingEnabled(true);
+//            body.setAutoSleepingEnabled(true);
         }
 
     }
@@ -279,10 +279,10 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
         this.mass = mass;
         if (mass != 0) {
             body.setMass(Mass.Type.NORMAL);
-            body.setAutoSleepingEnabled(false);
+//            body.setAutoSleepingEnabled(false);
 
         } else {
-            body.setAutoSleepingEnabled(true);
+//            body.setAutoSleepingEnabled(true);
         }
     }
 
@@ -292,7 +292,18 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
 
     public void setDensity(float density) {
         this.density = density;
-        this.bodyFixture.setDensity((double) density);
+        
+        if (this.body.getFixtures() != null && this.body.getFixtures().size() > 0) {
+            for (int i = 0; i < this.body.getFixtures().size(); i++) {
+                BodyFixture bodyFixture1 = this.body.getFixtures().get(i);
+                bodyFixture1.setDensity((double) density);
+                bodyFixture1.createMass();
+            }
+        } else {
+            this.bodyFixture.setDensity((double) density);
+            this.bodyFixture.createMass();
+        }       
+        
     }
 
     public void setActive(boolean active) {
@@ -350,6 +361,14 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
                 bodyFixture1.setSensor(isSensor);
             }
         }
+    }
+    
+    public void setAngularDamping(float damping) {
+        this.body.setAngularDamping((double)damping);
+    }
+    
+    public void setLinearDamping(float damping) {
+        this.body.setLinearDamping(damping);
     }
 
     public ArrayList<ArrayList<BodyFixture>> getGroupedInSameSizeBodyFixtures() {

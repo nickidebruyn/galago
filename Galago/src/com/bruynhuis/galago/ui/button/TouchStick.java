@@ -32,10 +32,10 @@ public class TouchStick extends Panel {
      * @param height 
      */
     public TouchStick(Panel panel, String uid, float width, float height) {
-        super(panel, null, width, height);
+        super(panel, null, width, height, true);
         
-        bottomControl = new ControlButton(this, uid + "_buttom", "Resources/button_round.png", width, height);        
-        bottomControl.setTransparency(0.1f);
+        bottomControl = new ControlButton(this, uid + "_buttom", "Resources/button_round.png", width, height, true);        
+        bottomControl.setTransparency(0.5f);
         bottomControl.addTouchButtonListener(new TouchButtonAdapter() {
 
             @Override
@@ -61,8 +61,9 @@ public class TouchStick extends Panel {
 
             @Override
             public void doTouchMove(float touchX, float touchY, float tpf, String name) {
-                double dx = touchDownX - touchX;
-                double dy = touchDownY - touchY;
+                double dx = (touchDownX - touchX)/window.getScaleFactorWidth();
+                double dy = (touchDownY - touchY)/window.getScaleFactorHeight();
+                
                 float distance = FastMath.sqrt((float) (dx * dx + dy * dy));
                 
                 if (distance < getWidth()*0.5f) {
@@ -71,6 +72,8 @@ public class TouchStick extends Panel {
                 
 //                System.out.println("posdown = " + touchDownX +", " + touchDownY);
 //                System.out.println("pos = " + touchX +", " + touchY);
+                
+                fireTouchMove(touchX, touchY, distance);
                 
                 //Check if the stick is moving left
                 if (touchX < touchDownX) {
@@ -121,9 +124,19 @@ public class TouchStick extends Panel {
         this.touchStickListener = touchStickListener1;        
     }
     
+    public void removeTouchStickListener(TouchStickListener touchStickListener1) {
+        this.touchStickListener = null;        
+    }    
+    
     protected void fireTouchMoveLeft(float x, float y, float distance) {
         if (touchStickListener != null) {
             touchStickListener.doLeft(x, y, distance);
+        }
+    }
+    
+    protected void fireTouchMove(float x, float y, float distance) {
+        if (touchStickListener != null) {
+            touchStickListener.doMove(x, y, distance);
         }
     }
     

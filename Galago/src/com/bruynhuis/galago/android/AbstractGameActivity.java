@@ -25,7 +25,6 @@ import com.bruynhuis.galago.listener.RemoteActionListener;
 import com.google.android.gms.ads.*;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.appstate.AppStateManager;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.games.Games;
 import android.app.Activity;
@@ -82,7 +81,7 @@ public abstract class AbstractGameActivity extends AndroidHarness
     private float R[] = new float[9];
     private float I[] = new float[9];
     private float[] orientationVector = new float[3];
-//    private float[] lastAcc = {0, 0, 0};
+    private float[] lastAcc = {0, 0, 0};
     private static final int GOOGLE_RESOLUTION_REQUEST_CODE = 444;
     private static final int SAVED_GAMES_REQUEST_CODE = 555;
     private static final int ACHIEVEMENTS_REQUEST_CODE = 666;
@@ -184,12 +183,12 @@ public abstract class AbstractGameActivity extends AndroidHarness
      */
     public String doInput(Properties prprts) {
         //TODO: Fire the input keyboard focus
-        System.out.println("Fired some focus input...");
+//        System.out.println("Fired some focus input...");
 
         this.runOnUiThread(new Runnable() {
             public void run() {
-                Toast toast = Toast.makeText(getApplicationContext(), "You fired some input!!", Toast.LENGTH_SHORT);
-                toast.show();
+//                Toast toast = Toast.makeText(getApplicationContext(), "You fired some input!!", Toast.LENGTH_SHORT);
+//                toast.show();
 
                 showTextInputDialog();
             }
@@ -777,12 +776,12 @@ public abstract class AbstractGameActivity extends AndroidHarness
             GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this, this, this);
             builder.addApi(Games.API)
                     .addApi(Plus.API)
-                    .addApi(AppStateManager.API)
+//                    .addApi(AppStateManager.API)
                     .addApi(Drive.API)
                     .addScope(Drive.SCOPE_APPFOLDER)
                     .addScope(Games.SCOPE_GAMES)
                     .addScope(Plus.SCOPE_PLUS_LOGIN)
-                    .addScope(AppStateManager.SCOPE_APP_STATE)
+//                    .addScope(AppStateManager.SCOPE_APP_STATE)
                     .setGravityForPopups(Gravity.CENTER);
             googleApiClient = builder.build();
         }
@@ -1272,35 +1271,35 @@ public abstract class AbstractGameActivity extends AndroidHarness
             return;
         }
 
-//        if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-//            lastAcc = sensorEvent.values.clone();
-//            if (getJmeApplication() != null) {
-//                ((BaseApplication) getJmeApplication()).fireSensorListener(lastAcc[0], lastAcc[1], lastAcc[2]);
-//            }
-//
-//        }
-
         if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            gravity = sensorEvent.values;
-        }
-        if (sensorEvent.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            geomagnetic = sensorEvent.values;
-        }
-        if (gravity != null && geomagnetic != null) {
-            boolean success = SensorManager.getRotationMatrix(R, I, gravity, geomagnetic);
-            if (success) {
-                SensorManager.getOrientation(R, orientationVector);
-                if (getJmeApplication() != null) {
-//                    ((BaseApplication) getJmeApplication()).fireSensorListener(orientationVector[2], -orientationVector[1], orientationVector[0]);
-//                    ((BaseApplication) getJmeApplication()).fireSensorListener(orientationVector[0], orientationVector[1], orientationVector[2]);
-//                    ((BaseApplication) getJmeApplication()).fireSensorListener(orientationVector[2], orientationVector[1], orientationVector[0]);
-//                    ((BaseApplication) getJmeApplication()).fireSensorListener(orientationVector[2], orientationVector[0], orientationVector[1]);
-                    ((BaseApplication) getJmeApplication()).fireSensorListener(orientationVector[2], -orientationVector[0], -orientationVector[1]);
-                }
-//                tempQuat.fromAngles(orientationVector[2], -orientationVector[1], orientationVector[0]);
-//                orientation.slerp(tempQuat, 0.2f);
+            lastAcc = sensorEvent.values.clone();
+            if (getJmeApplication() != null) {
+                ((BaseApplication) getJmeApplication()).fireSensorListener(lastAcc[0], lastAcc[1], lastAcc[2]);
             }
+
         }
+
+//        if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+//            gravity = sensorEvent.values;
+//        }
+//        if (sensorEvent.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+//            geomagnetic = sensorEvent.values;
+//        }
+//        if (gravity != null && geomagnetic != null) {
+//            boolean success = SensorManager.getRotationMatrix(R, I, gravity, geomagnetic);
+//            if (success) {
+//                SensorManager.getOrientation(R, orientationVector);
+//                if (getJmeApplication() != null) {
+////                    ((BaseApplication) getJmeApplication()).fireSensorListener(orientationVector[2], -orientationVector[1], orientationVector[0]);
+////                    ((BaseApplication) getJmeApplication()).fireSensorListener(orientationVector[0], orientationVector[1], orientationVector[2]);
+////                    ((BaseApplication) getJmeApplication()).fireSensorListener(orientationVector[2], orientationVector[1], orientationVector[0]);
+////                    ((BaseApplication) getJmeApplication()).fireSensorListener(orientationVector[2], orientationVector[0], orientationVector[1]);
+//                    ((BaseApplication) getJmeApplication()).fireSensorListener(orientationVector[2], -orientationVector[0], -orientationVector[1]);
+//                }
+////                tempQuat.fromAngles(orientationVector[2], -orientationVector[1], orientationVector[0]);
+////                orientation.slerp(tempQuat, 0.2f);
+//            }
+//        }
 
     }
 }

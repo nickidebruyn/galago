@@ -24,4 +24,21 @@ public class RopeJoint extends PhysicsJoint {
         return ropeJoint;
     }
 
+    public void setLimits(float lowerLimit, float upperLimit) {
+        ((org.dyn4j.dynamics.joint.RopeJoint)joint).setLimits(lowerLimit, upperLimit);
+        
+    }
+    
+    public void setLimitsEnabled(boolean enable) {
+        ((org.dyn4j.dynamics.joint.RopeJoint)joint).setLimitsEnabled(enable);
+        
+    }
+    
+    public float getUpperLimit() {
+        return (float)((org.dyn4j.dynamics.joint.RopeJoint)joint).getUpperLimit();
+    }
+    
+    public float getLowerLimit() {
+        return (float)((org.dyn4j.dynamics.joint.RopeJoint)joint).getLowerLimit();
+    }
 }
