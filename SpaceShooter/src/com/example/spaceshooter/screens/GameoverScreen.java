@@ -32,7 +32,7 @@ public class GameoverScreen extends AbstractScreen {
         hudPanel.add(buttonPanel);
         
         backButton = new Button(buttonPanel, "backButton", "Back");
-        backButton.leftBottom(100, 10f);
+        backButton.centerAt(0, -100);
         backButton.addTouchButtonListener(new TouchButtonAdapter() {
 
             @Override
@@ -46,7 +46,7 @@ public class GameoverScreen extends AbstractScreen {
         });
         
         retryButton = new Button(buttonPanel, "retryButton", "Retry");
-        retryButton.rightBottom(100, 10f);
+        retryButton.centerAt(0, 0);
         retryButton.addTouchButtonListener(new TouchButtonAdapter() {
 
             @Override

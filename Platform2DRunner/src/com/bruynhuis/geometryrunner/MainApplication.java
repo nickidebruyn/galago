@@ -71,7 +71,7 @@ public class MainApplication extends Base2DApplication {
         dyn4jAppState = new Dyn4jAppState(ThreadingType.SEQUENTIAL);
         stateManager.attach(dyn4jAppState);
         dyn4jAppState.getPhysicsSpace().setGravity(0, -30f);
-        dyn4jAppState.getPhysicsSpace().setSpeed(2f);
+        dyn4jAppState.getPhysicsSpace().setSpeed(1f);
 
     }
 

@@ -29,7 +29,7 @@ public class Player extends Platform2DPlayer implements PhysicsCollisionListener
     private Sprite sprite;
     private RigidBodyControl rigidBodyControl;
     private boolean right;
-    private float moveSpeed = 8f;
+    private float moveSpeed = 6f;
     private float jumpForce = 18f;
     private boolean onGround = false;
 
@@ -46,7 +46,7 @@ public class Player extends Platform2DPlayer implements PhysicsCollisionListener
     protected void init() {
         lives = 0;
 
-        sprite = new Sprite(Platform2DGame.TYPE_PLAYER, getSize(), getSize(), 2, 5, 3);
+        sprite = new Sprite(Platform2DGame.TYPE_PLAYER, getSize(), getSize(), 2, 5, 8);
         sprite.setMaterial(game.getBaseApplication().getAssetManager().loadMaterial("Materials/player.j3m"));
 
         rigidBodyControl = new RigidBodyControl(new BoxCollisionShape(getSize(), getSize()), 1f);

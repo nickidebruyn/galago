@@ -37,7 +37,7 @@ public class GameCompleteScreen extends AbstractScreen {
         hudPanel.add(buttonPanel);
         
         backButton = new Button(buttonPanel, "backButton", "Retry");
-        backButton.leftBottom(100, 10f);
+        backButton.centerAt(0, -100);
         backButton.addTouchButtonListener(new TouchButtonAdapter() {
 
             @Override
@@ -51,7 +51,7 @@ public class GameCompleteScreen extends AbstractScreen {
         });
         
         nextButton = new Button(buttonPanel, "nextButton", "Next");
-        nextButton.rightBottom(100, 10f);
+        nextButton.centerAt(0, 0);
         nextButton.addTouchButtonListener(new TouchButtonAdapter() {
 
             @Override

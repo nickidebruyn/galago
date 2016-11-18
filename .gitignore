@@ -39,8 +39,16 @@ proguard/
 # Android Studio Navigation editor temp files
 .navigation/
 
+*/mobile/libs*
+*/dist*
+*/mobile/assets*
+
 # Android Studio captures folder
 captures/
 /Galago/dist/
 /Platform2DRunner/nbproject/private/
 /Platform2DRunner/dist/
+/PaperToss2D/nbproject/private/
+/SpaceShooter/dist/
+/FirstPersonShooter/nbproject/private/
+/FirstPersonShooter/dist/

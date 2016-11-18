@@ -14,6 +14,8 @@ import com.bruynhuis.galago.sprite.Sprite;
 import com.bruynhuis.galago.sprite.physics.RigidBodyControl;
 import com.bruynhuis.galago.sprite.physics.shape.BoxCollisionShape;
 import com.bruynhuis.galago.ui.Label;
+import com.bruynhuis.galago.ui.button.TouchStick;
+import com.bruynhuis.galago.ui.listener.TouchStickAdapter;
 import com.bruynhuis.galago.ui.tween.WidgetAccessor;
 import com.bruynhuis.galago.util.Debug;
 import com.bruynhuis.galago.util.Timer;
@@ -51,6 +53,9 @@ public class PlayScreen extends AbstractScreen implements MessageListener {
     private Label livesLabel;
     private Label killsLabel;
     private Label readyLabel;
+    private boolean shoot = false;
+    
+    private TouchStick touchStick;
 
     @Override
     protected void init() {
@@ -72,11 +77,37 @@ public class PlayScreen extends AbstractScreen implements MessageListener {
         playerMaterial = baseApplication.getModelManager().getMaterial("Materials/player.j3m");
         mainApplication.fixFlatTexture(playerMaterial.getParam("ColorMap"));
         
-        inputManager.addMapping("moveup", new KeyTrigger(KeyInput.KEY_UP));
-        inputManager.addMapping("movedown", new KeyTrigger(KeyInput.KEY_DOWN));
-        inputManager.addMapping("moveleft", new KeyTrigger(KeyInput.KEY_LEFT));
-        inputManager.addMapping("moveright", new KeyTrigger(KeyInput.KEY_RIGHT));
-        inputManager.addMapping("shoot", new KeyTrigger(KeyInput.KEY_SPACE));
+        if (baseApplication.isMobileApp()) {
+            touchStick = new TouchStick(hudPanel, "touchStick", 200, 200);
+            touchStick.centerBottom(0, 0);
+            touchStick.addTouchStickListener(new TouchStickAdapter() {
+
+                @Override
+                public void doMove(float x, float y, float distance) {
+                    
+                                        
+                }
+
+                @Override
+                public void doRelease(float x, float y) {
+                    shoot = false;
+                }
+
+                @Override
+                public void doPress(float x, float y) {
+                    shoot = true;
+                    
+                }
+                
+            });
+            
+        } else {
+            inputManager.addMapping("moveup", new KeyTrigger(KeyInput.KEY_UP));
+            inputManager.addMapping("movedown", new KeyTrigger(KeyInput.KEY_DOWN));
+            inputManager.addMapping("moveleft", new KeyTrigger(KeyInput.KEY_LEFT));
+            inputManager.addMapping("moveright", new KeyTrigger(KeyInput.KEY_RIGHT));
+            inputManager.addMapping("shoot", new KeyTrigger(KeyInput.KEY_SPACE));
+        }
 
     }
 
@@ -141,6 +172,7 @@ public class PlayScreen extends AbstractScreen implements MessageListener {
         Debug.log("Message received: " + message);
         
         if (message.equals("gameover")) {
+            shoot = false;
             liveCount --;
             updateUI();
             
@@ -253,6 +285,13 @@ public class PlayScreen extends AbstractScreen implements MessageListener {
             protected void controlRender(RenderManager rm, ViewPort vp) {
             }
         });
+    }
+
+    @Override
+    public void update(float tpf) {
+        if (shoot && playerShootControl != null) {
+            playerShootControl.onAnalog("shoot", 1, tpf);
+        }
     }
     
 }
