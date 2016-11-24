@@ -10,6 +10,7 @@ import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.OutputCapsule;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.math.Vector2f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
@@ -115,6 +116,8 @@ public class FlowControl extends AbstractControl {
             material.setTexture("ColorMap", texture);
             material.setVector2("TranslateAmount", uvTranslate);
             material.setBoolean("TranslateUV", true);
+            material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+            material.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
 
         }
     }

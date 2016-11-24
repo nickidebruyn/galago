@@ -87,12 +87,12 @@ public abstract class AbstractScreen extends AbstractAppState implements EscapeL
      * dims or locks, etc.
      */
     protected abstract void pause();
-    
+
     /**
-     * This method will be called on a mobile device when the application is resumed.
+     * This method will be called on a mobile device when the application is
+     * resumed.
      */
     protected void resume() {
-        
     }
 
     /**
@@ -101,7 +101,7 @@ public abstract class AbstractScreen extends AbstractAppState implements EscapeL
     public void firePauseAction() {
         pause();
     }
-    
+
     public void fireResumeAction() {
         resume();
     }
@@ -212,7 +212,11 @@ public abstract class AbstractScreen extends AbstractAppState implements EscapeL
         super.cleanup();
         // unregister all my listeners, detach all my nodes, etc...
         window.setVisible(false);
+
+        rootNode.detachAllChildren();
         rootNode.removeFromParent();
+        baseApplication.getViewPort().clearProcessors();
+
     }
 
     @Override
@@ -251,6 +255,8 @@ public abstract class AbstractScreen extends AbstractAppState implements EscapeL
         if (fadeOut) {
             window.setVisible(false);
             rootNode.removeFromParent();
+            baseApplication.getViewPort().clearProcessors();
+
 
             if (nextScreen != null) {
                 exit();

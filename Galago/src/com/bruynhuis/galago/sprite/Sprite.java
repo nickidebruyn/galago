@@ -7,6 +7,8 @@ package com.bruynhuis.galago.sprite;
 import com.bruynhuis.galago.app.BaseApplication;
 import com.bruynhuis.galago.util.SharedSystem;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector2f;
@@ -126,9 +128,21 @@ public class Sprite extends Node {
         this.material = material;
     }
 
-//    public void setImage(String imagePath) {
-//        setMaterial(baseApplication.getTextureManager().getGUIMaterial(imagePath));
-//    }
+    public void setImage(String imagePath) {
+        Texture texture = baseApplication.getAssetManager().loadTexture(imagePath);
+        texture.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+        texture.setWrap(Texture.WrapMode.Repeat);
+
+        Material material = new Material(baseApplication.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+//        material.setColor("Color", ColorRGBA.White);
+        material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        material.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+        material.setTexture("ColorMap", texture);
+        setMaterial(material);
+        
+        flipCoords(true);
+        flipHorizontal(true);
+    }
 //
 //    @Override
 //    public void write(JmeExporter e) throws IOException {

@@ -235,6 +235,11 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
 //        clearForces();
         this.body.getTransform().setRotation(radians);
     }
+    
+    public float getPhysicRotation() {
+//        clearForces();
+        return (float)this.body.getTransform().getRotation();
+    }
 
     public void rotate(float radians) {
 //        clearForces();
