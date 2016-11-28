@@ -143,6 +143,12 @@ public class Sprite extends Node {
         flipCoords(true);
         flipHorizontal(true);
     }
+
+    public Material getMaterial() {
+        return material;
+    }
+    
+    
 //
 //    @Override
 //    public void write(JmeExporter e) throws IOException {

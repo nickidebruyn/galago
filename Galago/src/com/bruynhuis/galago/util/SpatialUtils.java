@@ -15,6 +15,7 @@ import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.collision.shapes.CompoundCollisionShape;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
@@ -33,7 +34,6 @@ import com.jme3.scene.SceneGraphVisitor;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Sphere;
-import com.jme3.shadow.DirectionalLightShadowRenderer;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
@@ -257,39 +257,42 @@ public class SpatialUtils {
      */
     public static DirectionalLight addSunLight(Node parent, ColorRGBA colorRGBA) {
         DirectionalLight sun = new DirectionalLight();
-        sun.setDirection((new Vector3f(-0.5f, -0.5f, 0.5f)).normalizeLocal());
+        sun.setDirection((new Vector3f(-0.25f, -0.45f, -0.25f)).normalizeLocal());
         sun.setColor(colorRGBA);
         parent.addLight(sun);
+        /**
+         * A white ambient light source.
+         */
+        AmbientLight ambient = new AmbientLight();
+        ambient.setColor(ColorRGBA.White);
+        parent.addLight(ambient);
         
-        DirectionalLightShadowRenderer shadowRenderer = new DirectionalLightShadowRenderer(SharedSystem.getInstance().getBaseApplication().getAssetManager(), 512, 1);
-        shadowRenderer.setLight(sun);
-        SharedSystem.getInstance().getBaseApplication().getViewPort().addProcessor(shadowRenderer);
-
         return sun;
     }
-    
+
     /**
      * Adds a camera node to the scene
+     *
      * @param parent
      * @param camera
      * @param distance
      * @param height
      * @param angle
-     * @return 
+     * @return
      */
     public static Node addCameraNode(Node parent, Camera camera, float distance, float height, float angle) {
         final Node targetNode = new Node("camera-link");
-                
+
         CameraNode cameraNode = new CameraNode("camera-node", camera);
         cameraNode.setLocalTranslation(0, height, -distance);
-        cameraNode.rotate(angle*FastMath.DEG_TO_RAD, 0, 0);
+        cameraNode.rotate(angle * FastMath.DEG_TO_RAD, 0, 0);
         targetNode.attachChild(cameraNode);
 
-        parent.attachChild(targetNode);        
-                
-        return targetNode;        
+        parent.attachChild(targetNode);
+
+        return targetNode;
     }
-    
+
     /**
      * Add a simple box to the node.
      *
@@ -308,15 +311,15 @@ public class SpatialUtils {
 
         return geometry;
     }
-    
+
     /**
      * Add a sphere to the scene.
-     * 
+     *
      * @param parent
      * @param zSamples
      * @param radialSamples
      * @param radius
-     * @return 
+     * @return
      */
     public static Spatial addSphere(Node parent, int zSamples, int radialSamples, float radius) {
 
@@ -327,13 +330,14 @@ public class SpatialUtils {
 
         return geometry;
     }
-    
+
     /**
      * Add a sprite to the scene
+     *
      * @param parent
      * @param width
      * @param height
-     * @return 
+     * @return
      */
     public static Sprite addSprite(Node parent, float width, float height) {
         Sprite sprite = new Sprite("sprite", width, height);
@@ -368,10 +372,10 @@ public class SpatialUtils {
         spatial.setMaterial(material);
 
     }
-    
+
     public static void addMaterial(Spatial spatial, Material material) {
         spatial.setMaterial(material);
-        
+
     }
 
     /**
@@ -396,7 +400,7 @@ public class SpatialUtils {
                     if (((Geometry) spatial).getMesh() instanceof Box) {
                         Box box = (Box) ((Geometry) spatial).getMesh();
                         collisionShape = new BoxCollisionShape(new Vector3f(box.getXExtent(), box.getYExtent(), box.getZExtent()));
-                        
+
                     } else if (((Geometry) spatial).getMesh() instanceof Sphere) {
                         Sphere sphere = (Sphere) ((Geometry) spatial).getMesh();
                         collisionShape = new SphereCollisionShape(sphere.getRadius());
@@ -465,69 +469,69 @@ public class SpatialUtils {
 
     /**
      * This helper method will interpolate a spatial to a position.
-     * 
+     *
      * @param spatial
      * @param x
      * @param y
      * @param z
      * @param time
-     * @param delay 
+     * @param delay
      */
     public static void interpolate(Spatial spatial, float x, float y, float z, float time, float delay, boolean loop) {
         int repeat = 0;
         if (loop) {
             repeat = Tween.INFINITY;
         }
-        
+
         if (spatial.getControl(RigidBodyControl.class) == null) {
             Tween.to(spatial, SpatialAccessor.POS_XYZ, time)
-                .target(x, y, z)
-                .delay(delay)
-                .repeatYoyo(repeat, delay)
-                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
-            
+                    .target(x, y, z)
+                    .delay(delay)
+                    .repeatYoyo(repeat, delay)
+                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+
         } else {
             Tween.to(spatial.getControl(RigidBodyControl.class), RigidbodyAccessor.POS_XYZ, time)
-                .target(x, y, z)
-                .delay(delay)
-                .repeatYoyo(repeat, delay)
-                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
-        }        
+                    .target(x, y, z)
+                    .delay(delay)
+                    .repeatYoyo(repeat, delay)
+                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+        }
 
     }
-    
-    
+
     public static void bounce(Spatial spatial, float x, float y, float z, float time, float delay, int count) {
-        
+
         if (spatial.getControl(RigidBodyControl.class) == null) {
             Tween.to(spatial, SpatialAccessor.POS_XYZ, time)
-                .target(x, y, z)
-                .delay(delay)
-                .ease(Circ.OUT)
-                .repeatYoyo(count, delay)
-                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
-            
+                    .target(x, y, z)
+                    .delay(delay)
+                    .ease(Circ.OUT)
+                    .repeatYoyo(count, delay)
+                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+
         } else {
             Tween.to(spatial.getControl(RigidBodyControl.class), RigidbodyAccessor.POS_XYZ, time)
-                .target(x, y, z)
-                .delay(delay)
-                .ease(Circ.OUT)
-                .repeatYoyo(count, delay)
-                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
-        }        
+                    .target(x, y, z)
+                    .delay(delay)
+                    .ease(Circ.OUT)
+                    .repeatYoyo(count, delay)
+                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+        }
 
     }
-    
+
     /**
      * This method will rotate a spatial to the given angle.
+     *
      * @param spatial
      * @param xAngle
      * @param yAngle
-     * @param zAngle 
+     * @param zAngle
      */
     public static void rotateTo(Spatial spatial, float xAngle, float yAngle, float zAngle) {
-        
-        float angles[] = {xAngle* FastMath.DEG_TO_RAD, yAngle* FastMath.DEG_TO_RAD ,zAngle* FastMath.DEG_TO_RAD};
+
+        float angles[] = {xAngle * FastMath.DEG_TO_RAD, yAngle * FastMath.DEG_TO_RAD, zAngle * FastMath.DEG_TO_RAD};
 
         if (spatial.getControl(RigidBodyControl.class) != null) {
             spatial.getControl(RigidBodyControl.class).setPhysicsRotation(new Quaternion(angles));
@@ -539,60 +543,59 @@ public class SpatialUtils {
 
     /**
      * This method will rotate a spatial a given amount.
+     *
      * @param spatial
      * @param xAngle
      * @param yAngle
-     * @param zAngle 
+     * @param zAngle
      */
     public static void rotate(Spatial spatial, float xAngle, float yAngle, float zAngle) {
-        
+
         if (spatial.getControl(RigidBodyControl.class) != null) {
             Quaternion q = spatial.getControl(RigidBodyControl.class).getPhysicsRotation();
             float angles[] = q.toAngles(null);
-            angles[0] = angles[0] + xAngle* FastMath.DEG_TO_RAD;
-            angles[1] = angles[1] + yAngle* FastMath.DEG_TO_RAD;
-            angles[2] = angles[2] + zAngle* FastMath.DEG_TO_RAD;
-            
+            angles[0] = angles[0] + xAngle * FastMath.DEG_TO_RAD;
+            angles[1] = angles[1] + yAngle * FastMath.DEG_TO_RAD;
+            angles[2] = angles[2] + zAngle * FastMath.DEG_TO_RAD;
+
             spatial.getControl(RigidBodyControl.class).setPhysicsRotation(new Quaternion(angles));
-            
+
         } else {
-            spatial.rotate(xAngle* FastMath.DEG_TO_RAD, yAngle* FastMath.DEG_TO_RAD, zAngle* FastMath.DEG_TO_RAD);
+            spatial.rotate(xAngle * FastMath.DEG_TO_RAD, yAngle * FastMath.DEG_TO_RAD, zAngle * FastMath.DEG_TO_RAD);
         }
 
     }
 
     /**
      * This helper method will slerp the spatial to a rotation.
-     * 
+     *
      * @param spatial
      * @param x
      * @param y
      * @param z
      * @param time
-     * @param delay 
+     * @param delay
      */
     public static void slerp(Spatial spatial, float xAngle, float yAngle, float zAngle, float time, float delay, boolean loop) {
         int repeat = 0;
         if (loop) {
             repeat = Tween.INFINITY;
         }
-        
+
         if (spatial.getControl(RigidBodyControl.class) == null) {
             Tween.to(spatial, SpatialAccessor.ROTATION_XYZ, time)
-                .target(xAngle, yAngle, zAngle)
-                .delay(delay)
-                .repeatYoyo(repeat, delay)
-                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
-            
+                    .target(xAngle, yAngle, zAngle)
+                    .delay(delay)
+                    .repeatYoyo(repeat, delay)
+                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+
         } else {
             Tween.to(spatial.getControl(RigidBodyControl.class), RigidbodyAccessor.ROTATION_XYZ, time)
-                .target(xAngle, yAngle, zAngle)
-                .delay(delay)
-                .repeatYoyo(repeat, delay)
-                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
-        }        
+                    .target(xAngle, yAngle, zAngle)
+                    .delay(delay)
+                    .repeatYoyo(repeat, delay)
+                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+        }
 
     }
-    
-    
 }

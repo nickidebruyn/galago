@@ -57,6 +57,7 @@ public class Window {
     protected ArrayList<Panel> panels = new ArrayList<Panel>();
     protected CollisionResults results;
     protected Ray ray;
+    protected boolean buttonTriggered = false;
 
     /**
      *
@@ -240,11 +241,12 @@ public class Window {
                 }
                                 
             } else {
+                buttonTriggered = false;
                 releaseSelectedButtons(null);
 
             }
 
-        } else {
+        } else {            
             if (down) {
 //                releaseSelectedButtons(null);
             }
@@ -297,6 +299,7 @@ public class Window {
 
                 } else {
                     if (down) {
+                        buttonTriggered = true;
                         touchButton.fireTouchDown(cursorPointX, cursorPointY, tpf);
                     } else {
                         touchButton.fireTouchUp(cursorPointX, cursorPointY, tpf);
@@ -459,6 +462,7 @@ public class Window {
                 if (touchButton.isEnabled() && touchButton.isVisible() && touchButton.isTouched()) {
                     touchButton.fireTouchCancel(getInputManager().getCursorPosition().x,
                             getInputManager().getCursorPosition().y, 1);
+                    buttonTriggered = false;
                 }
 //                //TODO:
 //                if (widget != null && !touchButton.equals(widget) && touchButton.isTouched()) {
@@ -476,6 +480,10 @@ public class Window {
             }
 
         }
+    }
+
+    public boolean isButtonTriggered() {
+        return buttonTriggered;
     }
     
     /**

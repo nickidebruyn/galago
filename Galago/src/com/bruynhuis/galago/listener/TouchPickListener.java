@@ -95,9 +95,17 @@ public class TouchPickListener implements ActionListener, AnalogListener {
         // 5. Use the results (we mark the hit object)
         if (results.size() > 0) {
             // The closest collision point is what was truly hit:
-            CollisionResult closest = results.getClosestCollision();
-            contactPoint = closest.getContactPoint();
-            contactObject = closest.getGeometry();
+            if (baseApplication.getCurrentScreen().getWindow().isButtonTriggered()) {
+                contactPoint = null;
+                contactObject = null;
+                
+            } else {
+                CollisionResult closest = results.getClosestCollision();
+                contactPoint = closest.getContactPoint();
+                contactObject = closest.getGeometry();
+                
+            }
+            
 
         } else {
             contactPoint = null;
@@ -110,6 +118,7 @@ public class TouchPickListener implements ActionListener, AnalogListener {
 
         if (enabled) {
             keyDown = keyPressed;
+            baseApplication = SharedSystem.getInstance().getBaseApplication();
 
             if (name.equals(PICK_ACTION_LEFT) || name.equals(PICK_ACTION_RIGHT)) {
 
@@ -125,8 +134,6 @@ public class TouchPickListener implements ActionListener, AnalogListener {
                         pickEvent.setRightButton(true);
                     }
                     
-                    baseApplication = SharedSystem.getInstance().getBaseApplication();
-
                     pickEvent.setContactObject(contactObject);
                     pickEvent.setContactPoint(contactPoint);
                     pickEvent.setCursorPosition(inputManager.getCursorPosition());
@@ -210,10 +217,11 @@ public class TouchPickListener implements ActionListener, AnalogListener {
     @Override
     public void onAnalog(String name, float value, float tpf) {
         if (enabled && pickListener != null) {
+            baseApplication = SharedSystem.getInstance().getBaseApplication();
+            
             //Now we call the drag listener
             checkCursorCollision();
-
-            baseApplication = SharedSystem.getInstance().getBaseApplication();
+            
             pickEvent.setCursorPosition(inputManager.getCursorPosition());
             pickEvent.setKeyDown(keyDown);
             pickEvent.setAnalogValue(value);

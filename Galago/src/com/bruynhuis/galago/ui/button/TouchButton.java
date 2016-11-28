@@ -20,6 +20,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.control.AbstractControl;
 import com.bruynhuis.galago.ui.effect.TouchEffect;
 import com.bruynhuis.galago.ui.panel.PopupDialog;
+import java.util.ArrayList;
 
 /**
  * A TouchButton is the control which represents a button on the screen. It can
@@ -33,7 +34,7 @@ public class TouchButton extends ImageWidget implements Touchable {
     protected Panel panel;
     protected int uid;
     protected String id;
-    protected TouchButtonListener touchButtonListener;
+    protected ArrayList<TouchButtonListener> touchButtonListeners = new ArrayList<>();
     protected ActionListener actionListener;
     private boolean enabled = true;
     private boolean wasDown = false;
@@ -106,10 +107,10 @@ public class TouchButton extends ImageWidget implements Touchable {
         init();
 
     }
-    
+
     protected boolean isClickable() {
-        return ((getParent() instanceof PopupDialog) && this.isVisible() && window.isDialogOpen()) ||
-                (!(getParent() instanceof PopupDialog) && this.isVisible() && !window.isDialogOpen());
+        return ((getParent() instanceof PopupDialog) && this.isVisible() && window.isDialogOpen())
+                || (!(getParent() instanceof PopupDialog) && this.isVisible() && !window.isDialogOpen());
     }
 
     @Override
@@ -130,13 +131,13 @@ public class TouchButton extends ImageWidget implements Touchable {
 //        float spacing = 10f * window.getScaleFactorWidth();
 //
 //        bitmapText.setBox(new Rectangle(xP, yP, recWidth - spacing, recHeight));
-        
+
         float xP = -getWidth() * 0.5f;
         float yP = getHeight() * 0.5f;
         float recWidth = getWidth();
         float recHeight = (getHeight() * 0.5f);
         bitmapText.setBox(new Rectangle(xP, yP, recWidth, recHeight));
-        
+
         bitmapText.setSize(fontSize * window.getScaleFactorHeight());      // font size
         bitmapText.setColor(ColorRGBA.White);// font color
         bitmapText.setAlignment(BitmapFont.Align.Center);
@@ -148,9 +149,12 @@ public class TouchButton extends ImageWidget implements Touchable {
             @Override
             protected void controlUpdate(float tpf) {
                 if (isVisible() && isEnabled() && isTouched() && isClickable()) {
-                    if (touchButtonListener != null) {
+
+                    for (int i = 0; i < touchButtonListeners.size(); i++) {
+                        TouchButtonListener touchButtonListener = touchButtonListeners.get(i);
                         touchButtonListener.doTouchMove(lastTouchX, lastTouchY, tpf, id);
                     }
+
                 }
 
 //                if (isVisible() && isEnabled()) {
@@ -249,7 +253,9 @@ public class TouchButton extends ImageWidget implements Touchable {
                 effect.fireTouchDown();
             }
 
-            if (touchButtonListener != null) {
+
+            for (int i = 0; i < touchButtonListeners.size(); i++) {
+                TouchButtonListener touchButtonListener = touchButtonListeners.get(i);
                 touchButtonListener.doTouchDown(x, y, tpf, id);
             }
 
@@ -266,7 +272,8 @@ public class TouchButton extends ImageWidget implements Touchable {
             for (Effect effect : effects) {
                 effect.fireTouchUp();
             }
-            if (touchButtonListener != null) {
+            for (int i = 0; i < touchButtonListeners.size(); i++) {
+                TouchButtonListener touchButtonListener = touchButtonListeners.get(i);
                 touchButtonListener.doTouchUp(x, y, tpf, id);
             }
 
@@ -285,7 +292,8 @@ public class TouchButton extends ImageWidget implements Touchable {
             for (Effect effect : effects) {
                 effect.fireTouchUp();
             }
-            if (touchButtonListener != null) {
+            for (int i = 0; i < touchButtonListeners.size(); i++) {
+                TouchButtonListener touchButtonListener = touchButtonListeners.get(i);
                 touchButtonListener.doTouchCancel(x, y, tpf, id);
             }
 
@@ -315,11 +323,15 @@ public class TouchButton extends ImageWidget implements Touchable {
      * @param touchButtonListener1
      */
     public void addTouchButtonListener(TouchButtonListener touchButtonListener1) {
-        this.touchButtonListener = touchButtonListener1;
+        this.touchButtonListeners.add(touchButtonListener1);
+    }
+
+    public void removeTouchButtonListener(TouchButtonListener touchButtonListener1) {
+        this.touchButtonListeners.remove(touchButtonListener1);
     }
     
-    public void removeTouchButtonListener(TouchButtonListener touchButtonListener1) {
-        this.touchButtonListener = null;
+    public void clearTouchButtonListeners() {
+        this.touchButtonListeners.clear();
     }
 
     @Override
@@ -356,15 +368,15 @@ public class TouchButton extends ImageWidget implements Touchable {
             bitmapText.setAlpha(alpha);
         }
     }
-    
+
     public void setMargins(float left, float top, float right, float bottom) {
         float xP = -getWidth() * 0.5f;
         float yP = getHeight() * 0.5f;
         float recWidth = getWidth();
         float recHeight = (getHeight() * 0.5f);
 
-        bitmapText.setBox(new Rectangle(xP+left, yP-top, recWidth-right, recHeight+bottom));
-        
+        bitmapText.setBox(new Rectangle(xP + left, yP - top, recWidth - right, recHeight + bottom));
+
     }
 
     @Override
@@ -382,7 +394,7 @@ public class TouchButton extends ImageWidget implements Touchable {
     }
 
     public void select(float tpf) {
-        
+
         if (enabled && isClickable()) {
             for (Effect effect : effects) {
                 effect.fireSelected();
@@ -392,7 +404,7 @@ public class TouchButton extends ImageWidget implements Touchable {
     }
 
     public void unselect(float tpf) {
-        if (enabled && isClickable()) {            
+        if (enabled && isClickable()) {
             for (Effect effect : effects) {
                 effect.fireUnselected();
             }

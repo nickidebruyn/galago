@@ -8,7 +8,6 @@ import aurelienribon.tweenengine.BaseTween;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenCallback;
 import aurelienribon.tweenengine.equations.Bounce;
-import aurelienribon.tweenengine.equations.Circ;
 import com.bruynhuis.galago.control.tween.Vector3fAccessor;
 import com.bruynhuis.galago.util.SharedSystem;
 import com.jme3.asset.AssetManager;
