@@ -257,4 +257,10 @@ public class AnimatedSprite extends Sprite implements Savable {
     public HashMap<String, Animation> getAnimationMap() {
         return animationMap;
     }
+
+    public Animation getCurrentAnimation() {
+        return currentAnimation;
+    }
+    
+    
 }

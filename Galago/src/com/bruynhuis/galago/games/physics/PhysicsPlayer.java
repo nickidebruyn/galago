@@ -74,7 +74,7 @@ public abstract class PhysicsPlayer {
 
     public void addScore(int score) {
         this.score += score;
-        game.fireScoreChangedListener(score);
+        game.fireScoreChangedListener(this.score);
     }
     
     public abstract void doDie();

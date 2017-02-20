@@ -4,7 +4,10 @@
  */
 package com.bruynhuis.galago.app;
 
+import aurelienribon.tweenengine.Tween;
+import com.bruynhuis.galago.control.tween.RigidbodyAccessor;
 import com.jme3.bullet.BulletAppState;
+import com.jme3.bullet.control.RigidBodyControl;
 
 /**
  * If you wish to make a full 3D game then this call must be extended.
@@ -23,6 +26,12 @@ public abstract class Base3DApplication extends BaseApplication {
     
     public Base3DApplication(String title, float width, float height, String gameSaveFileName, String gameFont, String splashImage, boolean resizable, float widthSample, float heightSample) {
         super(title, width, height, gameSaveFileName, gameFont, splashImage, resizable, widthSample, heightSample);
+    }
+
+    @Override
+    public void simpleInitApp() {
+        Tween.registerAccessor(RigidBodyControl.class, new RigidbodyAccessor());
+        super.simpleInitApp(); 
     }
     
     @Override

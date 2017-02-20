@@ -118,6 +118,7 @@ public class FlowControl extends AbstractControl {
             material.setBoolean("TranslateUV", true);
             material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
             material.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+            material.setFloat("AlphaDiscardThreshold", 0.6f);
 
         }
     }

@@ -12,9 +12,16 @@ import com.bruynhuis.galago.ui.panel.Panel;
  *
  * @author nidebruyn
  */
-public class ToggleButton extends Spinner {
+public class ToggleButton extends TouchButton {
     
-    protected static final String[] values = {"On", "Off"};
+    protected String offImage = "Resources/icon-switch-off.png";
+    protected String onImage = "Resources/icon-switch-on.png";
+    protected boolean selected = false;
+    
+    public ToggleButton(Panel panel, String id) {
+        this(panel, id, "Resources/icon-switch-on.png", "Resources/icon-switch-off.png", 60, 35);
+        
+    }
 
     /**
      * 
@@ -24,8 +31,19 @@ public class ToggleButton extends Spinner {
      * @param width
      * @param height 
      */
-    public ToggleButton(Panel panel, String id, String pictureFile, float width, float height) {
-        super(panel, id, pictureFile, width, height, values);
+    public ToggleButton(Panel panel, String id, String onImage, String offImage, float width, float height) {
+        super(panel, id, offImage, width, height, true);
+        this.offImage = offImage;
+        this.onImage = onImage;
+
+    }
+    
+    @Override
+    public void fireTouchUp(float x, float y, float tpf) {        
+
+        setSelected(!selected);
+        
+        super.fireTouchUp(x, y, tpf);
 
     }
        
@@ -34,15 +52,19 @@ public class ToggleButton extends Spinner {
      * @param selected 
      */
     public void setSelected(boolean selected) {
-        if (selected) {
-            setSelection(0);
-        } else {
-            setSelection(1);
-        }        
+        if ((this.selected && !selected) || (!this.selected && selected)) {            
+            this.selected = selected;
+            if (selected) {
+                updatePicture(onImage);
+            } else {
+                updatePicture(offImage);
+            }
+        }
+        
     }
     
     public boolean isSelected() {
-        return getIndex() == 0;
+        return selected;
     }
     
 }

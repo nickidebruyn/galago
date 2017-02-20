@@ -62,11 +62,11 @@ public class TouchButton extends ImageWidget implements Touchable {
      * @param text
      */
     public TouchButton(Panel panel, String id, String text) {
-        this(panel, id, "Resources/largebutton.png", 254, 44);
+        this(panel, id, "Resources/largebutton.png", 254, 54);
         this.panel = panel;
         this.setText(text);
         this.setTextColor(ColorRGBA.DarkGray);
-        this.setFontSize(20);
+        this.setFontSize(18);
         this.addEffect(new TouchEffect(this));
     }
 

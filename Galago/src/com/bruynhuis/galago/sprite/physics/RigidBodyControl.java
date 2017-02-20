@@ -86,10 +86,10 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
 
         if (mass != 0) {
             body.setMass(Mass.Type.NORMAL);
-//            body.setAutoSleepingEnabled(false);
+            body.setAutoSleepingEnabled(false);
 
         } else {
-//            body.setAutoSleepingEnabled(true);
+            body.setAutoSleepingEnabled(true);
         }
 
     }
@@ -130,6 +130,14 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
 
     public Vector2f getLinearVelocity() {
         return new Vector2f((float) this.body.getLinearVelocity().x, (float) this.body.getLinearVelocity().y);
+    }
+    
+    public void setAngularVelocity(float angle) {
+        this.body.setAngularVelocity(angle);
+    }
+
+    public float getAngularVelocity() {
+        return (float) this.body.getAngularVelocity();
     }
 
     public Body getBody() {

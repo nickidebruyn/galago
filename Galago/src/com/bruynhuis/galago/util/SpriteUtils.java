@@ -5,6 +5,8 @@
 package com.bruynhuis.galago.util;
 
 import aurelienribon.tweenengine.Tween;
+import aurelienribon.tweenengine.TweenCallback;
+import aurelienribon.tweenengine.equations.Bounce;
 import aurelienribon.tweenengine.equations.Circ;
 import com.bruynhuis.galago.app.Base2DApplication;
 import com.bruynhuis.galago.control.tween.Rigidbody2DAccessor;
@@ -15,6 +17,7 @@ import com.bruynhuis.galago.sprite.physics.shape.BoxCollisionShape;
 import com.bruynhuis.galago.sprite.physics.shape.CircleCollisionShape;
 import com.bruynhuis.galago.sprite.physics.shape.CollisionShape;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
@@ -30,13 +33,14 @@ import com.jme3.scene.Spatial;
  * @author nidebruyn
  */
 public class SpriteUtils {
-    
+
     /**
      * Add a sprite to the scene
+     *
      * @param parent
      * @param width
      * @param height
-     * @return 
+     * @return
      */
     public static Sprite addSprite(Node parent, float width, float height) {
         Sprite sprite = new Sprite("sprite", width, height);
@@ -58,12 +62,14 @@ public class SpriteUtils {
         if (unshaded) {
             material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
             material.setColor("Color", colorRGBA);
+            material.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
 
         } else {
             material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Common/MatDefs/Light/Lighting.j3md");
             material.setBoolean("UseMaterialColors", true);
             material.setColor("Ambient", colorRGBA);
             material.setColor("Diffuse", colorRGBA);
+            material.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
 
         }
 
@@ -71,10 +77,10 @@ public class SpriteUtils {
         sprite.setMaterial(material);
 
     }
-    
+
     public static void addMaterial(Spatial spatial, Material material) {
         spatial.setMaterial(material);
-        
+
     }
 
     /**
@@ -108,7 +114,7 @@ public class SpriteUtils {
         }
 
     }
-    
+
     /**
      * Add mass to the spatial.
      *
@@ -187,68 +193,68 @@ public class SpriteUtils {
 
     /**
      * This helper method will interpolate a spatial to a position.
-     * 
+     *
      * @param spatial
      * @param x
      * @param y
      * @param z
      * @param time
-     * @param delay 
+     * @param delay
      */
-    public static void interpolate(Sprite sprite, float x, float y, float z, float time, float delay, boolean loop) {
+    public static void interpolate(Spatial sprite, float x, float y, float z, float time, float delay, boolean loop) {
         int repeat = 0;
         if (loop) {
             repeat = Tween.INFINITY;
         }
-        
+
         if (sprite.getControl(RigidBodyControl.class) == null) {
             Tween.to(sprite, SpatialAccessor.POS_XYZ, time)
-                .target(x, y, z)
-                .delay(delay)
-                .repeatYoyo(repeat, delay)
-                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
-            
+                    .target(x, y, z)
+                    .delay(delay)
+                    .repeatYoyo(repeat, delay)
+                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+
         } else {
             Tween.to(sprite.getControl(RigidBodyControl.class), Rigidbody2DAccessor.POS, time)
-                .target(x, y, z)
-                .delay(delay)
-                .repeatYoyo(repeat, delay)
-                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
-        }        
+                    .target(x, y, z)
+                    .delay(delay)
+                    .repeatYoyo(repeat, delay)
+                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+        }
 
     }
-    
-    
+
     public static void bounce(Sprite sprite, float x, float y, float z, float time, float delay, int count) {
-        
+
         if (sprite.getControl(RigidBodyControl.class) == null) {
             Tween.to(sprite, SpatialAccessor.POS_XYZ, time)
-                .target(x, y, z)
-                .delay(delay)
-                .ease(Circ.OUT)
-                .repeatYoyo(count, delay)
-                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
-            
+                    .target(x, y, z)
+                    .delay(delay)
+                    .ease(Circ.OUT)
+                    .repeatYoyo(count, delay)
+                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+
         } else {
             Tween.to(sprite.getControl(RigidBodyControl.class), Rigidbody2DAccessor.POS, time)
-                .target(x, y, z)
-                .delay(delay)
-                .ease(Circ.OUT)
-                .repeatYoyo(count, delay)
-                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
-        }        
+                    .target(x, y, z)
+                    .delay(delay)
+                    .ease(Circ.OUT)
+                    .repeatYoyo(count, delay)
+                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+        }
 
     }
-    
+
     /**
      * This method will rotate a spatial to the given angle.
+     *
      * @param spatial
      * @param xAngle
      * @param yAngle
-     * @param zAngle 
+     * @param zAngle
      */
     public static void rotateTo(Sprite sprite, float angle) {
-        
+
         if (sprite.getControl(RigidBodyControl.class) != null) {
             sprite.getControl(RigidBodyControl.class).setPhysicRotation(angle * FastMath.DEG_TO_RAD);
         } else {
@@ -261,57 +267,95 @@ public class SpriteUtils {
 
     /**
      * This method will rotate a spatial a given amount.
+     *
      * @param spatial
      * @param xAngle
      * @param yAngle
-     * @param zAngle 
+     * @param zAngle
      */
     public static void rotate(Sprite sprite, float angle) {
-        
-        if (sprite.getControl(RigidBodyControl.class) != null) {            
-            float a = sprite.getControl(RigidBodyControl.class).getPhysicRotation()*FastMath.RAD_TO_DEG;
+
+        if (sprite.getControl(RigidBodyControl.class) != null) {
+            float a = sprite.getControl(RigidBodyControl.class).getPhysicRotation() * FastMath.RAD_TO_DEG;
             a = a + angle;
 
             sprite.getControl(RigidBodyControl.class).setPhysicRotation(a * FastMath.DEG_TO_RAD);
-            
+
         } else {
-            sprite.rotate(0, 0, angle* FastMath.DEG_TO_RAD);
+            sprite.rotate(0, 0, angle * FastMath.DEG_TO_RAD);
         }
 
     }
 
     /**
      * This helper method will slerp the spatial to a rotation.
-     * 
+     *
      * @param spatial
      * @param x
      * @param y
      * @param z
      * @param time
-     * @param delay 
+     * @param delay
      */
     public static void slerp(Sprite sprite, float angle, float time, float delay, boolean loop) {
         int repeat = 0;
         if (loop) {
             repeat = Tween.INFINITY;
         }
-        
+
         if (sprite.getControl(RigidBodyControl.class) == null) {
             Tween.to(sprite, SpatialAccessor.ROTATION_XYZ, time)
-                .target(0, 0, angle)
-                .delay(delay)
-                .repeatYoyo(repeat, delay)
-                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
-            
+                    .target(0, 0, angle)
+                    .delay(delay)
+                    .repeatYoyo(repeat, delay)
+                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+
         } else {
             Tween.to(sprite.getControl(RigidBodyControl.class), Rigidbody2DAccessor.ROTATION, time)
-                .target(angle)
+                    .target(angle)
+                    .delay(delay)
+                    .repeatYoyo(repeat, delay)
+                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+        }
+
+    }
+
+    public static void scaleBounce(Spatial sprite, float scaleX, float scaleY, float time, float delay, boolean loop) {
+        int repeat = 0;
+        if (loop) {
+            repeat = Tween.INFINITY;
+        }
+
+        Tween.to(sprite, SpatialAccessor.SCALE_XYZ, time)
+                .target(scaleX, scaleY, 1)
                 .delay(delay)
+                .ease(Circ.OUT)
                 .repeatYoyo(repeat, delay)
                 .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
-        }        
 
     }
     
+    public static void scaleBounce(Spatial sprite, float scaleX, float scaleY, float time, float delay, TweenCallback callback) {
+        Tween.to(sprite, SpatialAccessor.SCALE_XYZ, time)
+                .target(scaleX, scaleY, 1)
+                .delay(delay)
+                .ease(Bounce.INOUT)
+                .setCallback(callback)
+                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+
+    }
     
+    public static void scaleDown(Spatial sprite, float scaleX, float scaleY, float time, float delay, boolean loop) {
+        int repeat = 0;
+        if (loop) {
+            repeat = Tween.INFINITY;
+        }
+
+        Tween.to(sprite, SpatialAccessor.SCALE_XYZ, time)
+                .target(scaleX, scaleY, 1)
+                .delay(delay)
+                .repeatYoyo(repeat, delay)
+                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+
+    }
 }

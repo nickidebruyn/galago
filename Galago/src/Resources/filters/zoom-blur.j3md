@@ -1,0 +1,19 @@
+MaterialDef ZoomBlur {
+  
+    MaterialParameters {
+        Int NumSamples
+        Texture2D Texture
+        Vector2 Center
+        Float Strength
+    }
+  
+    Technique {
+        VertexShader GLSL100:   Common/MatDefs/Post/Post.vert
+        FragmentShader GLSL100: Resources/filters/zoom-blur.frag
+  
+        WorldParameters {
+            WorldViewProjectionMatrix
+            Resolution
+        }
+    }
+}

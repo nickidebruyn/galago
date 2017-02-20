@@ -7,12 +7,14 @@ package com.bruynhuis.galago.util;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.equations.Circ;
 import com.bruynhuis.galago.app.Base3DApplication;
+import com.bruynhuis.galago.control.camera.CameraStickControl;
 import com.bruynhuis.galago.control.tween.RigidbodyAccessor;
 import com.bruynhuis.galago.control.tween.SpatialAccessor;
+import com.bruynhuis.galago.spatial.Disk;
 import com.bruynhuis.galago.sprite.Sprite;
+import com.jme3.bounding.BoundingSphere;
 import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.bullet.collision.shapes.CollisionShape;
-import com.jme3.bullet.collision.shapes.CompoundCollisionShape;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.light.AmbientLight;
@@ -21,6 +23,7 @@ import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
+import com.jme3.math.Plane;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
@@ -33,10 +36,10 @@ import com.jme3.scene.Node;
 import com.jme3.scene.SceneGraphVisitor;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
+import com.jme3.scene.shape.Dome;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.texture.Texture;
-import com.jme3.util.SkyFactory;
 import com.jme3.water.SimpleWaterProcessor;
 import com.jme3.water.WaterFilter;
 
@@ -55,20 +58,84 @@ public class SpatialUtils {
      * @param type
      * @return
      */
-    public static Spatial addSkySphere(Node parent, int type) {
+    public static Spatial addSkySphere(Node parent, int type, Camera camera) {
         String texture = "Resources/sky/day.jpg";
 
         if (type == 2) {
             texture = "Resources/sky/cloudy.jpg";
+
         } else if (type == 3) {
             texture = "Resources/sky/night.jpg";
+
+        } else if (type == 4) {
+            texture = "Resources/sky/dusk.jpg";
+
+        } else if (type == 5) {
+            texture = "Resources/sky/dawn.jpg";
+
+        } else if (type == 6) {
+            texture = "Resources/sky/flame.jpg";
+
         }
 
-        Texture t = SharedSystem.getInstance().getBaseApplication().getAssetManager().loadTexture(texture);
 
-        Spatial sky = SkyFactory.createSky(SharedSystem.getInstance().getBaseApplication().getAssetManager(), t, true);
+
+        return addSkySphere(parent, texture, camera);
+
+    }
+
+    /**
+     * This will add a sky sphere with the given texture.
+     *
+     * @param parent
+     * @param texture
+     * @param camera
+     * @return
+     */
+    public static Spatial addSkySphere(Node parent, String texture, Camera camera) {
+
+        Sphere sphere = new Sphere(20, 20, 100, false, true);
+        Geometry sky = new Geometry("sky", sphere);
+        sky.setQueueBucket(RenderQueue.Bucket.Sky);
+        sky.setCullHint(Spatial.CullHint.Never);
+        sky.setModelBound(new BoundingSphere(Float.POSITIVE_INFINITY, Vector3f.ZERO));
+        sky.addControl(new CameraStickControl(camera));
+
+        Material m = addTexture(sky, texture, true);
+        m.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Back);
+
+        rotate(sky, -90, 0, 0);
+
         parent.attachChild(sky);
-        sky.setLocalScale(100);
+
+        return sky;
+
+    }
+
+    /**
+     * This will add a sky dome with the given texture.
+     *
+     * @param parent
+     * @param texture
+     * @param camera
+     * @return
+     */
+    public static Spatial addSkyDome(Node parent, String texture, Camera camera) {
+
+        Dome dome = new Dome(Vector3f.ZERO, 11, 20, 100, true);
+        Geometry sky = new Geometry("sky", dome);
+        sky.setQueueBucket(RenderQueue.Bucket.Sky);
+        sky.setCullHint(Spatial.CullHint.Never);
+        sky.setModelBound(new BoundingSphere(Float.POSITIVE_INFINITY, Vector3f.ZERO));
+        sky.addControl(new CameraStickControl(camera));
+
+        Material m = addTexture(sky, texture, true);
+        m.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Back);
+
+//        rotate(sky, -90, 0, 0);
+
+        parent.attachChild(sky);
+
         return sky;
 
     }
@@ -83,28 +150,46 @@ public class SpatialUtils {
      * @param waterDepth
      * @return
      */
-    public static SimpleWaterProcessor addSimpleWater(Node parent, float size, float yPos, float waveSpeed, float waterDepth) {
-        //create processor
-        SimpleWaterProcessor simpleWaterProcessor = new SimpleWaterProcessor(SharedSystem.getInstance().getBaseApplication().getAssetManager());
-        simpleWaterProcessor.setReflectionScene(parent);
-//        simpleWaterProcessor.setDistortionMix(0.5f);
-//        simpleWaterProcessor.setDistortionScale(0.15f);
-        simpleWaterProcessor.setWaveSpeed(waveSpeed);
-        simpleWaterProcessor.setWaterDepth(waterDepth);
-        simpleWaterProcessor.setWaterTransparency(0.15f);
-        simpleWaterProcessor.setTexScale(2);
-        simpleWaterProcessor.setWaterColor(ColorRGBA.Blue);
-        SharedSystem.getInstance().getBaseApplication().getViewPort().addProcessor(simpleWaterProcessor);
-//        simpleWaterProcessor.setLightPosition(new Vector3f(30, 30, -30));
+    public static SimpleWaterProcessor addSimpleWater(Node parent, float size, float yPos, float waveSpeed, boolean optimized) {
 
-        //create water quad
-        Geometry waterPlane = simpleWaterProcessor.createWaterGeometry(size, size);
-        waterPlane.setMaterial(simpleWaterProcessor.getMaterial());
-        waterPlane.setLocalTranslation(-size * 0.5f, 0.5f, size * 0.5f);
+        // we create a water processor
+        SimpleWaterProcessor waterProcessor = new SimpleWaterProcessor(SharedSystem.getInstance().getBaseApplication().getAssetManager());
+        waterProcessor.setReflectionScene(parent);
 
-        parent.attachChild(waterPlane);
+        if (optimized) {
+            waterProcessor.setRenderSize(128, 128);
+        }
 
-        return simpleWaterProcessor;
+        SharedSystem.getInstance().getBaseApplication().getViewPort().addProcessor(waterProcessor);
+
+        // we set the water plane
+        Vector3f waterLocation = new Vector3f(0, yPos, 0);
+        waterProcessor.setPlane(new Plane(Vector3f.UNIT_Y, waterLocation.dot(Vector3f.UNIT_Y)));
+
+        // we set wave properties
+        waterProcessor.setWaterDepth(40);         // transparency of water
+        waterProcessor.setDistortionScale(0.08f); // strength of waves
+        waterProcessor.setDistortionMix(0.1f); // strength of waves
+        waterProcessor.setWaveSpeed(waveSpeed);       // speed of waves
+//        waterProcessor.setWaterTransparency(0f);
+//        waterProcessor.setWaterColor(ColorRGBA.Blue);
+        waterProcessor.setReflectionClippingOffset(0);
+
+        //creating a quad to render water to
+//        Quad quad = new Quad(size, size);
+        Disk disk = new Disk(7, size * 0.5f);
+        disk.scaleTextureCoordinates(new Vector2f(size / 15f, size / 15f));
+
+        //creating a geom to attach the water material
+        Geometry water = new Geometry("water", disk);
+        water.setLocalTranslation(0, yPos, 0);
+        water.setLocalRotation(new Quaternion().fromAngleAxis(-FastMath.HALF_PI, Vector3f.UNIT_X));
+        water.setMaterial(waterProcessor.getMaterial());
+//        water.setShadowMode(RenderQueue.ShadowMode.Receive);
+        parent.attachChild(water);
+
+
+        return waterProcessor;
 
     }
 
@@ -257,16 +342,16 @@ public class SpatialUtils {
      */
     public static DirectionalLight addSunLight(Node parent, ColorRGBA colorRGBA) {
         DirectionalLight sun = new DirectionalLight();
-        sun.setDirection((new Vector3f(-0.25f, -0.45f, -0.25f)).normalizeLocal());
+        sun.setDirection((new Vector3f(-0.5f, -0.85f, -0.5f)).normalizeLocal());
         sun.setColor(colorRGBA);
         parent.addLight(sun);
         /**
          * A white ambient light source.
          */
         AmbientLight ambient = new AmbientLight();
-        ambient.setColor(ColorRGBA.White);
+        ambient.setColor(ColorRGBA.LightGray);
         parent.addLight(ambient);
-        
+
         return sun;
     }
 
@@ -373,6 +458,36 @@ public class SpatialUtils {
 
     }
 
+    /**
+     * Add color to the spatial.
+     *
+     *
+     * @param colorRGBA
+     * @return
+     */
+    public static Material addTexture(Spatial spatial, String texturePath, boolean unshaded) {
+        Material material = null;
+
+        Texture texture = SharedSystem.getInstance().getBaseApplication().getAssetManager().loadTexture(texturePath);
+//        texture.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+        texture.setWrap(Texture.WrapMode.Repeat);
+
+        if (unshaded) {
+            material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+            material.setTexture("ColorMap", texture);
+
+        } else {
+            material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Common/MatDefs/Light/Lighting.j3md");
+            material.setTexture("DiffuseMap", texture);
+
+        }
+
+
+        spatial.setMaterial(material);
+
+        return material;
+    }
+
     public static void addMaterial(Spatial spatial, Material material) {
         spatial.setMaterial(material);
 
@@ -408,12 +523,15 @@ public class SpatialUtils {
 
                     //TODO: Need to check for other mesh types
 
+                }
+                
+                if (collisionShape != null) {
+                    rigidBodyControl = new RigidBodyControl(collisionShape, mass);
                 } else {
-                    collisionShape = new CompoundCollisionShape();
-
+                    rigidBodyControl = new RigidBodyControl(mass);
                 }
 
-                rigidBodyControl = new RigidBodyControl(collisionShape, mass);
+                
                 spatial.addControl(rigidBodyControl);
                 base3DApplication.getBulletAppState().getPhysicsSpace().add(spatial);
             }
@@ -597,5 +715,19 @@ public class SpatialUtils {
                     .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
         }
 
+    }
+
+    public static void scaleBounce(Spatial spatial, float scaleX, float scaleY, float time, float delay, boolean loop) {
+        int repeat = 0;
+        if (loop) {
+            repeat = Tween.INFINITY;
+        }
+
+        Tween.to(spatial, SpatialAccessor.SCALE_XYZ, time)
+                .target(scaleX, scaleY, 1)
+                .delay(delay)
+                .ease(Circ.OUT)
+                .repeatYoyo(repeat, delay)
+                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
     }
 }

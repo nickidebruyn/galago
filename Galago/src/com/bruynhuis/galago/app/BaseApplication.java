@@ -3,8 +3,6 @@ package com.bruynhuis.galago.app;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenManager;
 import com.bruynhuis.galago.control.tween.ColorAccessor;
-import com.bruynhuis.galago.control.tween.Rigidbody2DAccessor;
-import com.bruynhuis.galago.control.tween.RigidbodyAccessor;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.StatsAppState;
 import com.jme3.app.state.VideoRecorderAppState;
@@ -56,7 +54,6 @@ import com.bruynhuis.galago.ui.listener.SavedGameListener;
 import com.bruynhuis.galago.ui.tween.WidgetAccessor;
 import com.bruynhuis.galago.util.ByteArrayInfo;
 import com.bruynhuis.galago.util.SharedSystem;
-import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.MouseAxisTrigger;
@@ -191,7 +188,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         this.GAME_FONT = gameFont;
 
         if (GAME_FONT == null) {
-            GAME_FONT = "Fonts/OpenSansExtrabold.fnt";
+            GAME_FONT = "Fonts/OpenSans.fnt";
         }
 
         this.SPLASH_IMAGE = splashImage;
@@ -250,8 +247,6 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         Tween.registerAccessor(Spatial.class, new SpatialAccessor());
         Tween.registerAccessor(ColorRGBA.class, new ColorAccessor());
         Tween.registerAccessor(Vector3f.class, new Vector3fAccessor());
-        Tween.registerAccessor(RigidBodyControl.class, new RigidbodyAccessor());
-        Tween.registerAccessor(com.bruynhuis.galago.sprite.physics.RigidBodyControl.class, new Rigidbody2DAccessor());
 
         tweenManager = new TweenManager();
         messageManager = new MessageManager(this);

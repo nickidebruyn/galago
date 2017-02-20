@@ -47,29 +47,25 @@ import com.jme3.app.state.AppStateManager;
 import com.jme3.renderer.RenderManager;
 
 /**
- * 
+ *
  * @author H
  */
 public class Dyn4jAppState extends AbstractAppState {
 
     private static final long TIME_STEP_IN_MICROSECONDS = (long) (Settings.DEFAULT_STEP_FREQUENCY * 1000);
-
-    /** See {@link Application} for details. */
+    /**
+     * See {@link Application} for details.
+     */
     protected Application app = null;
-
     protected AppStateManager stateManager = null;
-
     protected Capacity initialCapacity = null;
     protected Bounds bounds = null;
-
     protected PhysicsSpace physicsSpace = null;
     protected float tpf = 0;
     protected float tpfSum = 0;
-
     // MultiTreading Fields
     protected ThreadingType threadingType = null;
     protected ScheduledThreadPoolExecutor executor;
-
     private final Runnable parallelPhysicsUpdate = new Runnable() {
         @Override
         public void run() {
@@ -184,7 +180,8 @@ public class Dyn4jAppState extends AbstractAppState {
     }
 
     /**
-     * See {@link AppStateManager#update(float)}. Note: update method is not called if enabled = false.
+     * See {@link AppStateManager#update(float)}. Note: update method is not
+     * called if enabled = false.
      */
     @Override
     public void update(final float tpf) {
@@ -197,13 +194,21 @@ public class Dyn4jAppState extends AbstractAppState {
     }
 
     /**
-     * See {@link AppStateManager#render(RenderManager)}. Note: render method is not called if enabled = false.
+     * See {@link AppStateManager#render(RenderManager)}. Note: render method is
+     * not called if enabled = false.
      */
     @Override
     public void render(final RenderManager rm) {
-        if (this.threadingType == ThreadingType.SEQUENTIAL) {
+
+        if (threadingType == ThreadingType.PARALLEL) {
+            executor.submit(parallelPhysicsUpdate);
+            
+        } else if (threadingType == ThreadingType.SEQUENTIAL) {
             final float timeStep = isEnabled() ? this.tpf * this.physicsSpace.getSpeed() : 0;
             this.physicsSpace.updateFixed(timeStep);
+            
+        } else {
+            
         }
     }
 
@@ -211,6 +216,7 @@ public class Dyn4jAppState extends AbstractAppState {
     public void setEnabled(final boolean enabled) {
         if (enabled) {
             schedulePhysicsCalculationTask();
+            
         } else if (this.executor != null) {
             this.executor.remove(this.parallelPhysicsUpdate);
         }
@@ -232,5 +238,4 @@ public class Dyn4jAppState extends AbstractAppState {
     public PhysicsSpace getPhysicsSpace() {
         return this.physicsSpace;
     }
-
 }

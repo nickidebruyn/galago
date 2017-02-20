@@ -1,7 +1,9 @@
+uniform float g_Time;
+
 uniform sampler2D m_Texture;
 uniform float m_Amount;
 uniform float m_Speed;
-uniform float m_Time;
+
 
 varying vec2 texCoord;
 
@@ -14,8 +16,8 @@ void main() {
 
 	vec4 color = texture2D(m_Texture, texCoord);
 
-	//color += amount * ( .5 - random( vec3( 1. ), length( gl_FragCoord ) + speed * .01 * time ) );
-	color += vec4( vec3( m_Amount * random( texCoord, 0.00001 * m_Speed * m_Time ) ), 1. );
+	//color += m_Amount * ( 0.5 - random( vec3( 1.0 ), length( gl_FragCoord ) + m_Speed * 0.01 * g_Time ) );
+	color += vec4( vec3( m_Amount * random( texCoord, 0.00001 * m_Speed * g_Time ) ), 1. );
 
 	gl_FragColor = color;
 

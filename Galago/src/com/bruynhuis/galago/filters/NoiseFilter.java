@@ -21,9 +21,9 @@ import java.io.IOException;
  */
 public class NoiseFilter extends Filter {
     
-    private float amount = 0.8f;
-    private float time = 0f;
-    private float speed = 0.3f;
+    private float amount = 0.6f;
+//    private float time = 0f;
+    private float speed = 0.2f;
 
     /**
      * creates a NoiseFilter
@@ -37,7 +37,7 @@ public class NoiseFilter extends Filter {
     protected Material getMaterial() {
         material.setFloat("Amount", amount);
         material.setFloat("Speed", speed);
-        material.setFloat("Time", time);
+//        material.setFloat("Time", time);
         return material;
     }
     
@@ -56,26 +56,26 @@ public class NoiseFilter extends Filter {
             material.setFloat("Amount", amount);
         }
     }
-
-    public float getTime() {
-        return time;
-    }
-
-    @Override
-    protected void preFrame(float tpf) {
-        time += tpf;
-        if (time >= 1000) {
-            time = 0;
-        }
-        setTime(time);
-    }
-
-    public void setTime(float time) {
-        this.time = time;
-        if (material != null) {
-            material.setFloat("Time", time);
-        }
-    }
+//
+//    public float getTime() {
+//        return time;
+//    }
+//
+//    @Override
+//    protected void preFrame(float tpf) {
+//        time += tpf;
+//        if (time >= 1000) {
+//            time = 0;
+//        }
+//        setTime(time);
+//    }
+//
+//    public void setTime(float time) {
+//        this.time = time;
+//        if (material != null) {
+//            material.setFloat("Time", time);
+//        }
+//    }
 
     public float getSpeed() {
         return speed;

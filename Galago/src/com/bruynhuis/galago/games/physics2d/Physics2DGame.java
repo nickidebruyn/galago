@@ -17,7 +17,6 @@ import com.bruynhuis.galago.sprite.Sprite;
 import com.bruynhuis.galago.sprite.physics.PhysicsCollisionListener;
 import com.bruynhuis.galago.sprite.physics.RigidBodyControl;
 import com.bruynhuis.galago.sprite.physics.shape.CollisionShape;
-import com.bruynhuis.galago.util.SpatialUtils;
 import com.jme3.math.Vector2f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
@@ -637,11 +636,11 @@ public abstract class Physics2DGame implements PhysicsCollisionListener {
     public void optimize() {
         //Optimize
         if (baseApplication.isMobileApp()) {
-            SpatialUtils.makeUnshaded(rootNode);
+//            SpatialUtils.makeUnshaded(rootNode);
         }
         if (!edit) {
             ((BatchNode) terrainNode).batch();
-            ((BatchNode) vegetationNode).batch();
+//            ((BatchNode) vegetationNode).batch();
         }
     }
 

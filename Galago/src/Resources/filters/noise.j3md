@@ -6,7 +6,6 @@ MaterialDef Default GUI {
         Texture2D Texture
         Float Amount
         Float Speed
-        Float Time
 
     }
 
@@ -17,6 +16,8 @@ MaterialDef Default GUI {
 
         WorldParameters {
             WorldViewProjectionMatrix
+            Time
+
         }
 
     }

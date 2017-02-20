@@ -130,14 +130,16 @@ public class Sprite extends Node {
 
     public void setImage(String imagePath) {
         Texture texture = baseApplication.getAssetManager().loadTexture(imagePath);
-        texture.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+//        texture.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         texture.setWrap(Texture.WrapMode.Repeat);
 
-        Material material = new Material(baseApplication.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+//        Material material = new Material(baseApplication.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+        Material material = new Material(baseApplication.getAssetManager(), "Resources/MatDefs/SpriteShader.j3md");
 //        material.setColor("Color", ColorRGBA.White);
-        material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha); 
         material.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
-        material.setTexture("ColorMap", texture);
+//        material.setFloat("AlphaDiscardThreshold", 0.5f);
+        material.setTexture("Texture", texture);
         setMaterial(material);
         
         flipCoords(true);

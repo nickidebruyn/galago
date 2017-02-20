@@ -95,16 +95,16 @@ public class TouchPickListener implements ActionListener, AnalogListener {
         // 5. Use the results (we mark the hit object)
         if (results.size() > 0) {
             // The closest collision point is what was truly hit:
-            if (baseApplication.getCurrentScreen().getWindow().isButtonTriggered()) {
-                contactPoint = null;
-                contactObject = null;
-                
-            } else {
+//            if (baseApplication.getCurrentScreen().getWindow().isButtonTriggered()) {
+//                contactPoint = null;
+//                contactObject = null;
+//                
+//            } else {
                 CollisionResult closest = results.getClosestCollision();
                 contactPoint = closest.getContactPoint();
                 contactObject = closest.getGeometry();
                 
-            }
+//            }
             
 
         } else {

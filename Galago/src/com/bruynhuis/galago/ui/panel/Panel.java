@@ -7,6 +7,7 @@ package com.bruynhuis.galago.ui.panel;
 import com.bruynhuis.galago.ui.ImageWidget;
 import com.bruynhuis.galago.ui.Widget;
 import com.bruynhuis.galago.ui.window.Window;
+import com.jme3.material.Material;
 import com.jme3.scene.BatchNode;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -126,6 +127,12 @@ public class Panel extends ImageWidget {
             }
         }
 
+        //NB: When we set the transparency of the panel we need to make sure we clone the material
+        if (picture != null && picture.getMaterial() != null) {
+            Material clonedMat = picture.getMaterial().clone();
+            picture.setMaterial(clonedMat);
+            
+        }
         super.setTransparency(alpha);
 
     }

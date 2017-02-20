@@ -4,7 +4,7 @@ uniform float m_Threshold;
 
 varying vec2 texCoord;
 
-float kernel = 0.005;
+float kernel = 0.05;
 
 void main() {
 

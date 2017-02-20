@@ -4,6 +4,8 @@
  */
 package com.bruynhuis.galago.app;
 
+import aurelienribon.tweenengine.Tween;
+import com.bruynhuis.galago.control.tween.Rigidbody2DAccessor;
 import com.bruynhuis.galago.sprite.physics.Dyn4jAppState;
 import com.bruynhuis.galago.sprite.physics.ThreadingType;
 import com.jme3.material.MatParam;
@@ -30,6 +32,12 @@ public abstract class Base2DApplication extends BaseApplication {
     public Base2DApplication(String title, float width, float height, String gameSaveFileName, String gameFont, String splashImage, boolean resizable) {
         super(title, width, height, gameSaveFileName, gameFont, splashImage, resizable);
     }
+    
+    @Override
+    public void simpleInitApp() {
+        Tween.registerAccessor(com.bruynhuis.galago.sprite.physics.RigidBodyControl.class, new Rigidbody2DAccessor());
+        super.simpleInitApp(); 
+    } 
     
     @Override
     protected void initPhysics() {        

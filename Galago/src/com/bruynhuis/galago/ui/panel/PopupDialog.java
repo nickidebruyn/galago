@@ -24,11 +24,11 @@ public abstract class PopupDialog extends Panel {
      * @param window 
      */
     public PopupDialog(Window window) {
-        this(window, "Resources/panel.png", 600, 400);
+        this(window, "Resources/panel.png", 600, 400, true);
     }
     
     public PopupDialog(Window window, String pictureFile, float width, float height) {
-        this(window, pictureFile, width, height, false);
+        this(window, pictureFile, width, height, true);
     }
     
     /**
