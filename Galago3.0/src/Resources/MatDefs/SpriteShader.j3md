@@ -1,0 +1,43 @@
+MaterialDef Default SpriteShader {
+
+    MaterialParameters {
+        Texture2D Texture
+        Color Color (Color)
+        Boolean VertexColor (UseVertexColor)
+        Float AlphaDiscardThreshold
+
+        // UV Animation parameters Translation
+        Boolean TranslateUV
+        Vector2 TranslateAmount
+
+        Boolean GlowEnabled
+        Float GlowScale
+        Float GlowThreshold
+        Float GlowKernel: 0.05
+
+    }
+
+    Technique {
+        VertexShader GLSL100:   Resources/Shaders/SpriteShader.vert
+        FragmentShader GLSL100: Resources/Shaders/SpriteShader.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            Time
+            Resolution
+        }
+
+        Defines {
+            HAS_TEXTURE : Texture
+            DISCARD_ALPHA : AlphaDiscardThreshold
+            HAS_VERTEXCOLOR : VertexColor
+            HAS_COLOR : Color
+            TRANSLATE_UV: TranslateUV
+            GLOW_ENABLED: GlowEnabled
+        }
+    }
+
+    Technique {
+    }
+
+}

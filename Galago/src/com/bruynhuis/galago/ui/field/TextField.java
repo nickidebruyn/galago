@@ -341,7 +341,7 @@ public class TextField extends ImageWidget {
     }
     
     public String getText() {
-        return bitmapText.getText();                
+        return bitmapText.getText().trim();                
     }
     
     /**

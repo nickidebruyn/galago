@@ -23,7 +23,7 @@ import java.util.Iterator;
  */
 public class JoystickInputListener implements RawInputListener {
     
-    private ArrayList<JoystickListener> joystickListeners = new ArrayList<>();
+    private ArrayList<JoystickListener> joystickListeners = new ArrayList<JoystickListener>();
     private InputManager inputManager;
     private boolean enabled = true;
     private JoystickEvent joystickEvent;
@@ -92,7 +92,7 @@ public class JoystickInputListener implements RawInputListener {
 
     public void onJoyAxisEvent(JoyAxisEvent evt) {
         
-//        log("joystickEvent: " + joystickEvent.isButton3());
+        log("JoyAxisEvent: " + evt.getAxis().getAxisId());
         
         if (evt.getAxis().getJoystick() != null && !evt.isConsumed()) {
             
@@ -105,7 +105,8 @@ public class JoystickInputListener implements RawInputListener {
             
             //Set the analog value
             joystickEvent.setAnalogValue(evt.getValue());
-            joystickEvent.setKeyDown(evt.getValue() >= -1.0f);
+            joystickEvent.setKeyDown(evt.getValue() == -1.0f ||
+                    evt.getValue() == 1.0f);
             
             //Check the directions
             if (evt.getValue() == 1) {
@@ -149,8 +150,10 @@ public class JoystickInputListener implements RawInputListener {
                 } 
                 
             }
-            
+
             fireJoystickEvent(joystickEvent, 1);
+//            log("Key Down: " + joystickListeners.size());
+//            evt.setConsumed();
         }
 
     }

@@ -1,0 +1,25 @@
+MaterialDef Default GUI {
+
+    MaterialParameters {
+        Int NumSamples
+        Int NumSamplesDepth
+        Texture2D Texture
+        Texture2D NoiseTexture
+        Color Color
+        Vector3 DistortionOffsets
+        Float DistortionTime
+        Float DistortionFrequency
+
+    }
+
+
+    Technique {
+        VertexShader GLSL100:   Common/MatDefs/Post/Post.vert
+        FragmentShader GLSL100: Resources/filters/chromatic-aberration.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+        }
+
+    }
+}

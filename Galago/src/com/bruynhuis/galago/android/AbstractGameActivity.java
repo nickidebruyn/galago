@@ -6,7 +6,6 @@ package com.bruynhuis.galago.android;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Vibrator;
@@ -16,7 +15,6 @@ import android.widget.RelativeLayout;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 import com.jme3.app.AndroidHarness;
-import com.jme3.renderer.android.TextureUtil;
 import java.util.Properties;
 import com.bruynhuis.galago.app.BaseApplication;
 import com.bruynhuis.galago.ui.listener.EscapeListener;
@@ -29,6 +27,7 @@ import com.google.android.gms.plus.Plus;
 import com.google.android.gms.games.Games;
 import android.app.Activity;
 import android.app.AlertDialog;
+import static android.content.Context.SENSOR_SERVICE;
 import android.content.DialogInterface;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
@@ -40,13 +39,11 @@ import android.hardware.SensorManager;
 import android.os.AsyncTask;
 import android.util.Log;
 import com.bruynhuis.galago.listener.SelectionActionListener;
-import com.jme3.system.android.AndroidConfigChooser.ConfigType;
 import com.bruynhuis.galago.sound.AndroidMidiPlayer;
 import com.bruynhuis.galago.sound.MidiPlayer;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
 import com.jme3.audio.AudioRenderer;
-import com.jme3.audio.android.AndroidAudioRenderer;
 import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
@@ -126,21 +123,21 @@ public abstract class AbstractGameActivity extends AndroidHarness
         preload();
         // Set the application class to run
         appClass = APP_PATH;
-        // Try ConfigType.FASTEST; or ConfigType.LEGACY if you have problems
-        eglConfigType = ConfigType.BEST;
-//        antiAliasingSamples = 0;
+
+        // Set the desired EGL configuration
+        eglBitsPerPixel = 24;
+        eglAlphaBits = 0;
+        eglDepthBits = 16;
+        eglSamples = 0;
+        eglStencilBits = 0;
 
         // Exit Dialog title & message
         exitDialogTitle = "Exit?";
         exitDialogMessage = "Press Yes";
-        // Enable verbose logging
-        eglConfigVerboseLogging = false;
 
         //The exit will be handled by jME itself
         handleExitHook = false;
 
-        // Choose screen orientation
-        screenOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
         // Enable MouseEvents being generated from TouchEvents (default = true)
         mouseEventsEnabled = true;
         // Set the default logging level (default=Level.INFO, Level.ALL=All Debug Info)
@@ -151,8 +148,6 @@ public abstract class AbstractGameActivity extends AndroidHarness
 
         //Added by me
         screenShowTitle = false;
-
-        TextureUtil.ENABLE_COMPRESSION = false;
 
         init();
 
@@ -196,14 +191,14 @@ public abstract class AbstractGameActivity extends AndroidHarness
 
         return null;
     }
-    
+
     /**
      * Show a selection dialog
      *
      * @param prprts
      */
     public void doSelectionOption(final HashMap<Integer, String> items) {
-       
+
         this.runOnUiThread(new Runnable() {
             public void run() {
                 AlertDialog.Builder builder = new AlertDialog.Builder(AbstractGameActivity.this);
@@ -221,7 +216,7 @@ public abstract class AbstractGameActivity extends AndroidHarness
                         //Set the selection
                         if (getJmeApplication() != null) {
                             ((BaseApplication) getJmeApplication()).setDropdownSelectedIndex(which);
-                        }                        
+                        }
                     }
                 });
                 builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -339,12 +334,10 @@ public abstract class AbstractGameActivity extends AndroidHarness
                 final String snapshotName = prprts.getProperty(BaseApplication.SAVED_GAME_NAME);
 
 //                showAlert("Prepare Saved Game: " + snapshotName);
-
                 PendingResult<Snapshots.OpenSnapshotResult> pendingResult = Games.Snapshots.open(
                         googleApiClient, snapshotName, true);
 
 //                showAlert("Loading Saved Game");
-
                 ResultCallback<Snapshots.OpenSnapshotResult> callback = new ResultCallback<Snapshots.OpenSnapshotResult>() {
                     @Override
                     public void onResult(Snapshots.OpenSnapshotResult openSnapshotResult) {
@@ -366,20 +359,15 @@ public abstract class AbstractGameActivity extends AndroidHarness
                             }
 
 //                            showAlert("Snapshot data: " + new String(data));
-
                             if (getJmeApplication() != null) {
 //                                showAlert("Goto");
                                 ((BaseApplication) getJmeApplication()).fireSavedGameOpenListener(snapshotName, new String(data));
                             }
 
-                        } else {
-//                            showAlert("Failed to load snapshot.");
-
-                            if (getJmeApplication() != null) {
+                        } else //                            showAlert("Failed to load snapshot.");
+                        if (getJmeApplication() != null) {
 //                                showAlert("Error opening saved game.");
-                                ((BaseApplication) getJmeApplication()).fireSavedGameErrorListener("Error opening saved game.");
-                            }
-
+                            ((BaseApplication) getJmeApplication()).fireSavedGameErrorListener("Error opening saved game.");
                         }
 
                     }
@@ -776,12 +764,12 @@ public abstract class AbstractGameActivity extends AndroidHarness
             GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this, this, this);
             builder.addApi(Games.API)
                     .addApi(Plus.API)
-//                    .addApi(AppStateManager.API)
+                    //                    .addApi(AppStateManager.API)
                     .addApi(Drive.API)
                     .addScope(Drive.SCOPE_APPFOLDER)
                     .addScope(Games.SCOPE_GAMES)
                     .addScope(Plus.SCOPE_PLUS_LOGIN)
-//                    .addScope(AppStateManager.SCOPE_APP_STATE)
+                    //                    .addScope(AppStateManager.SCOPE_APP_STATE)
                     .setGravityForPopups(Gravity.CENTER);
             googleApiClient = builder.build();
         }
@@ -828,37 +816,36 @@ public abstract class AbstractGameActivity extends AndroidHarness
             System.out.println("ImageFormat: " + format);
         }
 
-
         // What camera preview resolutions are supported?
         for (Camera.Size size : mCamera.getParameters().getSupportedPreviewSizes()) {
             System.out.println("PreviewSize: " + size.width + "," + size.height);
         }
 
         // camera parameters need to be reset before they will take effect
-        Camera.Parameters params = mCamera.getParameters();        
+        Camera.Parameters params = mCamera.getParameters();
         params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
-        params.setPreviewSize(480, 320);        
-        System.out.println("ScreenOrientation NOW: " + screenOrientation);
-        
-        if (screenOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
-            System.out.println("##############                   SCENE_MODE_PORTRAIT                ################");
-            params.setSceneMode(Camera.Parameters.SCENE_MODE_PORTRAIT);
-            params.set("orientation", "portrait");
-            params.set("rotation",90);
-            mCamera.setDisplayOrientation(90);
-            
-        } else {
-            params.setSceneMode(Camera.Parameters.SCENE_MODE_LANDSCAPE);
-            params.set("orientation", "landscape");          
-            params.set("rotation",90);
-            mCamera.setDisplayOrientation(0);
-            
-        }        
-        
+        params.setPreviewSize(480, 320);
+
+        //TODO: 
+//        System.out.println("ScreenOrientation NOW: " + screenOrientation);
+//        if (screenOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+//            System.out.println("##############                   SCENE_MODE_PORTRAIT                ################");
+//            params.setSceneMode(Camera.Parameters.SCENE_MODE_PORTRAIT);
+//            params.set("orientation", "portrait");
+//            params.set("rotation",90);
+//            mCamera.setDisplayOrientation(90);
+//            
+//        } else {
+        params.setSceneMode(Camera.Parameters.SCENE_MODE_LANDSCAPE);
+        params.set("orientation", "landscape");
+        params.set("rotation", 90);
+        mCamera.setDisplayOrientation(0);
+
+//        }        
         System.out.println("SET SCENE MODE TO: " + params.getSceneMode());
-        
+
         mCamera.setParameters(params);
-        
+
         mCamera.setPreviewCallback(new Camera.PreviewCallback() {
             @Override
             public void onPreviewFrame(byte[] data, Camera camera) {
@@ -998,7 +985,7 @@ public abstract class AbstractGameActivity extends AndroidHarness
         } else {
             addViewLayout.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
         }
-        
+
         addViewLayout.bringToFront();
         adView.bringToFront();
 
@@ -1047,10 +1034,7 @@ public abstract class AbstractGameActivity extends AndroidHarness
                 //resume the audio
                 AudioRenderer result = app.getAudioRenderer();
                 if (result != null) {
-                    if (result instanceof AndroidAudioRenderer) {
-                        AndroidAudioRenderer renderer = (AndroidAudioRenderer) result;
-                        renderer.resumeAll();
-                    }
+                    result.resumeAll();
                 }
             }
         }
@@ -1089,7 +1073,7 @@ public abstract class AbstractGameActivity extends AndroidHarness
         if (useCamera && mCamera == null) {
             initLiveCamera();
         }
-        
+
         if (getJmeApplication() != null) {
             ((BaseApplication) getJmeApplication()).doResumeGame();
         }
@@ -1204,10 +1188,8 @@ public abstract class AbstractGameActivity extends AndroidHarness
                     ((BaseApplication) getJmeApplication()).doGoogleAPIError("An unknown error occurred.");
                 }
             }
-        } else {
-            if (getJmeApplication() != null) {
-                ((BaseApplication) getJmeApplication()).doGoogleAPIError(errorMessage);
-            }
+        } else if (getJmeApplication() != null) {
+            ((BaseApplication) getJmeApplication()).doGoogleAPIError(errorMessage);
         }
 
         //}
@@ -1300,6 +1282,5 @@ public abstract class AbstractGameActivity extends AndroidHarness
 ////                orientation.slerp(tempQuat, 0.2f);
 //            }
 //        }
-
     }
 }

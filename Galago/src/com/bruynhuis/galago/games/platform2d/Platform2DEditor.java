@@ -66,7 +66,7 @@ public abstract class Platform2DEditor extends AbstractScreen implements PickLis
     protected Material markerMaterial;
     protected Geometry worksheet;
     protected TouchButtonAdapter tilesListener;
-    protected ArrayList<String> selectedList = new ArrayList<>();
+    protected ArrayList<String> selectedList = new ArrayList<String>();
     protected Label infoLabel;
     protected DescriptionDialog descriptionDialog;
     protected float buttonSize = 64f;
@@ -638,7 +638,7 @@ public abstract class Platform2DEditor extends AbstractScreen implements PickLis
          * We override the update loop so that we can move the camera position.
          */
         if (isActive() && !lockMovement) {
-            camera.setLocation(camera.getLocation().interpolate(camera.getLocation().clone().setX(targetLookAtPoint.x).setY(targetLookAtPoint.y), 0.02f));
+            camera.setLocation(camera.getLocation().interpolateLocal(camera.getLocation().clone().setX(targetLookAtPoint.x).setY(targetLookAtPoint.y), 0.02f));
 
         }
     }

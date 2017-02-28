@@ -520,4 +520,18 @@ public class Window {
             
         }
     }
+    
+    /**
+     * This is a helper method for padding a number value with zeros
+     * @param value
+     * @param size
+     * @return 
+     */
+    public String padText(int value, int size) {
+        String temp = value + "";
+        while (temp.length() < size) {
+            temp = "0" + temp;
+        }
+        return temp;
+    }
 }

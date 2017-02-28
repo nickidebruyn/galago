@@ -268,6 +268,8 @@ public abstract class Blender2DGame implements PhysicsCollisionListener {
 
             } else if (checkCollisionWithType(spatialA, spatialB, TYPE_PLAYER, TYPE_END)) {
                 doLevelCompleted();
+                spatialA.setName(null);
+                spatialB.setName(null);
 
             }
         }

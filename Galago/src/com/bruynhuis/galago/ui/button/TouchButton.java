@@ -34,7 +34,7 @@ public class TouchButton extends ImageWidget implements Touchable {
     protected Panel panel;
     protected int uid;
     protected String id;
-    protected ArrayList<TouchButtonListener> touchButtonListeners = new ArrayList<>();
+    protected ArrayList<TouchButtonListener> touchButtonListeners = new ArrayList<TouchButtonListener>();
     protected ActionListener actionListener;
     private boolean enabled = true;
     private boolean wasDown = false;

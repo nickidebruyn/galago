@@ -69,6 +69,10 @@ public abstract class SimplePhysics2DPlayer {
             doDie();
         }
     }    
+
+    public int getLives() {
+        return lives;
+    }
     
     public boolean addLife() {
         if (lives < 3) {

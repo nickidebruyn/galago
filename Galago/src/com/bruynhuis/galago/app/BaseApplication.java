@@ -61,7 +61,7 @@ import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.math.Vector3f;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture2D;
-import com.jme3.texture.plugins.AndroidImageLoader;
+import com.jme3.texture.plugins.AndroidNativeImageLoader;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -152,7 +152,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     protected Window window;
     protected Panel splash;
     protected Label info;
-    protected String splashInfoMessage = "GalagoFramework @ 2016";
+    protected String splashInfoMessage = "Galago@2017 v3.1.0";
     protected VideoRecorderAppState recorderAppState;
     protected boolean record = false;
     protected StatsAppState statsAppState;
@@ -162,7 +162,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     private boolean firePauseAction = false;
     private boolean fireResumeAction = false;
     private Texture2D cameraTexture;
-    private AndroidImageLoader androidImageLoader;
+    private AndroidNativeImageLoader androidImageLoader;
     private JoystickInputListener joystickInputListener;
 
     /**
@@ -851,7 +851,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 
             //Do this if not done before
             if (androidImageLoader == null) {
-                androidImageLoader = new AndroidImageLoader();
+                androidImageLoader = new AndroidNativeImageLoader();
                 cameraTexture = new Texture2D();
             }
 

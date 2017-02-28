@@ -71,10 +71,10 @@ public class PhysicsSpace {
     
     protected CollisionAdapter collisionAdapter;
     protected StepAdapter stepAdapter;
-    protected ArrayList<PhysicsCollisionListener> collisionListeners = new ArrayList<>();
-    protected ArrayList<PhysicsTickListener> tickListeners = new ArrayList<>();
-    protected ArrayList<PhysicsJoint> physicsJoints = new ArrayList<>();
-    protected ArrayList<Vehicle> vehicles = new ArrayList<>();
+    protected ArrayList<PhysicsCollisionListener> collisionListeners = new ArrayList<PhysicsCollisionListener>();
+    protected ArrayList<PhysicsTickListener> tickListeners = new ArrayList<PhysicsTickListener>();
+    protected ArrayList<PhysicsJoint> physicsJoints = new ArrayList<PhysicsJoint>();
+    protected ArrayList<Vehicle> vehicles = new ArrayList<Vehicle>();
     protected Capacity initialCapacity;
     protected Bounds bounds;
 

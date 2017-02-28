@@ -36,7 +36,7 @@ public class AnimatedSprite extends Sprite implements Savable {
     protected Animation currentAnimation;
     private String DEFAULT_ANIMATION = "default";
     private float defaultSpeed;
-    private ArrayList<AnimationListener> animationListeners = new ArrayList<>();
+    private ArrayList<AnimationListener> animationListeners = new ArrayList<AnimationListener>();
 
     public AnimatedSprite() {
     }

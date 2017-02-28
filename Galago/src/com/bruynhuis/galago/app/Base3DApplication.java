@@ -56,7 +56,7 @@ public abstract class Base3DApplication extends BaseApplication {
     @Override
     public void showDebuging() {
         if (bulletAppState != null) {
-            bulletAppState.getPhysicsSpace() .enableDebug(assetManager);
+//            bulletAppState.getPhysicsSpace().enableDebug(assetManager);
         }
     }
 

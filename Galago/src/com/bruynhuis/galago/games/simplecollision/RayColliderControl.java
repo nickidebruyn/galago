@@ -34,7 +34,7 @@ public class RayColliderControl extends AbstractControl {
         //Lets build up the casters
         if (casters == null) {
             //Only test collisions in these directions
-            casters = new ArrayList<>();
+            casters = new ArrayList<RayCaster>();
             if (directions.x > 0) {
                 casters.add(new RayCaster(basicGame.getLevelNode(), (Node)spatial, Vector3f.UNIT_X));
                 casters.add(new RayCaster(basicGame.getLevelNode(), (Node)spatial, Vector3f.UNIT_X.negate()));

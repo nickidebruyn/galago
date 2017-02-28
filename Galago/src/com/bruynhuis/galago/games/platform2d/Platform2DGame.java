@@ -82,19 +82,19 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
     private boolean edit = false;
     private String saveFile;
     private File file;
-    protected ArrayList<String> terrainList = new ArrayList<>();
-    protected ArrayList<String> enemyList = new ArrayList<>();
-    protected ArrayList<String> obstacleList = new ArrayList<>();
-    protected ArrayList<String> staticList = new ArrayList<>();
-    protected ArrayList<String> pickupList = new ArrayList<>();
-    protected ArrayList<String> vegetationList = new ArrayList<>();
-    protected ArrayList<String> skyList = new ArrayList<>();
-    protected ArrayList<String> frontLayer1List = new ArrayList<>();
-    protected ArrayList<String> frontLayer2List = new ArrayList<>();
-    protected ArrayList<String> backLayer1List = new ArrayList<>();
-    protected ArrayList<String> backLayer2List = new ArrayList<>();
-    protected ArrayList<String> startList = new ArrayList<>();
-    protected ArrayList<String> endList = new ArrayList<>();
+    protected ArrayList<String> terrainList = new ArrayList<String>();
+    protected ArrayList<String> enemyList = new ArrayList<String>();
+    protected ArrayList<String> obstacleList = new ArrayList<String>();
+    protected ArrayList<String> staticList = new ArrayList<String>();
+    protected ArrayList<String> pickupList = new ArrayList<String>();
+    protected ArrayList<String> vegetationList = new ArrayList<String>();
+    protected ArrayList<String> skyList = new ArrayList<String>();
+    protected ArrayList<String> frontLayer1List = new ArrayList<String>();
+    protected ArrayList<String> frontLayer2List = new ArrayList<String>();
+    protected ArrayList<String> backLayer1List = new ArrayList<String>();
+    protected ArrayList<String> backLayer2List = new ArrayList<String>();
+    protected ArrayList<String> startList = new ArrayList<String>();
+    protected ArrayList<String> endList = new ArrayList<String>();
 
     public Platform2DGame(Base2DApplication baseApplication, Node rootNode) {
         this.baseApplication = baseApplication;
@@ -928,7 +928,7 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
 
         //If nothing found we return te selector
         if (list == null || list.size() == 0) {
-            list = new ArrayList<>();
+            list = new ArrayList<String>();
 
         }
 

@@ -1,0 +1,11 @@
+Material My Material : Common/MatDefs/Misc/Unshaded.j3md {
+     MaterialParameters {
+		AlphaDiscardThreshold : 0.1
+        ColorMap : Flip Repeat Resources/worksheet.png
+		Color : 0.8 0.8 0.8 0.5
+     }
+    AdditionalRenderState {
+        FaceCull Off
+		Blend PremultAlpha
+    }
+}

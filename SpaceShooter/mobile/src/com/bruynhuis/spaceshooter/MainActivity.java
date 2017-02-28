@@ -1,7 +1,6 @@
 package com.bruynhuis.spaceshooter;
  
 import com.bruynhuis.galago.android.AbstractGameActivity;
-import com.jme3.system.android.AndroidConfigChooser;
  
 public class MainActivity extends AbstractGameActivity {
 
@@ -27,7 +26,7 @@ public class MainActivity extends AbstractGameActivity {
 
     @Override
     protected void init() {
-        eglConfigType = AndroidConfigChooser.ConfigType.FASTEST;
+//        eglConfigType = AndroidConfigChooser.ConfigType.FASTEST;
     }
 
     @Override

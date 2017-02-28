@@ -49,7 +49,7 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
     private Node cameraJointNode;
     private CameraNode cameraNode;
     private Spatial selectedSpatial;
-    private ArrayList<Spatial> selectedList = new ArrayList<>();
+    private ArrayList<Spatial> selectedList = new ArrayList<Spatial>();
     private int index = 0;
     private int angle = 0;
     private Tile selectedTile;

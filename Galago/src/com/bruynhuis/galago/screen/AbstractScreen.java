@@ -239,7 +239,7 @@ public abstract class AbstractScreen extends AbstractAppState implements EscapeL
 
         } else {
             active = false;
-            loadingPanel.setVisible(true);
+//            loadingPanel.setVisible(true);
 //            hudPanel.setVisible(false);
             window.getFader().fadeOut();
 

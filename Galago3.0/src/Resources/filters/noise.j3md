@@ -1,0 +1,24 @@
+MaterialDef Default GUI {
+
+    MaterialParameters {
+        Int NumSamples
+        Int NumSamplesDepth
+        Texture2D Texture
+        Float Amount
+        Float Speed
+
+    }
+
+
+    Technique {
+        VertexShader GLSL100:   Common/MatDefs/Post/Post.vert
+        FragmentShader GLSL100: Resources/filters/noise.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            Time
+
+        }
+
+    }
+}

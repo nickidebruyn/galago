@@ -43,6 +43,14 @@ public class FlickerControl extends AbstractControl {
     }
 
     @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        if (!enabled) {
+            spatial.setCullHint(Spatial.CullHint.Never);                
+        }
+    }
+
+    @Override
     protected void controlRender(RenderManager rm, ViewPort vp) {
 //        throw new UnsupportedOperationException("Not supported yet.");
     }

@@ -162,10 +162,10 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
                 setPhysicLocation(this.body);
                 setPhysicRotation(this.body);
             } else {
-                if (this.body.getMass().getType().equals(Mass.Type.NORMAL)) {
+//                if (this.body.getMass().getType().equals(Mass.Type.NORMAL)) {
                     setPhysicLocation(this.body);
                     setPhysicRotation(this.body);
-                }
+//                }
             }
 
         }
@@ -187,7 +187,7 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
 
         final TempVars tempVars = TempVars.get();
         final Quaternion quaternion = tempVars.quat1;
-        quaternion.fromAngleAxis(rotation, Vector3f.UNIT_Z);
+        quaternion.fromAngleAxis(rotation, new Vector3f(0, 0, 1));
 
         this.spatial.setLocalRotation(quaternion);
 
@@ -385,8 +385,8 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
     }
 
     public ArrayList<ArrayList<BodyFixture>> getGroupedInSameSizeBodyFixtures() {
-        ArrayList<ArrayList<BodyFixture>> groupedList = new ArrayList<>();
-        ArrayList<BodyFixture> lastList = new ArrayList<>();
+        ArrayList<ArrayList<BodyFixture>> groupedList = new ArrayList<ArrayList<BodyFixture>>();
+        ArrayList<BodyFixture> lastList = new ArrayList<BodyFixture>();
         if (body.getFixtures().size() > 0) {
             for (int i = 0; i < body.getFixtures().size(); i++) {
                 BodyFixture bf = body.getFixtures().get(i);
@@ -450,7 +450,7 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
      * @return
      */
     private ArrayList<BodyFixture> getSamesizeBodyFixtures(BodyFixture requiredBodyFixture, List<BodyFixture> fixtures) {
-        ArrayList<BodyFixture> batchedFixtures = new ArrayList<>();
+        ArrayList<BodyFixture> batchedFixtures = new ArrayList<BodyFixture>();
         batchedFixtures.add(requiredBodyFixture);
 
         for (int i = 0; i < fixtures.size(); i++) {
@@ -485,7 +485,7 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
         Collections.sort(bodyFixtureList, new BoxCollisionShapeSorter());
 
         //First we group all of the same size box collisions shapes together
-        ArrayList<ArrayList<BodyFixture>> groupedList = new ArrayList<>();
+        ArrayList<ArrayList<BodyFixture>> groupedList = new ArrayList<ArrayList<BodyFixture>>();
 
         if (bodyFixtureList.size() > 0) {
             for (int i = 0; i < bodyFixtureList.size(); i++) {
@@ -561,7 +561,7 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
         printBodyFixturesList(bodyFixtureList, "");
 
         //First we group all of the same size box collisions shapes together
-        ArrayList<ArrayList<BodyFixture>> groupedList = new ArrayList<>();
+        ArrayList<ArrayList<BodyFixture>> groupedList = new ArrayList<ArrayList<BodyFixture>>();
 
         if (bodyFixtureList.size() > 0) {
             for (int i = 0; i < bodyFixtureList.size(); i++) {
@@ -658,7 +658,7 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
      * @return
      */
     private ArrayList<BodyFixture> getSameHorizontalSpacingBodyFixtures(Vector2f startPosition, float spacing, List<BodyFixture> fixtures) {
-        ArrayList<BodyFixture> batchedFixtures = new ArrayList<>();
+        ArrayList<BodyFixture> batchedFixtures = new ArrayList<BodyFixture>();
 
         for (int i = 0; i < fixtures.size(); i++) {
             BodyFixture bfAtPos = getBodyFixtureAtPosition(fixtures, startPosition);
@@ -681,7 +681,7 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
      * @return
      */
     private ArrayList<BodyFixture> getSameVerticalSpacingBodyFixtures(Vector2f startPosition, float spacing, List<BodyFixture> fixtures) {
-        ArrayList<BodyFixture> batchedFixtures = new ArrayList<>();
+        ArrayList<BodyFixture> batchedFixtures = new ArrayList<BodyFixture>();
 
         for (int i = 0; i < fixtures.size(); i++) {
             BodyFixture bfAtPos = getBodyFixtureAtPosition(fixtures, startPosition);

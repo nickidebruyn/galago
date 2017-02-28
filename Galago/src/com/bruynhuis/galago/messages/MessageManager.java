@@ -16,7 +16,7 @@ import java.util.Iterator;
 public class MessageManager {
     
     private BaseApplication application;
-    private ArrayList<MessageListener> messageListeners = new ArrayList<>();
+    private ArrayList<MessageListener> messageListeners = new ArrayList<MessageListener>();
     
     public MessageManager(BaseApplication baseApplication) {
         this.application = baseApplication;

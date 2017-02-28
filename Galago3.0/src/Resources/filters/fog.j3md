@@ -1,0 +1,31 @@
+MaterialDef Default Fog {
+
+    MaterialParameters {
+        Int NumSamples
+        Int NumSamplesDepth
+        Texture2D Texture
+        Float FogStartDistance
+        Float FogMaxDistance
+        Float FogDensity
+        Color FogColor
+
+    }
+
+    Technique {
+        VertexShader GLSL100:   Resources/filters/fog.vert
+        FragmentShader GLSL100: Resources/filters/fog.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldViewMatrix
+            WorldMatrix
+            CameraPosition
+
+        }
+
+        RenderState {
+            PointSprite On
+        }
+
+    }
+}

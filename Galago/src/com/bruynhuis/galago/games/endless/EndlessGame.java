@@ -48,7 +48,7 @@ public abstract class EndlessGame implements PhysicsCollisionListener, PhysicsTi
     protected Spatial lastColliderSpatial;
     protected Vector3f direction;
     protected int sectionCount = 0;
-    protected ArrayList<EndlessSection> sectionList = new ArrayList<>();
+    protected ArrayList<EndlessSection> sectionList = new ArrayList<EndlessSection>();
 
     public EndlessGame(Base3DApplication baseApplication, Node rootNode, Vector3f direction) {
         this.baseApplication = baseApplication;
