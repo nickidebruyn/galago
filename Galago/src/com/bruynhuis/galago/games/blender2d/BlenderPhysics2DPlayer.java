@@ -12,16 +12,16 @@ import com.jme3.scene.Node;
  *
  * @author nidebruyn
  */
-public abstract class Blender2DPlayer {
+public abstract class BlenderPhysics2DPlayer {
     
-    protected Blender2DGame game;
+    protected BlenderPhysics2DGame game;
     protected Node playerNode;
     protected Vector3f startPosition;
     protected int lives = 0;
     protected int score = 0;
 
-    public Blender2DPlayer(Blender2DGame game) {
-        this.game = game;
+    public BlenderPhysics2DPlayer(BlenderPhysics2DGame physicsGame) {
+        this.game = physicsGame;
     }
     
     public void load() {
@@ -51,7 +51,7 @@ public abstract class Blender2DPlayer {
         playerNode.removeFromParent();
     }
 
-    public Blender2DGame getGame() {
+    public BlenderPhysics2DGame getGame() {
         return game;
     }
 

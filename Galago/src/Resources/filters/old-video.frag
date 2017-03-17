@@ -66,7 +66,7 @@ void main(void) {
 	float t = float(int(g_Time * FREQUENCY));
 	
 	// Get some image movement
-	vec2 suv = uv + 0.002 * vec2( rand(t), rand(t + 20.0));
+	vec2 suv = uv + 0.002 * vec2( rand(t), rand(t + 23.0));
 	
 	// Get the image
 	vec3 image = texture2D( m_Texture, vec2(suv.x, suv.y) ).xyz;

@@ -20,6 +20,7 @@ import com.jme3.texture.Texture;
  */
 public class TextureManager {
 
+    private boolean pixelated = false;
     private BaseApplication application;
     private Map<String, Material> textures = new HashMap<String, Material>();
 
@@ -39,7 +40,12 @@ public class TextureManager {
     public void loadTexture(String texturePath) {
         //GUI material
         Texture texture = application.getAssetManager().loadTexture(texturePath);
-        texture.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+        if (isPixelated()) {
+            texture.setMinFilter(Texture.MinFilter.NearestNoMipMaps);
+        } else {
+            texture.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+        }
+        
         Material material = new Material(application.getAssetManager(), "Common/MatDefs/Gui/Gui.j3md");
         material.setColor("Color", ColorRGBA.White);
         material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
@@ -70,4 +76,14 @@ public class TextureManager {
         }
         return material;
     }
+
+    public boolean isPixelated() {
+        return pixelated;
+    }
+
+    public void setPixelated(boolean pixelated) {
+        this.pixelated = pixelated;
+    }
+    
+    
 }

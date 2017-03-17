@@ -1,0 +1,22 @@
+MaterialDef BasicVignette {
+ 
+    MaterialParameters {
+        Int NumSamples
+        Int NumSamplesDepth
+        Texture2D Texture
+        Float Reduction
+        Float Boost
+
+    }
+
+    Technique {
+        VertexShader GLSL100:   Common/MatDefs/Post/Post.vert
+        FragmentShader GLSL100: Resources/filters/vignette.frag
+ 
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldViewMatrix
+            Resolution
+        }
+    }
+}
