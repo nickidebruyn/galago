@@ -14,17 +14,26 @@ import java.io.Serializable;
  */
 public class Tile implements Serializable {
     
-    private String item;
-    private String enemyItem;
+    private String terrainName;
+    private String objectName;
     private int xPos;
     private int zPos;
-    private int itemAngle = 0;
+    private int objectAngle = 0;
+    private int terrainAngle = 0;
     private boolean walkable = false;
-    private transient Spatial itemSpatial;
-    private transient Spatial enemySpatial;
+    private transient Spatial terrainSpatial;
+    private transient Spatial objectSpatial;
 
     public Tile() {
 
+    }
+
+    public int getTerrainAngle() {
+        return terrainAngle;
+    }
+
+    public void setTerrainAngle(int terrainAngle) {
+        this.terrainAngle = terrainAngle;
     }
 
     public int getxPos() {
@@ -43,29 +52,29 @@ public class Tile implements Serializable {
         this.zPos = zPos;
     }
 
-    public int getItemAngle() {
-        return itemAngle;
+    public int getObjectAngle() {
+        return objectAngle;
     }
 
-    public void setItemAngle(int itemAngle) {
-        this.itemAngle = itemAngle;
+    public void setObjectAngle(int objectAngle) {
+        this.objectAngle = objectAngle;
     }
 
 
-    public String getItem() {
-        return item;
+    public String getTerrainName() {
+        return terrainName;
     }
 
-    public void setItem(String item) {
-        this.item = item;
+    public void setTerrainName(String terrainName) {
+        this.terrainName = terrainName;
     }
 
-    public Spatial getItemSpatial() {
-        return itemSpatial;
+    public Spatial getTerrainSpatial() {
+        return terrainSpatial;
     }
 
-    public void setItemSpatial(Spatial itemSpatial) {
-        this.itemSpatial = itemSpatial;
+    public void setTerrainSpatial(Spatial terrainSpatial) {
+        this.terrainSpatial = terrainSpatial;
     }
 
     public boolean isWalkable() {
@@ -78,23 +87,23 @@ public class Tile implements Serializable {
 
     @Override
     public String toString() {
-        return "Tile{" + "item=" + item + ", xPos=" + xPos + ", zPos=" + zPos + ", itemAngle=" + itemAngle + ", walkable=" + walkable + '}';
+        return "Tile{" + "terrainName=" + terrainName + ", objectName=" + objectName + ", xPos=" + xPos + ", zPos=" + zPos + ", terrainAngle=" + terrainAngle + ", objectAngle=" + objectAngle + ", walkable=" + walkable + '}';
     }
 
-    public String getEnemyItem() {
-        return enemyItem;
+    public String getObjectName() {
+        return objectName;
     }
 
-    public void setEnemyItem(String enemyItem) {
-        this.enemyItem = enemyItem;
+    public void setObjectName(String objectName) {
+        this.objectName = objectName;
     }
 
-    public Spatial getEnemySpatial() {
-        return enemySpatial;
+    public Spatial getObjectSpatial() {
+        return objectSpatial;
     }
 
-    public void setEnemySpatial(Spatial enemySpatial) {
-        this.enemySpatial = enemySpatial;
+    public void setObjectSpatial(Spatial objectSpatial) {
+        this.objectSpatial = objectSpatial;
     }
 
     

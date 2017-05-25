@@ -134,7 +134,7 @@ public class Sprite extends Node {
         if (baseApplication.getTextureManager().isPixelated()) {
             texture.setMinFilter(Texture.MinFilter.NearestNoMipMaps);
         } else {
-            texture.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+//            texture.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
         }
 
 //        Material material = new Material(baseApplication.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");

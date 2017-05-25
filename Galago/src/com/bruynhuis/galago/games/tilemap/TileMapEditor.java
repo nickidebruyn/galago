@@ -16,27 +16,35 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.debug.WireBox;
 import java.util.ArrayList;
 import static com.bruynhuis.galago.games.tilemap.TileMapGame.BLANK;
+import com.bruynhuis.galago.listener.KeyboardControlEvent;
+import com.bruynhuis.galago.listener.KeyboardControlInputListener;
+import com.bruynhuis.galago.listener.KeyboardControlListener;
 import com.bruynhuis.galago.listener.PickEvent;
 import com.bruynhuis.galago.listener.PickListener;
 import com.bruynhuis.galago.listener.TouchPickListener;
 import com.bruynhuis.galago.screen.AbstractScreen;
+import com.bruynhuis.galago.ui.Label;
 import com.bruynhuis.galago.ui.panel.Panel;
 import com.bruynhuis.galago.ui.button.TouchButton;
 import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
 import com.bruynhuis.galago.ui.listener.TouchButtonListener;
 import com.bruynhuis.galago.ui.panel.VPanel;
 import com.bruynhuis.galago.ui.effect.TouchEffect;
+import com.jme3.font.BitmapFont;
+import com.jme3.scene.debug.Arrow;
+import com.jme3.scene.debug.Grid;
 
 /**
  *
  * @author nidebruyn
  */
-public abstract class TileMapEditor extends AbstractScreen implements PickListener {
+public abstract class TileMapEditor extends AbstractScreen implements PickListener, KeyboardControlListener {
 
-    private TileMapGame game;
-    private float cameraHeight = 22f;
+    protected TileMapGame game;
+    protected float cameraHeight = 22f;
     private TouchPickListener touchPickListener;
-    private float dragSpeed = 50f;
+    private KeyboardControlInputListener keyboardControlInputListener;
+    protected float dragSpeed = 50f;
     private VPanel toolsPanel;
     private VPanel controlPanel;
     private TouchButtonAdapter tilesListener;
@@ -45,6 +53,7 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
     private TouchButton clearButton;
     private TouchButton testButton;
     private TouchButton statsButton;
+    private Label positionLabel;
     private Vector2f downPosition;
     private Node cameraJointNode;
     private CameraNode cameraNode;
@@ -54,6 +63,8 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
     private int angle = 0;
     private Tile selectedTile;
     private Spatial marker;
+    private Spatial centerSpatial;
+    private Spatial gridSpatial;
 
     @Override
     protected void init() {
@@ -77,12 +88,14 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
             }
         };
 
+        createTileButton(TileMapGame.BLANK, "Del", toolsPanel, tilesListener);
         createTileButton(TileMapGame.TYPE_TERRAIN, "Terrain", toolsPanel, tilesListener);
         createTileButton(TileMapGame.TYPE_STATIC, "Static", toolsPanel, tilesListener);
         createTileButton(TileMapGame.TYPE_ENEMY, "Enemy", toolsPanel, tilesListener);
         createTileButton(TileMapGame.TYPE_OBSTACLE, "Obstacle", toolsPanel, tilesListener);
         createTileButton(TileMapGame.TYPE_VEGETATION, "Veggie", toolsPanel, tilesListener);
         createTileButton(TileMapGame.TYPE_PICKUP, "Pickup", toolsPanel, tilesListener);
+        createTileButton(TileMapGame.TYPE_START, "Start", toolsPanel, tilesListener);
 
         toolsPanel.layout();
 
@@ -148,7 +161,16 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
             public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
                 if (isActive() && game != null) {
                     game.clear();
-//                    loadCameraSettings();
+                    float angleY = FastMath.DEG_TO_RAD * 0f;
+                    float anglePerZ = 0.2f;
+                    Vector3f centerPoint = new Vector3f((game.getMapSize() * game.getTileSize()) * 0.5f, 0, (game.getMapSize() * game.getTileSize()) * 0.5f);
+        
+                    cameraJointNode.setLocalTranslation(centerPoint);
+                    cameraJointNode.rotate(0, angleY, 0);
+
+                    cameraNode.setLocalTranslation(0, cameraHeight, cameraHeight * anglePerZ);
+                    cameraNode.lookAt(centerPoint, Vector3f.UNIT_Y);
+
                 }
             }
         });
@@ -175,6 +197,11 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
                 }
             }
         });
+        
+        positionLabel = new Label(hudPanel, "Point: (0, 0)", 16, 200, 30);
+        positionLabel.setTextColor(ColorRGBA.LightGray);
+        positionLabel.rightBottom(100, 5);
+        positionLabel.setAlignment(BitmapFont.Align.Right);
 
 //        defaultButton = new TouchButton(hudPanel, "edit_default_button", "Default");
 //        defaultButton.rightBottom(5, 5);
@@ -187,6 +214,13 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
 //                }
 //            }
 //        });
+        //Load the inputs
+        //Init the picker listener
+        touchPickListener = new TouchPickListener(baseApplication.getCamera(), rootNode);
+        touchPickListener.setPickListener(this);
+
+        keyboardControlInputListener = new KeyboardControlInputListener();
+        keyboardControlInputListener.addKeyboardControlListener(this);
     }
 
     protected abstract void doTestAction(String fileName);
@@ -210,7 +244,6 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
 //        if (selectedTile != null) {
 //            game.updateTile(selectedTile.getxPos(), selectedTile.getzPos(), angle, selectedSpatial.getName());
 //        }
-
         updateSelection();
     }
 
@@ -255,6 +288,8 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
 
         if (selectedList.size() > 0) {
             selectedSpatial = selectedList.get(index);
+        } else {
+            selectedSpatial = null;
         }
 
         if (selectedTile != null) {
@@ -266,8 +301,8 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
             }
 
             marker.setLocalTranslation(selectedTile.getxPos() * game.getTileSize(), 0, selectedTile.getzPos() * game.getTileSize());
+            positionLabel.setText("Point: ("+marker.getLocalTranslation().x+", "+marker.getLocalTranslation().z+")");
         }
-
 
     }
 
@@ -281,6 +316,31 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
         g.setMaterial(mat);
         marker = g;
         rootNode.attachChild(marker);
+    }
+    
+    protected void initCenter() {
+        Material mat = baseApplication.getAssetManager().loadMaterial("Common/Materials/RedColor.j3m");
+        mat.setColor("Color", ColorRGBA.Blue);
+        Arrow a = new Arrow(Vector3f.UNIT_Y.mult(2f));
+        Geometry g = new Geometry(BLANK, a);
+        g.setMaterial(mat);
+        centerSpatial = g;
+        rootNode.attachChild(centerSpatial);
+        
+        g.setLocalTranslation(game.getMapSize()*game.getTileSize()*0.5f, 0, game.getMapSize()*game.getTileSize()*0.5f);
+    }
+    
+    protected void initGrid() {
+        Material mat = baseApplication.getAssetManager().loadMaterial("Common/Materials/RedColor.j3m");
+        mat.setColor("Color", ColorRGBA.Gray);
+        Grid grid = new Grid(game.getMapSize(), game.getMapSize(), game.getTileSize());
+        Geometry g = new Geometry(BLANK, grid);
+        g.setMaterial(mat);
+        gridSpatial = g;
+        rootNode.attachChild(gridSpatial);
+        
+        g.setLocalTranslation(-game.getTileSize()*0.5f, 0.01f, -game.getTileSize()*0.5f);
+//        g.setLocalTranslation(game.getMapSize()*game.getTileSize()*0.5f, 0, game.getMapSize()*game.getTileSize()*0.5f);
     }
 
     @Override
@@ -304,16 +364,13 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
         selectedTileType = TileMapGame.BLANK;
         selectedList = game.getTileListForType(selectedTileType);
         index = 0;
+        initGrid();
+        initCenter();
         initMarker();
         updateSelection();
 
-        //Load the inputs
-        //Init the picker listener
-        touchPickListener = new TouchPickListener(baseApplication.getCamera(), rootNode);
-        touchPickListener.setPickListener(this);
         touchPickListener.registerWithInput(inputManager);
-
-
+        keyboardControlInputListener.registerWithInput(inputManager);
     }
 
     protected void loadCameraSettings() {
@@ -342,8 +399,12 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
          * spatials and controls and lights, etc from the rootNode
          */
         touchPickListener.unregisterInput();
+        keyboardControlInputListener.unregisterInput();
+
         cameraJointNode.removeFromParent();
+        gridSpatial.removeFromParent();
         marker.removeFromParent();
+        centerSpatial.removeFromParent();
         game.close();
 
     }
@@ -373,13 +434,13 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
                     log("Clicked: " + pickEvent.getContactObject().getName());
                     log("Position: " + pickEvent.getContactObject().getWorldTranslation());
                     log("Tile: " + clickedTile.toString());
-                    if (selectedSpatial.getName().startsWith(TileMapGame.TYPE_ENEMY)) {
-                        clickedTile.setEnemyItem(selectedSpatial.getName());
+                    if (selectedSpatial.getName().startsWith(TileMapGame.TYPE_TERRAIN)) {
+                        clickedTile.setTerrainName(selectedSpatial.getName());
+                        clickedTile.setTerrainAngle(angle);
                     } else {
-                        clickedTile.setItem(selectedSpatial.getName());
-                        clickedTile.setItemAngle(angle);
+                        clickedTile.setObjectName(selectedSpatial.getName());
+                        clickedTile.setObjectAngle(angle);
                     }
-
 
                     selectedTile = game.updateTile(clickedTile);
                 }
@@ -390,8 +451,13 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
 
             //Rotate
             if (pickEvent.isKeyDown() && pickEvent.isRightButton()) {
-                rotateTileRight();
-//                updateSelection();
+
+                if (selectedSpatial == null) {
+                    removeSelectedTile(selectedTile);
+                } else {
+                    rotateTileRight();
+                }
+
             }
 
             //Store the old pick value
@@ -438,18 +504,14 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
 
                 cameraNode.lookAt(cameraJointNode.getWorldTranslation(), Vector3f.UNIT_Y);
 
-            } else {
-                if (selectedSpatial != null) {
-                    if (pickEvent.getContactPoint() != null) {
-                        selectedTile = game.getTileFromContactPoint(pickEvent.getContactPoint().x, pickEvent.getContactPoint().z);
-                        updateSelection();
+            } else //                if (selectedSpatial != null) {
+            {
+                if (pickEvent.getContactPoint() != null) {
+                    selectedTile = game.getTileFromContactPoint(pickEvent.getContactPoint().x, pickEvent.getContactPoint().z);
+                    updateSelection();
 
-                    }
-
-                }
-
+                } //                }
             }
-
             if (pickEvent.isZoomUp()) {
                 log("zoom up = " + pickEvent.getAnalogValue());
                 swapTileUp();
@@ -459,6 +521,30 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
                 swapTileDown();
             }
 
+        }
+    }
+
+    @Override
+    public void onKey(KeyboardControlEvent keyboardControlEvent, float fps) {
+        if (isActive() && game != null) {
+
+            if (keyboardControlEvent.isDelete() && !keyboardControlEvent.isKeyDown()) {
+                log("Delete: " + selectedTile);
+                removeSelectedTile(selectedTile);
+
+            }
+
+        }
+    }
+
+    /**
+     * This will remove or clear the selected tile.
+     *
+     * @param selectedTile
+     */
+    private void removeSelectedTile(Tile selectedTile) {
+        if (selectedTile != null) {
+            game.clearTile(selectedTile);
         }
     }
 }

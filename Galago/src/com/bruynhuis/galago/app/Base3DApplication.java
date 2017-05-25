@@ -30,7 +30,10 @@ public abstract class Base3DApplication extends BaseApplication {
 
     @Override
     public void simpleInitApp() {
-        Tween.registerAccessor(RigidBodyControl.class, new RigidbodyAccessor());
+        if (isPhysicsEnabled()) {
+            Tween.registerAccessor(RigidBodyControl.class, new RigidbodyAccessor());
+        }
+        
         super.simpleInitApp(); 
     }
     

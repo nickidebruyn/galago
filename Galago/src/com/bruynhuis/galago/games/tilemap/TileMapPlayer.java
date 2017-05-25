@@ -67,6 +67,10 @@ public abstract class TileMapPlayer {
         }
     }    
 
+    public int getLives() {
+        return lives;
+    }
+
     public int getScore() {
         return score;
     }

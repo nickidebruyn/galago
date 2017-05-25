@@ -143,6 +143,7 @@ public class RayCaster {
                     }
 
                     //Finally check if collision happend with in the length
+//                    log("dist = " + distance + ", collength = " + collisionLength);
                     if (distance <= collisionLength) {
                         return true;
                     }

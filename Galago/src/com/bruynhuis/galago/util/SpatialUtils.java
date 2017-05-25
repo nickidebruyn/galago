@@ -6,6 +6,7 @@ package com.bruynhuis.galago.util;
 
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.equations.Circ;
+import aurelienribon.tweenengine.equations.Cubic;
 import com.bruynhuis.galago.app.Base3DApplication;
 import com.bruynhuis.galago.control.camera.CameraStickControl;
 import com.bruynhuis.galago.control.tween.RigidbodyAccessor;
@@ -396,6 +397,15 @@ public class SpatialUtils {
 
         return geometry;
     }
+    
+    public static Spatial createBox(float xExtend, float yExtend, float zExtend) {
+
+        Box box = new Box(xExtend, yExtend, zExtend);
+        Geometry geometry = new Geometry("box", box);
+        geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+
+        return geometry;
+    }
 
     /**
      * Add a sphere to the scene.
@@ -438,7 +448,7 @@ public class SpatialUtils {
      * @param colorRGBA
      * @return
      */
-    public static void addColor(Spatial spatial, ColorRGBA colorRGBA, boolean unshaded) {
+    public static Material addColor(Spatial spatial, ColorRGBA colorRGBA, boolean unshaded) {
         Material material = null;
 
         if (unshaded) {
@@ -456,6 +466,7 @@ public class SpatialUtils {
 
         spatial.setMaterial(material);
 
+        return material;
     }
 
     /**
@@ -717,16 +728,16 @@ public class SpatialUtils {
 
     }
 
-    public static void scaleBounce(Spatial spatial, float scaleX, float scaleY, float time, float delay, boolean loop) {
+    public static void scaleBounce(Spatial spatial, float scaleX, float scaleY, float scaleZ, float time, float delay, boolean loop) {
         int repeat = 0;
         if (loop) {
             repeat = Tween.INFINITY;
         }
 
         Tween.to(spatial, SpatialAccessor.SCALE_XYZ, time)
-                .target(scaleX, scaleY, 1)
+                .target(scaleX, scaleY, scaleZ)
                 .delay(delay)
-                .ease(Circ.OUT)
+                .ease(Cubic.OUT)
                 .repeatYoyo(repeat, delay)
                 .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
     }

@@ -71,6 +71,7 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
     public static final String TYPE_PICKUP = "pickup";
     public static final String TYPE_VEGETATION = "vegetation";
     public static final String TYPE_BULLET = "bullet";
+    public static final String TYPE_START = "start";
     public static final String TYPE = "type";
     protected Base3DApplication baseApplication;
     protected Node rootNode;
@@ -94,6 +95,7 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
     protected ArrayList<Spatial> staticList = new ArrayList<Spatial>();
     protected ArrayList<Spatial> pickupList = new ArrayList<Spatial>();
     protected ArrayList<Spatial> vegetationList = new ArrayList<Spatial>();
+    protected ArrayList<Spatial> startList = new ArrayList<Spatial>();
     protected ArrayList<Spatial> blankList = new ArrayList<Spatial>();
     protected Node mapPack;
     protected float tileSize = 2;
@@ -121,11 +123,13 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
             Tile[] row = tileData.getMap()[i];
             for (int j = 0; j < row.length; j++) {
                 tileData.getMap()[i][j] = new Tile();
-                tileData.getMap()[i][j].setItem(null);
+                tileData.getMap()[i][j].setTerrainName(null);
+                tileData.getMap()[i][j].setObjectName(null);
                 tileData.getMap()[i][j].setxPos(i);
                 tileData.getMap()[i][j].setzPos(j);
                 tileData.getMap()[i][j].setWalkable(false);
-                tileData.getMap()[i][j].setItemAngle(0);
+                tileData.getMap()[i][j].setTerrainAngle(0);
+                tileData.getMap()[i][j].setObjectAngle(0);
 
             }
         }
@@ -194,6 +198,14 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
     protected abstract Spatial filterVegetation(Spatial spatial);
 
     /**
+     * Filter the start positions
+     *
+     * @param spatial
+     * @return
+     */
+    protected abstract Spatial filterStart(Spatial spatial);
+
+    /**
      * Filter if this spatial must be used as a dynamic.
      *
      * @param spatial
@@ -209,11 +221,11 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
         preClose();
 
         if (sunLight != null) {
-            levelNode.removeLight(sunLight);
+            rootNode.removeLight(sunLight);
         }
 
         if (ambientLight != null) {
-            levelNode.removeLight(ambientLight);
+            rootNode.removeLight(ambientLight);
         }
 
         if (isPhysicsEnabled()) {
@@ -221,7 +233,6 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
             baseApplication.getBulletAppState().getPhysicsSpace().removeTickListener(this);
             baseApplication.getBulletAppState().setSpeed(1);
         }
-
 
         if (player != null) {
             player.close();
@@ -255,12 +266,12 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
     protected void initLight(ColorRGBA ambientColor, Vector3f sunDirection) {
         ambientLight = new AmbientLight();
         ambientLight.setColor(ambientColor);
-        levelNode.addLight(ambientLight);
+        rootNode.addLight(ambientLight);
 
         sunLight = new DirectionalLight();
         sunLight.setColor(ColorRGBA.White);
         sunLight.setDirection(sunDirection);
-        levelNode.addLight(sunLight);
+        rootNode.addLight(sunLight);
     }
 
     /**
@@ -274,7 +285,7 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
         Geometry geometry = new Geometry(BLANK, quad);
         quad.scaleTextureCoordinates(new Vector2f(mapSize, mapSize));
         geometry.setMaterial(surfaceMaterial);
-        geometry.rotate(FastMath.DEG_TO_RAD * 90, 0, 0);
+        geometry.rotate(-FastMath.DEG_TO_RAD * 90, 0, 0);
         geometry.setShadowMode(RenderQueue.ShadowMode.Receive);
         return geometry;
     }
@@ -320,7 +331,6 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
         if (player != null) {
 
 //            log("Collision: " + event.getNodeA().getName() + " with " + event.getNodeB().getName());
-
             if (checkCollisionWithType(event.getNodeA(), event.getNodeB(), TYPE_PLAYER, TYPE_STATIC)) {
                 fireCollisionPlayerWithStaticListener(lastCollidedSpatial, lastColliderSpatial);
 
@@ -356,7 +366,6 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
 
             }
 
-
         }
     }
 
@@ -382,12 +391,10 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
                 && ((sA.getName().startsWith(collider) && sB.getName().startsWith(type))
                 || (sA.getName().startsWith(type) && sB.getName().startsWith(collider)));
 
-
         if (collision && sB.getName().startsWith(type)) {
             lastCollidedSpatial = sB;
             lastColliderSpatial = sA;
             return true;
-
 
         } else if (collision && sA.getName().startsWith(type)) {
             lastCollidedSpatial = sA;
@@ -409,7 +416,6 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
         if (player != null) {
 
 //            log("Collision: " + spatialA.getName() + " with " + spatialB.getName());
-
             if (checkCollisionWithType(spatialA, spatialB, TYPE_PLAYER, TYPE_STATIC)) {
                 fireCollisionPlayerWithStaticListener(spatialA, spatialB);
 
@@ -431,8 +437,16 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
             } else if (checkCollisionWithType(spatialA, spatialB, TYPE_ENEMY, TYPE_OBSTACLE)) {
                 fireCollisionEnemyWithObstacleListener(spatialA, spatialB);
 
-            }
+            } else if (checkCollisionWithType(spatialA, spatialB, TYPE_PLAYER, TYPE_BULLET)) {
+                fireCollisionPlayerWithBulletListener(spatialA, spatialB);
 
+            } else if (checkCollisionWithType(spatialA, spatialB, TYPE_ENEMY, TYPE_BULLET)) {
+                fireCollisionEnemyWithBulletListener(spatialA, spatialB);
+
+            } else if (checkCollisionWithType(spatialA, spatialB, TYPE_STATIC, TYPE_BULLET)) {
+                fireCollisionStaticWithBulletListener(spatialA, spatialB);
+
+            }
 
         }
     }
@@ -501,6 +515,12 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
     protected void fireCollisionObstacleWithBulletListener(Spatial collided, Spatial collider) {
         if (gameListener != null) {
             gameListener.doCollisionObstacleWithBullet(collided, collider);
+        }
+    }
+    
+    protected void fireCollisionStaticWithBulletListener(Spatial collided, Spatial collider) {
+        if (gameListener != null) {
+            gameListener.doCollisionStaticWithBullet(collided, collider);
         }
     }
 
@@ -623,7 +643,6 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
             baseApplication.getBulletAppState().setEnabled(false);
         }
 
-
         preInit();
 
         //Load the map pack models 
@@ -670,13 +689,19 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
                 vegetationList.add(filtered);
             }
 
+            //Filter start
+            filtered = filterStart(child);
+            if (filtered != null) {
+                filtered.setName(TYPE_START + "_" + filtered.getName());
+                startList.add(filtered);
+            }
+
             //Filter terrain
             filtered = filterTerrain(child);
             if (filtered != null) {
                 filtered.setName(TYPE_TERRAIN + "_" + filtered.getName());
                 terrainList.add(filtered);
             }
-
 
         }
 
@@ -709,7 +734,7 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
 
     protected void loadSurface() {
         Spatial surface = createSurface();
-        surface.move(-tileSize * 0.5f, -0.005f, -tileSize * 0.5f);
+        surface.move(-tileSize * 0.5f, -0.005f, -(tileSize * 0.5f) + (mapSize * tileSize));
         surface.setShadowMode(RenderQueue.ShadowMode.Receive);
         rootNode.attachChild(surface);
     }
@@ -755,7 +780,41 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
      * Add an obstacle type spatial. If the player collides with this it dies.
      *
      */
-    protected Spatial createObstacle(Spatial model, float mass) {
+    protected Spatial createObstacle(Spatial model, float mass, boolean sphere) {
+        if (model == null) {
+            return null;
+        }
+
+        if (!edit) {
+
+            BoundingBox bb = (BoundingBox) model.getWorldBound();
+            CollisionShape collisionShape = null;
+            if (sphere) {
+                collisionShape = new SphereCollisionShape(bb.getYExtent());
+            } else {
+                collisionShape = new BoxCollisionShape(new Vector3f(bb.getXExtent(), bb.getYExtent(), bb.getZExtent()));
+            }
+
+            if (isPhysicsEnabled()) {
+                RigidBodyControl rigidBodyControl = new RigidBodyControl(mass);
+                model.addControl(rigidBodyControl);
+                baseApplication.getBulletAppState().getPhysicsSpace().add(rigidBodyControl);
+            } else {
+                model.addControl(new RayColliderControl(this, new Vector3f(1, 1, 1)));
+            }
+        }
+
+        levelNode.attachChild(model);
+
+        return model;
+
+    }
+    
+    /**
+     * Add an obstacle type spatial. If the player collides with this it dies.
+     *
+     */
+    protected Spatial createBullet(Spatial model) {
         if (model == null) {
             return null;
         }
@@ -763,12 +822,13 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
         if (!edit) {
 
             if (isPhysicsEnabled()) {
-                RigidBodyControl rigidBodyControl = new RigidBodyControl(mass);
+                RigidBodyControl rigidBodyControl = new RigidBodyControl(1);
                 model.addControl(rigidBodyControl);
                 baseApplication.getBulletAppState().getPhysicsSpace().add(rigidBodyControl);
+            } else {
+                model.addControl(new RayColliderControl(this, new Vector3f(1, 1, 1)));
             }
         }
-
 
         levelNode.attachChild(model);
 
@@ -781,6 +841,16 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
      * through it
      */
     protected Spatial createVegetation(Spatial model) {
+        if (model == null) {
+            return null;
+        }
+        levelNode.attachChild(model);
+
+        return model;
+
+    }
+
+    protected Spatial createStart(Spatial model) {
         if (model == null) {
             return null;
         }
@@ -829,7 +899,6 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
             }
         }
 
-
         levelNode.attachChild(model);
 
         return model;
@@ -855,9 +924,10 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
                 GhostControl ghostControl = new GhostControl(collisionShape);
                 model.addControl(ghostControl);
                 baseApplication.getBulletAppState().getPhysicsSpace().add(ghostControl);
+            } else {
+                model.addControl(new RayColliderControl(this, new Vector3f(1, 1, 1)));
             }
         }
-
 
         levelNode.attachChild(model);
 
@@ -956,7 +1026,7 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
      * @param name
      * @return
      */
-    protected Spatial getChild(String name) {
+    protected Spatial getSpatialByName(String name) {
         Spatial s = null;
 
         if (name != null) {
@@ -975,6 +1045,9 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
 
             } else if (name.startsWith(TYPE_VEGETATION)) {
                 type = TYPE_VEGETATION;
+
+            } else if (name.startsWith(TYPE_START)) {
+                type = TYPE_START;
 
             } else if (name.startsWith(TYPE_ENEMY)) {
                 type = TYPE_ENEMY;
@@ -997,6 +1070,20 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
     }
 
     /**
+     * This method will clear the tile that is selected.
+     *
+     * @param tile
+     */
+    public void clearTile(Tile tile) {
+        tile.setTerrainName(null);
+        tile.setWalkable(false);
+        tile.setObjectName(null);
+        tile.setTerrainAngle(0);
+        tile.setObjectAngle(0);
+        updateTile(tile);
+    }
+
+    /**
      * Update a selected tile at a position
      *
      * @param x
@@ -1010,67 +1097,99 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
         float zPos = tile.getzPos() * tileSize;
 
         //First we remove the exiting spatials
-        if (tile.getItemSpatial() != null) {
-            tile.getItemSpatial().removeFromParent();
+        if (tile.getTerrainSpatial() != null) {
+            tile.getTerrainSpatial().removeFromParent();
         }
 
-        if (tile.getEnemySpatial() != null) {
-            tile.getEnemySpatial().removeFromParent();
+        if (tile.getObjectSpatial() != null) {
+            tile.getObjectSpatial().removeFromParent();
         }
 
         //Update the spatial item if any
-        Spatial modelItem = getChild(tile.getItem());
-        if (modelItem != null) {
-            modelItem = modelItem.clone();
-            modelItem.setName(tile.getItem());
-            modelItem.setLocalTranslation(xPos, 0, zPos);
-            modelItem.setLocalRotation(new Quaternion().fromAngleAxis(tile.getItemAngle() * FastMath.DEG_TO_RAD, new Vector3f(0, 1, 0)));
+        Spatial terrainSpatial = getSpatialByName(tile.getTerrainName());
+        if (terrainSpatial != null) {
+            terrainSpatial = terrainSpatial.clone();
+            terrainSpatial.setName(tile.getTerrainName());
+            terrainSpatial.setLocalTranslation(xPos, terrainSpatial.getLocalTranslation().y, zPos);
+            terrainSpatial.setLocalRotation(new Quaternion().fromAngleAxis(tile.getTerrainAngle() * FastMath.DEG_TO_RAD, new Vector3f(0, 1, 0)));
 
-            tile.setItemSpatial(modelItem);
+            tile.setTerrainSpatial(terrainSpatial);
 
             //Here we load the models;
-            if (tile.getItem().startsWith(TYPE_OBSTACLE)) {
+            if (tile.getTerrainName().startsWith(TYPE_TERRAIN)) {
                 tile.setWalkable(true);
-                createObstacle(modelItem, 0);
+                createTerrain(terrainSpatial);
+            }
 
-            } else if (tile.getItem().startsWith(TYPE_PICKUP)) {
+//            if (tile.getTerrainName().startsWith(TYPE_OBSTACLE)) {
+//                tile.setWalkable(true);
+//                createObstacle(terrainSpatial, 0, false);
+//
+//            } else if (tile.getTerrainName().startsWith(TYPE_PICKUP)) {
+//                tile.setWalkable(true);
+//                createPickup(terrainSpatial);
+//
+//            } else if (tile.getTerrainName().startsWith(TYPE_STATIC)) {
+//                tile.setWalkable(false);
+//                createStatic(terrainSpatial);
+//
+//            } else if (tile.getTerrainName().startsWith(TYPE_TERRAIN)) {
+//                tile.setWalkable(true);
+//                createTerrain(terrainSpatial);
+//
+//            } else if (tile.getTerrainName().startsWith(TYPE_VEGETATION)) {
+//                tile.setWalkable(true);
+//                createVegetation(terrainSpatial);
+//
+//            } else if (tile.getTerrainName().startsWith(TYPE_START)) {
+//                tile.setWalkable(true);
+//                createStart(terrainSpatial);
+//
+//            }
+        }
+
+        //Update the objectSpatial if any
+        Spatial objectSpatial = getSpatialByName(tile.getObjectName());
+        if (objectSpatial != null) {
+            objectSpatial = objectSpatial.clone();
+            objectSpatial.setName(tile.getObjectName());
+            objectSpatial.setLocalTranslation(xPos, objectSpatial.getLocalTranslation().y, zPos);
+            objectSpatial.setLocalRotation(new Quaternion().fromAngleAxis(tile.getObjectAngle() * FastMath.DEG_TO_RAD, new Vector3f(0, 1, 0)));
+
+            tile.setObjectSpatial(objectSpatial);
+
+            if (tile.getObjectName().startsWith(TYPE_OBSTACLE)) {
                 tile.setWalkable(true);
-                createPickup(modelItem);
+                createObstacle(objectSpatial, 0, false);
 
-            } else if (tile.getItem().startsWith(TYPE_STATIC)) {
+            } else if (tile.getObjectName().startsWith(TYPE_PICKUP)) {
+                tile.setWalkable(true);
+                createPickup(objectSpatial);
+
+            } else if (tile.getObjectName().startsWith(TYPE_STATIC)) {
                 tile.setWalkable(false);
-                createStatic(modelItem);
+                createStatic(objectSpatial);
 
-            } else if (tile.getItem().startsWith(TYPE_TERRAIN)) {
+            } else if (tile.getObjectName().startsWith(TYPE_VEGETATION)) {
                 tile.setWalkable(true);
-                createTerrain(modelItem);
+                createVegetation(objectSpatial);
 
-            } else if (tile.getItem().startsWith(TYPE_VEGETATION)) {
+            } else if (tile.getObjectName().startsWith(TYPE_START)) {
                 tile.setWalkable(true);
-                createVegetation(modelItem);
+                createStart(objectSpatial);
+
+            } else if (tile.getObjectName().startsWith(TYPE_ENEMY)) {
+                tile.setWalkable(true);
+                createEnemy(objectSpatial, 100, true);
 
             }
 
-
-        }
-
-        //Update the enemy spatial item if any
-        Spatial enemySpatial = getChild(tile.getEnemyItem());
-        if (enemySpatial != null) {
-            enemySpatial = enemySpatial.clone();
-            enemySpatial.setName(tile.getEnemyItem());
-            enemySpatial.setLocalTranslation(xPos, 0, zPos);
-            enemySpatial.setLocalRotation(new Quaternion().fromAngleAxis(tile.getItemAngle() * FastMath.DEG_TO_RAD, new Vector3f(0, 1, 0)));
-
-            tile.setEnemySpatial(enemySpatial);
-            initEnemy(tile);
-            enemySpatial.setLocalTranslation(xPos, 0.25f, zPos);
-            createEnemy(enemySpatial, 100, true);
-
+//            initEnemy(tile);
+//            objectSpatial.setLocalTranslation(xPos, 0.25f, zPos);
+//            createEnemy(enemySpatial, 100, true);
         }
 
 //        levelNode.batch();
-
         return tile;
     }
 
@@ -1079,8 +1198,7 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
      *
      * @param spatial
      */
-    protected abstract void initEnemy(Tile tile);
-
+//    protected abstract void initEnemy(Tile tile);
     /**
      * This method can be called to get a random adjacent tile.
      *
@@ -1345,7 +1463,6 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
                             }
                         }
 
-
                     }
 
                 }
@@ -1427,7 +1544,6 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
         //3. Set name of batch
         fixLevelNames(node, batchName);
 
-
         log("Nodes after = " + node.getQuantity());
         log("---------------------------------------------");
         printDebug(node, 1);
@@ -1496,6 +1612,9 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
         } else if (type.equals(TYPE_VEGETATION)) {
             list = vegetationList;
 
+        } else if (type.equals(TYPE_START)) {
+            list = startList;
+
         }
 
         //If nothing found we return te selector
@@ -1506,4 +1625,26 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
 
         return list;
     }
+
+    public ArrayList<Tile> getTilesForType(String type) {
+        ArrayList<Tile> list = new ArrayList<Tile>();
+
+        //Load the static level models into the scene
+        if (tileData.getMap() != null) {
+            for (int r = 0; r < tileData.getMap().length; r++) {
+                Tile[] row = tileData.getMap()[r];
+                for (int c = 0; c < row.length; c++) {
+                    Tile tile = row[c];
+                    if (tile.getObjectName() != null && tile.getObjectName().startsWith(type)) {
+                        list.add(tile);
+                    }
+
+                }
+            }
+
+        }
+
+        return list;
+    }
+    
 }

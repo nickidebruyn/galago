@@ -31,6 +31,8 @@ public interface TileMapGameListener {
     
     public void doCollisionObstacleWithBullet(Spatial collided, Spatial collider);
     
+    public void doCollisionStaticWithBullet(Spatial collided, Spatial collider);
+    
     public void doCollisionEnemyWithTerrain(Spatial collided, Spatial collider);
     
     public void doCollisionEnemyWithBullet(Spatial collided, Spatial collider);
