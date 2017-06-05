@@ -128,6 +128,9 @@ public abstract class SimplePhysics2DGame implements PhysicsCollisionListener {
 
             } else if (checkCollisionWithType(spatialA, spatialB, TYPE_PLAYER, TYPE_TERRAIN)) {
                 fireCollisionPlayerWithTerrainListener(lastCollidedSpatial, lastColliderSpatial);
+                
+            } else if (checkCollisionWithType(spatialA, spatialB, TYPE_PLAYER, TYPE_PLAYER)) {
+                fireCollisionPlayerWithPlayerListener(lastCollidedSpatial, lastColliderSpatial);
 
             } else if (checkCollisionWithType(spatialA, spatialB, TYPE_PLAYER, TYPE_PICKUP)) {
                 fireCollisionPlayerWithPickupListener(lastCollidedSpatial, lastColliderSpatial);
@@ -243,6 +246,12 @@ public abstract class SimplePhysics2DGame implements PhysicsCollisionListener {
     protected void fireCollisionPlayerWithTerrainListener(Spatial collided, Spatial collider) {
         if (gameListener != null) {
             gameListener.doCollisionPlayerWithTerrain(collided, collider);
+        }
+    }
+    
+    protected void fireCollisionPlayerWithPlayerListener(Spatial collided, Spatial collider) {
+        if (gameListener != null) {
+            gameListener.doCollisionPlayerWithPlayer(collided, collider);
         }
     }
 

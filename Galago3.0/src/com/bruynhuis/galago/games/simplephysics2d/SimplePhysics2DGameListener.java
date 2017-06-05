@@ -20,6 +20,8 @@ public interface SimplePhysics2DGameListener {
     
     public void doCollisionPlayerWithTerrain(Spatial collided, Spatial collider);
     
+    public void doCollisionPlayerWithPlayer(Spatial collided, Spatial collider);
+    
     public void doCollisionPlayerWithStatic(Spatial collided, Spatial collider);
     
     public void doCollisionEnemyWithStatic(Spatial collided, Spatial collider);

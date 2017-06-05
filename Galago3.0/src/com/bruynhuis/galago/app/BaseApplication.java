@@ -164,6 +164,9 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     private Texture2D cameraTexture;
     private AndroidImageLoader androidImageLoader;
     private JoystickInputListener joystickInputListener;
+    protected float secondCounter = 0.0f;
+    protected int frameCounter = 0;
+    protected int fps = 0;
 
     /**
      * Your the main java class in your game should call this constructor to
@@ -252,10 +255,9 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         messageManager = new MessageManager(this);
 
         addPauseListener(this);
-        
+
         if (isMobileApp()) {
 //            assetManager.registerLoader(AndroidImageLoader.class, "jpg", "bmp", "gif", "png", "jpeg");            
-
         }
 
         preInitApp();
@@ -393,7 +395,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
                 }
                 firePauseAction = false;
             }
-            
+
             if (fireResumeAction) {
                 if (screenManager != null && currentScreen != null) {
                     currentScreen.fireResumeAction();
@@ -757,7 +759,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
             remoteActionListener.doAction(properties);
         }
     }
-    
+
     /**
      * This method is for internal use and should not be called.
      *
@@ -777,11 +779,11 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
             selectionActionListener.doSelectionOption(options);
         }
     }
-    
+
     public void setDropdownSelectedIndex(int selectedIndex) {
         if (getCurrentScreen() != null) {
             getCurrentScreen().getWindow().setValueForDropdown(selectedIndex);
-        }        
+        }
     }
 
     /**
@@ -810,7 +812,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     public void doPauseGame() {
         firePauseListener(true);
     }
-    
+
     /**
      * For internal use by the android activity
      */
@@ -953,10 +955,11 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         properties.put(URL, url);
         fireRemoteActionListener(properties);
     }
-    
-        /**
+
+    /**
      * This method should be called to show a selection.
-     * @param items 
+     *
+     * @param items
      */
     public void doShowSelection(HashMap<Integer, String> items) {
         fireSelectionActionListener(items);
@@ -1451,5 +1454,17 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 
     public JoystickInputListener getJoystickInputListener() {
         return joystickInputListener;
+    }
+
+    public int getFPS() {        
+        secondCounter += getTimer().getTimePerFrame();
+        frameCounter++;
+        if (secondCounter >= 1.0f) {
+            fps = (int) (frameCounter / secondCounter);
+            secondCounter = 0.0f;
+            frameCounter = 0;
+        }
+        
+        return fps;
     }
 }

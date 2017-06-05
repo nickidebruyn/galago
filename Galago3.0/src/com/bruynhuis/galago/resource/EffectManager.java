@@ -40,7 +40,8 @@ public class EffectManager {
     public void loadEffect(String effect, String effectPath) {
         Spatial spatial = application.getAssetManager().loadModel(effectPath);
         loadEffect(effect, spatial);
-    }
+        doEffect(effect, new Vector3f(0, 10000, 0));
+    } 
     
     /**
      * Load an effect using a spatial
@@ -122,11 +123,11 @@ public class EffectManager {
         SpatialLifeControl control = new SpatialLifeControl(activeTimeInMilliSec);
         sp.addControl(control);
         
-        if (application.getCurrentScreen() != null) {
-            application.getCurrentScreen().getRootNode().attachChild(sp);
-        } else {
+//        if (application.getCurrentScreen() != null) {
+//            application.getCurrentScreen().getRootNode().attachChild(sp);
+//        } else {
             application.getRootNode().attachChild(sp);
-        }        
+//        }        
 
         //Call the particle respawn
         doParticleRespawn(sp);
