@@ -35,6 +35,7 @@ import com.bruynhuis.galago.listener.KeyboardInputListener;
 import com.bruynhuis.galago.listener.LiveCameraListener;
 import com.bruynhuis.galago.listener.PauseListener;
 import com.bruynhuis.galago.listener.RemoteActionListener;
+import com.bruynhuis.galago.listener.RewardAdListener;
 import com.bruynhuis.galago.listener.SelectionActionListener;
 import com.bruynhuis.galago.listener.SensorListener;
 import com.bruynhuis.galago.messages.MessageManager;
@@ -106,12 +107,14 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     protected GoogleAPIErrorListener googleAPIErrorListener;
     protected SavedGameListener savedGameListener;
     protected PauseListener pauseListener;
-    protected SensorListener sensorListener;
+    protected SensorListener sensorListener;    
     protected LiveCameraListener liveCameraListener;
+    protected RewardAdListener rewardAdListener;
     public static final String TYPE = "TYPE";
     public static final String SHOW = "SHOW";
     public static final String ADMOB = "ADMOB";
     public static final String ADMOB_INTERSTITIALS = "ADMOB_INTER";
+    public static final String ADMOB_REWARDS = "ADMOB_REWARDS";
     public static final String ACTION = "ACTION";
     public static final String ACTION_AD = "AD";
     public static final String ACTION_RATE = "RATE";
@@ -152,7 +155,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     protected Window window;
     protected Panel splash;
     protected Label info;
-    protected String splashInfoMessage = "Galago@2017 v3.1.0";
+    protected String splashInfoMessage = "Galago @ 2017";
     protected VideoRecorderAppState recorderAppState;
     protected boolean record = false;
     protected StatsAppState statsAppState;
@@ -166,7 +169,8 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     private JoystickInputListener joystickInputListener;
     protected float secondCounter = 0.0f;
     protected int frameCounter = 0;
-    private int fps = 0;
+    protected int fps = 0;
+    protected boolean rewardAdLoaded = false;
 
     /**
      * Your the main java class in your game should call this constructor to
@@ -258,7 +262,6 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 
         if (isMobileApp()) {
 //            assetManager.registerLoader(AndroidImageLoader.class, "jpg", "bmp", "gif", "png", "jpeg");            
-
         }
 
         preInitApp();
@@ -373,6 +376,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 
             }
 
+
             if (loadingCounter >= 100) {
                 loading = false;
                 window.getFader().setVisible(true);
@@ -402,8 +406,11 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
                 }
                 fireResumeAction = false;
             }
-
+           
+  
         }
+
+
 
     }
 
@@ -582,6 +589,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
                         inputManager.getCursorPosition().y, tpf);
             }
         }
+
 
     }
 
@@ -824,6 +832,10 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     public void addLiveCameraListener(LiveCameraListener liveCameraListener) {
         this.liveCameraListener = liveCameraListener;
     }
+    
+    public void addRewardAdListener(RewardAdListener rewardAdListener) {
+        this.rewardAdListener = rewardAdListener;
+    }
 
     /**
      * This method is for internal use and should not be called.
@@ -835,7 +847,39 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
             sensorListener.doSensorAction(fisting, tilting, twisting);
         }
     }
-
+    
+    /**
+     * This method is for internal use and should not be called.
+     *
+     * @param 
+     */
+    public void fireRewardAdRewardListener(int amount, String type) {
+        if (rewardAdListener != null) {
+            rewardAdListener.doAdRewarded(amount, type);
+        }
+    }    
+    
+    /**
+     * This method is for internal use and should not be called.
+     *
+     * @param 
+     */
+    public void fireRewardAdClosedListener() {
+        if (rewardAdListener != null) {
+            rewardAdListener.doAdClosed();
+        }
+    }    
+    
+    /**
+     * This method is for internal use and should not be called.
+     *
+     * @param 
+     */
+    public void fireRewardAdLoadedListener() {
+        if (rewardAdListener != null) {
+            rewardAdListener.doAdLoaded();
+        }
+    }    
     /**
      * This method is not for external use. It will be called from the mobile
      * device.
@@ -1010,6 +1054,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         scoreStr = scoreStr.replace(",", "");
 
 //        log("Score formated = " + scoreStr);
+
         Properties properties = new Properties();
         properties.put(ACTION, ACTION_ADD_SCORE);
         properties.put(SCORE, scoreStr);
@@ -1452,7 +1497,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         return joystickInputListener;
     }
 
-    public int getFPS() {
+    public int getFPS() {        
         secondCounter += getTimer().getTimePerFrame();
         frameCounter++;
         if (secondCounter >= 1.0f) {
@@ -1460,6 +1505,17 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
             secondCounter = 0.0f;
             frameCounter = 0;
         }
+        
         return fps;
     }
+
+    public boolean isRewardAdLoaded() {
+        return rewardAdLoaded;
+    }
+
+    public void setRewardAdLoaded(boolean rewardAdLoaded) {
+        this.rewardAdLoaded = rewardAdLoaded;
+    }   
+    
 }
+

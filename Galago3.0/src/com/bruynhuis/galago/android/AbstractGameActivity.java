@@ -43,6 +43,9 @@ import com.bruynhuis.galago.listener.SelectionActionListener;
 import com.jme3.system.android.AndroidConfigChooser.ConfigType;
 import com.bruynhuis.galago.sound.AndroidMidiPlayer;
 import com.bruynhuis.galago.sound.MidiPlayer;
+import com.google.android.gms.ads.reward.RewardItem;
+import com.google.android.gms.ads.reward.RewardedVideoAd;
+import com.google.android.gms.ads.reward.RewardedVideoAdListener;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
 import com.jme3.audio.AudioRenderer;
@@ -88,6 +91,7 @@ public abstract class AbstractGameActivity extends AndroidHarness
     protected RelativeLayout addViewLayout;
     protected AdView adView;
     protected InterstitialAd interstitialAd;
+    protected RewardedVideoAd rewardedVideoAd;
     protected GoogleApiClient googleApiClient;
     protected GoogleAnalytics analytics;
 //    private Snapshot openedSnapshot;
@@ -104,9 +108,11 @@ public abstract class AbstractGameActivity extends AndroidHarness
     protected String MOREAPPS_URL = "";
     protected String ADMOB_ID = "";
     protected String ADMOB_INTERSTITIALS_ID = "";
+    protected String ADMOB_REWARDS_ID = "";
     protected String ANALYTICS_TRACKER_ID = "";
     protected boolean useAdmob = false;
     protected boolean useAdmobInterstitials = false;
+    protected boolean useAdmobRewards = false;
     protected boolean admobBannerBottom = true;
     protected boolean useMidiMusicTracks = false;
     protected boolean useSensor = false;
@@ -702,6 +708,30 @@ public abstract class AbstractGameActivity extends AndroidHarness
                     });
                 }
             }
+            
+            if (BaseApplication.ADMOB_REWARDS.equals(type)) {
+                if (show) {
+                    this.runOnUiThread(new Runnable() {
+                        public void run() {
+                            if (rewardedVideoAd != null) {
+                                if (rewardedVideoAd.isLoaded()) {
+                                    rewardedVideoAd.show();
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    this.runOnUiThread(new Runnable() {
+                        public void run() {
+                            if (rewardedVideoAd != null) {
+                                if (rewardedVideoAd.isLoaded()) {
+//                                    rewardedVideoAd.show();
+                                }
+                            }
+                        }
+                    });
+                }
+            }
 
         } else {
             this.runOnUiThread(new Runnable() {
@@ -919,6 +949,10 @@ public abstract class AbstractGameActivity extends AndroidHarness
                 if (useAdmobInterstitials) {
                     initAdMobInterstitialsAds();
                 }
+                
+                if (useAdmobRewards) {
+                    initAdMobRewardsAds();
+                }
 
             }
         });
@@ -955,6 +989,70 @@ public abstract class AbstractGameActivity extends AndroidHarness
 //        adView.loadAd(adRequest);
 
         interstitialAd.loadAd(adRequest);
+    }
+    
+    
+    protected void initAdMobRewardsAds() {
+        rewardedVideoAd = MobileAds.getRewardedVideoAdInstance(this);        
+        rewardedVideoAd.setRewardedVideoAdListener(new RewardedVideoAdListener() {
+
+            @Override
+            public void onRewardedVideoAdLoaded() {
+                if (getJmeApplication() != null) {
+                    ((BaseApplication) getJmeApplication()).setRewardAdLoaded(true);
+                    ((BaseApplication) getJmeApplication()).fireRewardAdLoadedListener();
+                }
+
+            }
+
+            @Override
+            public void onRewardedVideoAdOpened() {
+            }
+
+            @Override
+            public void onRewardedVideoStarted() {
+            }
+
+            @Override
+            public void onRewardedVideoAdClosed() {
+                if (getJmeApplication() != null) {
+                    ((BaseApplication) getJmeApplication()).fireRewardAdClosedListener();
+                }
+                loadAdmobRewardsAd();
+                
+            }
+
+            @Override
+            public void onRewarded(RewardItem ri) {
+                //Call back to the game and fire the reward ad listener
+                if (getJmeApplication() != null) {
+                    ((BaseApplication) getJmeApplication()).fireRewardAdRewardListener(ri.getAmount(), ri.getType());
+                }
+                
+            }
+
+            @Override
+            public void onRewardedVideoAdLeftApplication() {
+                //TODO: Call back to the game and fire the reward ad listener
+                
+            }
+
+            @Override
+            public void onRewardedVideoAdFailedToLoad(int i) {
+//                String message = String.format("onRewardAdFailedToLoad (%s)", getInterstitialsAdErrorReason(errorCode));
+//                showAlert(message);
+                ((BaseApplication) getJmeApplication()).setRewardAdLoaded(false);
+            }
+        });
+        
+        loadAdmobRewardsAd();
+        
+    }
+    
+    private void loadAdmobRewardsAd() {
+        if (rewardedVideoAd != null && !rewardedVideoAd.isLoaded()) {
+            rewardedVideoAd.loadAd(ADMOB_REWARDS_ID, new AdRequest.Builder().build());
+        }
     }
 
     /**

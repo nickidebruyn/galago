@@ -595,21 +595,21 @@ public class SpatialUtils {
      * @param time
      * @param delay
      */
-    public static void interpolate(Spatial spatial, float x, float y, float z, float time, float delay, boolean loop) {
+    public static Tween interpolate(Spatial spatial, float x, float y, float z, float time, float delay, boolean loop) {
         int repeat = 0;
         if (loop) {
             repeat = Tween.INFINITY;
         }
 
         if (spatial.getControl(RigidBodyControl.class) == null) {
-            Tween.to(spatial, SpatialAccessor.POS_XYZ, time)
+            return Tween.to(spatial, SpatialAccessor.POS_XYZ, time)
                     .target(x, y, z)
                     .delay(delay)
                     .repeatYoyo(repeat, delay)
                     .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
 
         } else {
-            Tween.to(spatial.getControl(RigidBodyControl.class), RigidbodyAccessor.POS_XYZ, time)
+            return Tween.to(spatial.getControl(RigidBodyControl.class), RigidbodyAccessor.POS_XYZ, time)
                     .target(x, y, z)
                     .delay(delay)
                     .repeatYoyo(repeat, delay)

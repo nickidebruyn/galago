@@ -378,6 +378,16 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
         }
     }
     
+    public boolean isSensor() {
+        if (this.body.getFixtures() != null && this.body.getFixtures().size() > 0) {
+            for (int i = 0; i < this.body.getFixtures().size(); i++) {
+                BodyFixture bodyFixture1 = this.body.getFixtures().get(i);
+                return bodyFixture1.isSensor();                
+            }
+        }
+        return false;
+    }
+    
     public void setAngularDamping(float damping) {
         this.body.setAngularDamping((double)damping);
     }

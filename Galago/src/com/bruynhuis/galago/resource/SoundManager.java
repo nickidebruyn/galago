@@ -29,6 +29,8 @@ public class SoundManager {
     protected float musicVolume = 0.3f;
     protected float fxVolume = 0.7f;
     protected float musicSpeed = 0.5f;
+    
+//    private boolean allSoundsPreloaded = false;
 
     public SoundManager(BaseApplication simpleApplication, Node soundNode) {
         this.application = simpleApplication;
@@ -302,6 +304,46 @@ public class SoundManager {
         audioNode.setVolume(fxVolume);
         soundFx.put(name, audioNode);
 
+    }
+    
+//    /**
+//     * For internal use only
+//     */
+//    public void preLoadSoundFx() {
+//        
+//        if (allSoundsPreloaded) {
+//            return;
+//        }
+//        
+//        allSoundsPreloaded = true;        
+//        for (Iterator<AudioNode> it = soundFx.values().iterator(); it.hasNext();) {
+//            AudioNode an = it.next();
+//            
+//            if (an.getUserData("preloaded") == null) {
+////                System.out.println("Preload: " + an.getName());
+//                AudioNode audioNode = an.clone();
+//                audioNode.setVolume(0f);
+//                audioNode.playInstance();
+//                
+//                an.setUserData("preloaded", true);
+//                allSoundsPreloaded = false;
+//                break;
+//            }
+//            
+//        }        
+//    }
+//
+//    public boolean isAllSoundsPreloaded() {
+//        return allSoundsPreloaded;
+//    }
+
+    public Map<String, AudioNode> getMusic() {
+        return music;
+
+    }
+
+    public Map<String, AudioNode> getSoundFx() {
+        return soundFx;
     }
 
     /**
