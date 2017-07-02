@@ -1,0 +1,22 @@
+MaterialDef blurFinal {
+
+    MaterialParameters {
+        Texture2D Texture
+        Color Color (Color)
+    }
+
+    Technique {
+        VertexShader GLSL100:   Common/MatDefs/Post/Post.vert
+        FragmentShader GLSL100: Common/MatDefs/TTF/Blur/blurFinal.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+        }
+        
+        RenderState {
+            Blend Alpha
+            DepthTest Off
+            DepthWrite Off
+        }
+    }
+}

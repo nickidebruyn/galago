@@ -21,7 +21,6 @@ public class ProgressBar extends ImageWidget {
     protected float progress = 1;
     protected Picture progressPicture;
     protected String progressPictureFile;
-    protected float padding = 0;
     
     /**
      * 
@@ -71,7 +70,6 @@ public class ProgressBar extends ImageWidget {
     public void setProgress(float progress) {
         this.progress = progress;
         progressPicture.setWidth(getWidth()*progress);
-        progressPicture.setLocalTranslation((-getWidth() * 0.5f) + ((padding*window.getScaleFactorWidth())*(1f-progress)), -getHeight() * 0.5f, 0f);
     }
     
     public float getProgress() {
@@ -82,14 +80,4 @@ public class ProgressBar extends ImageWidget {
     protected boolean isBatched() {
         return false;
     }
-
-    public float getPadding() {
-        return padding;
-    }
-
-    public void setPadding(float padding) {
-        this.padding = padding;
-    }
-    
-    
 }

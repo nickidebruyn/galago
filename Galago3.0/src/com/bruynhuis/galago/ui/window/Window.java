@@ -53,6 +53,7 @@ public class Window {
     protected TextureAtlas textureAtlas;
     protected ArrayList<Picture> optimizationPictures = new ArrayList<Picture>();
     protected BitmapFont bitmapFont;
+    protected String ttfFont;
     protected Fader fader;
     protected ArrayList<Panel> panels = new ArrayList<Panel>();
     protected CollisionResults results;

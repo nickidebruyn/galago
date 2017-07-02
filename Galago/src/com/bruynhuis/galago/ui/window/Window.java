@@ -53,6 +53,7 @@ public class Window {
     protected TextureAtlas textureAtlas;
     protected ArrayList<Picture> optimizationPictures = new ArrayList<Picture>();
     protected BitmapFont bitmapFont;
+    protected String ttfFont;
     protected Fader fader;
     protected ArrayList<Panel> panels = new ArrayList<Panel>();
     protected CollisionResults results;
@@ -519,19 +520,5 @@ public class Window {
             }
             
         }
-    }
-    
-    /**
-     * This is a helper method for padding a number value with zeros
-     * @param value
-     * @param size
-     * @return 
-     */
-    public String padText(int value, int size) {
-        String temp = value + "";
-        while (temp.length() < size) {
-            temp = "0" + temp;
-        }
-        return temp;
     }
 }

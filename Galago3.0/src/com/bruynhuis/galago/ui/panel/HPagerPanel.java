@@ -9,6 +9,9 @@ import com.bruynhuis.galago.ui.listener.TouchButtonListener;
 import com.bruynhuis.galago.ui.Widget;
 import com.bruynhuis.galago.util.Debug;
 import com.jme3.math.FastMath;
+import com.jme3.renderer.RenderManager;
+import com.jme3.renderer.ViewPort;
+import com.jme3.scene.control.AbstractControl;
 import java.util.ArrayList;
 
 /**
@@ -42,6 +45,17 @@ public class HPagerPanel extends Panel implements TouchButtonListener {
         
         controlButton = new ControlButton((Panel)parent, "pager-panel-controlbutton", width, height);
         controlButton.addTouchButtonListener(this);
+        controlButton.getWidgetNode().addControl(new AbstractControl() {
+
+            @Override
+            protected void controlUpdate(float tpf) {
+                spatial.setLocalTranslation(getWidgetNode().getLocalTranslation());
+            }
+
+            @Override
+            protected void controlRender(RenderManager rm, ViewPort vp) {
+            }
+        });
         
         maxCenterOffset = this.getWidth()*0.5f;
 

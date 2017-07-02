@@ -20,6 +20,25 @@ public class ColorUtils {
         return new ColorRGBA((float) r / 255f, (float) g / 255f, (float) b / 255f, (float) a / 255f);
     }
 
+    public static ColorRGBA hex(String hex) {
+        hex = hex.replace("#", "");
+        switch (hex.length()) {
+            case 6:
+                return rgb(
+                        Integer.valueOf(hex.substring(0, 2), 16),
+                        Integer.valueOf(hex.substring(2, 4), 16),
+                        Integer.valueOf(hex.substring(4, 6), 16));
+            case 8:
+                return rgb(
+                        Integer.valueOf(hex.substring(0, 2), 16),
+                        Integer.valueOf(hex.substring(2, 4), 16),
+                        Integer.valueOf(hex.substring(4, 6), 16),
+                        Integer.valueOf(hex.substring(6, 8), 16));
+        }
+        return null;
+
+    }
+
     public static ColorRGBA hsv(float hue, float saturation, float value) {
         float r, g, b;
 
@@ -56,7 +75,7 @@ public class ColorUtils {
         } else {
             throw new RuntimeException("Something went wrong when converting from HSV to RGB. Input was " + hue + ", " + saturation + ", " + value);
         }
-        
+
 //        Debug.log("r = " + r);
 //        Debug.log("g = " + g);
 //        Debug.log("b = " + b);

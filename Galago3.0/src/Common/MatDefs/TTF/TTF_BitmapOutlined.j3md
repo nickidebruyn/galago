@@ -1,0 +1,21 @@
+MaterialDef TrueTypeOutlined {
+    MaterialParameters {
+        Texture2D Texture
+        Color Color (Color)
+        Color Outline (Color)
+    }
+    Technique {
+        VertexShader GLSL100: Common/MatDefs/TTF/TTF_Bitmap.vert
+        FragmentShader GLSL100: Common/MatDefs/TTF/TTF_BitmapOutlined.frag
+        
+        WorldParameters {
+            WorldViewProjectionMatrix
+        }
+        
+        RenderState {
+            Blend Alpha
+            DepthWrite Off
+            DepthTest Off
+        }
+    }
+}

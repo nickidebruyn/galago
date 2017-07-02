@@ -25,6 +25,13 @@ public class Checkbox extends TouchButton {
 
     public Checkbox(Panel panel, String id, float width, float height, boolean checked) {
         super(panel, id, "Resources/checkbox-unchecked.png", width, height, true);
+        
+         if (bitmapText != null) {
+            bitmapText.removeFromParent();
+        } else if (trueTypeContainer != null) {
+            trueTypeContainer.removeFromParent();
+        }
+        
         setChecked(checked);
         
         addEffect(new TouchEffect(this));

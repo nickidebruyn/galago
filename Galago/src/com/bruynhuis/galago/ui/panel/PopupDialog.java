@@ -5,8 +5,8 @@
 package com.bruynhuis.galago.ui.panel;
 
 import com.bruynhuis.galago.ui.Label;
+import com.bruynhuis.galago.ui.TextAlign;
 import com.bruynhuis.galago.ui.window.Window;
-import com.jme3.font.BitmapFont;
 import com.jme3.math.ColorRGBA;
 
 /**
@@ -43,7 +43,7 @@ public abstract class PopupDialog extends Panel {
 
         title = new Label(this, "Popup", 22, width, 40);
         title.setTextColor(ColorRGBA.DarkGray);
-        title.setAlignment(BitmapFont.Align.Center);
+        title.setAlignment(TextAlign.CENTER);
         title.centerTop(0, 10);
 
         window.add(this);
@@ -65,7 +65,8 @@ public abstract class PopupDialog extends Panel {
      * @param size 
      */
     public void setTitleSize(float size) {
-        title.setFontSize(size);
+        //TODO: NEED TO FIX
+//        title.setFontSize(size);
     }
 
     /**

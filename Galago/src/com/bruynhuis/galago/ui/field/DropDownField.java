@@ -4,9 +4,9 @@
  */
 package com.bruynhuis.galago.ui.field;
 
+import com.bruynhuis.galago.ui.TextAlign;
 import com.bruynhuis.galago.ui.button.TouchButton;
 import com.bruynhuis.galago.ui.panel.Panel;
-import com.jme3.font.BitmapFont;
 import com.jme3.math.ColorRGBA;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,7 +27,7 @@ public class DropDownField extends TouchButton {
         super(panel, id, image, width, height, lock);
         setText("");
         setTextColor(ColorRGBA.DarkGray);
-        setTextAlignment(BitmapFont.Align.Left);
+        setTextAlignment(TextAlign.LEFT);
         setFontSize(30);
         setMargins(25, 0, 0, 0);
 

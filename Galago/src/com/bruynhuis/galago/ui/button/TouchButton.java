@@ -4,13 +4,20 @@
  */
 package com.bruynhuis.galago.ui.button;
 
+import com.bruynhuis.galago.resource.FontManager;
+import com.bruynhuis.galago.ui.FontStyle;
 import com.bruynhuis.galago.ui.ImageWidget;
+import com.bruynhuis.galago.ui.TextAlign;
+import static com.bruynhuis.galago.ui.TextAlign.BOTTOM;
+import static com.bruynhuis.galago.ui.TextAlign.CENTER;
+import static com.bruynhuis.galago.ui.TextAlign.LEFT;
+import static com.bruynhuis.galago.ui.TextAlign.RIGHT;
+import static com.bruynhuis.galago.ui.TextAlign.TOP;
 import com.bruynhuis.galago.ui.listener.TouchButtonListener;
 import com.bruynhuis.galago.ui.panel.Panel;
 import com.bruynhuis.galago.ui.effect.Effect;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
-import com.jme3.font.LineWrapMode;
 import com.jme3.font.Rectangle;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.math.ColorRGBA;
@@ -20,6 +27,11 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.control.AbstractControl;
 import com.bruynhuis.galago.ui.effect.TouchEffect;
 import com.bruynhuis.galago.ui.panel.PopupDialog;
+import com.bruynhuis.galago.ttf.TrueTypeFont;
+import com.bruynhuis.galago.ttf.shapes.TrueTypeContainer;
+import com.bruynhuis.galago.ttf.util.StringContainer;
+import com.bruynhuis.galago.util.Debug;
+import com.jme3.font.LineWrapMode;
 import java.util.ArrayList;
 
 /**
@@ -34,13 +46,17 @@ public class TouchButton extends ImageWidget implements Touchable {
     protected Panel panel;
     protected int uid;
     protected String id;
-    protected ArrayList<TouchButtonListener> touchButtonListeners = new ArrayList<TouchButtonListener>();
+    protected ArrayList<TouchButtonListener> touchButtonListeners = new ArrayList<>();
     protected ActionListener actionListener;
     private boolean enabled = true;
     private boolean wasDown = false;
+    protected BitmapFont bitmapFont;
     protected BitmapText bitmapText;
-    protected float fontSize = 36;
-    protected String textStr;
+    protected TrueTypeFont trueTypeFont;
+    protected TrueTypeContainer trueTypeContainer;
+    protected StringContainer stringContainer;
+    protected FontStyle fontStyle;
+    protected String textStr = "Button";
     protected float lastTouchX = 0;
     protected float lastTouchY = 0;
 
@@ -50,7 +66,7 @@ public class TouchButton extends ImageWidget implements Touchable {
      * @param id
      */
     public TouchButton(Panel panel, String id) {
-        this(panel, id, null, panel.getWindow().getWidth(), panel.getWindow().getHeight());
+        this(panel, id, null, panel.getWindow().getWidth(), panel.getWindow().getHeight(), new FontStyle(FontManager.DEFAULT_FONT, 18));
         this.panel = panel;
     }
 
@@ -62,12 +78,19 @@ public class TouchButton extends ImageWidget implements Touchable {
      * @param text
      */
     public TouchButton(Panel panel, String id, String text) {
-        this(panel, id, "Resources/largebutton.png", 254, 54);
+        this(panel, id, "Resources/largebutton.png", 254, 54, new FontStyle(FontManager.DEFAULT_FONT, 18));
         this.panel = panel;
+        this.addEffect(new TouchEffect(this));
         this.setText(text);
         this.setTextColor(ColorRGBA.DarkGray);
-        this.setFontSize(18);
-        this.addEffect(new TouchEffect(this));
+    }
+
+    public TouchButton(Panel panel, String id, String pictureFile, float width, float height) {
+        this(panel, id, pictureFile, width, height, new FontStyle(FontManager.DEFAULT_FONT, 18));
+    }
+
+    public TouchButton(Panel panel, String id, String pictureFile, float width, float height, boolean lockscale) {
+        this(panel, id, pictureFile, width, height, new FontStyle(FontManager.DEFAULT_FONT, 18), lockscale);
     }
 
     /**
@@ -78,10 +101,11 @@ public class TouchButton extends ImageWidget implements Touchable {
      * @param width
      * @param height
      */
-    public TouchButton(Panel panel, String id, String pictureFile, float width, float height) {
+    public TouchButton(Panel panel, String id, String pictureFile, float width, float height, FontStyle fontStyle) {
         super(panel.getWindow(), panel, pictureFile, width, height, false);
         this.panel = panel;
         this.id = id;
+        this.fontStyle = fontStyle;
         setName(id);
 
         init();
@@ -98,10 +122,11 @@ public class TouchButton extends ImageWidget implements Touchable {
      * @param lockscale Lock the scale effect when the game runs at a diffener
      * resolution than designed by.
      */
-    public TouchButton(Panel panel, String id, String pictureFile, float width, float height, boolean lockscale) {
+    public TouchButton(Panel panel, String id, String pictureFile, float width, float height, FontStyle fontStyle, boolean lockscale) {
         super(panel.getWindow(), panel, pictureFile, width, height, lockscale);
         this.panel = panel;
         this.id = id;
+        this.fontStyle = fontStyle;
         setName(id);
 
         init();
@@ -120,30 +145,39 @@ public class TouchButton extends ImageWidget implements Touchable {
 
     protected void init() {
         //Init the text
-        bitmapText = window.getBitmapFont().createLabel(id);
-        bitmapText.setText(" ");
 
-//        float xP = -getWidth() * 0.5f;
-//        float yP = getHeight() * 0.5f;
-//        float recWidth = getWidth();
-//        float factor = 1f;
-//        float recHeight = (getHeight() * 0.5f) * factor;
-//        float spacing = 10f * window.getScaleFactorWidth();
-//
-//        bitmapText.setBox(new Rectangle(xP, yP, recWidth - spacing, recHeight));
+//        //This fixes the out of memory opengl error we get in android.
+//        if (textStr == null || textStr.length() == 0 || textStr.equals(" ")) {
+//            textStr = ".";
+//        }
 
-        float xP = -getWidth() * 0.5f;
-        float yP = getHeight() * 0.5f;
-        float recWidth = getWidth();
-        float recHeight = (getHeight() * 0.5f);
-        bitmapText.setBox(new Rectangle(xP, yP, recWidth, recHeight));
+        bitmapFont = panel.getWindow().getApplication().getFontManager().getBitmapFonts(fontStyle);
 
-        bitmapText.setSize(fontSize * window.getScaleFactorHeight());      // font size
-        bitmapText.setColor(ColorRGBA.White);// font color
-        bitmapText.setAlignment(BitmapFont.Align.Center);
-        bitmapText.setVerticalAlignment(BitmapFont.VAlign.Center);
-        bitmapText.setLineWrapMode(LineWrapMode.Word);
-        widgetNode.attachChild(bitmapText);
+        if (bitmapFont != null) {
+            //Init the text
+            bitmapText = bitmapFont.createLabel(textStr);
+            bitmapText.setText(textStr);             // the text
+            //The Rectangle box height value for bitmap text is not a physical height but half the height
+            bitmapText.setBox(new Rectangle(-getWidth() * 0.5f, getHeight() * 0.5f, getWidth(), getHeight() * 0.5f));
+            bitmapText.setSize(fontStyle.getFontSize() * window.getScaleFactorHeight());      // font size
+            bitmapText.setColor(ColorRGBA.White);// font color
+            bitmapText.setLineWrapMode(LineWrapMode.Word);
+            bitmapText.setAlignment(BitmapFont.Align.Center);
+            bitmapText.setVerticalAlignment(BitmapFont.VAlign.Center);
+//            widgetNode.attachChild(bitmapText);
+            bitmapText.center();
+
+        } else {
+            //Init the text
+            trueTypeFont = panel.getWindow().getApplication().getFontManager().getTtfFonts(fontStyle);
+            stringContainer = new StringContainer(trueTypeFont, textStr, 0, new Rectangle(-getWidth() * 0.5f, getHeight() * 0.5f, getWidth(), getHeight()));
+            stringContainer.setWrapMode(StringContainer.WrapMode.Word);
+            stringContainer.setAlignment(StringContainer.Align.Center);
+            stringContainer.setVerticalAlignment(StringContainer.VAlign.Center);
+            trueTypeContainer = trueTypeFont.getFormattedText(stringContainer, ColorRGBA.White.mult(0.99f), ColorRGBA.DarkGray);
+
+//            widgetNode.attachChild(trueTypeContainer);
+        }
 
         widgetNode.addControl(new AbstractControl() {
             @Override
@@ -174,7 +208,6 @@ public class TouchButton extends ImageWidget implements Touchable {
             }
         });
 
-        bitmapText.center();
 
         panel.add(this);
 
@@ -186,16 +219,155 @@ public class TouchButton extends ImageWidget implements Touchable {
      *
      * @param align
      */
-    public void setTextAlignment(BitmapFont.Align align) {
-        bitmapText.setAlignment(align);
+    public void setTextAlignment(TextAlign align) {
+        if (bitmapText != null) {
+            switch (align) {
+                case LEFT:
+                    bitmapText.setAlignment(BitmapFont.Align.Left);
+                    break;
+                case RIGHT:
+                    bitmapText.setAlignment(BitmapFont.Align.Right);
+                    break;
+                case CENTER:
+                    bitmapText.setAlignment(BitmapFont.Align.Center);
+                    break;
+            }
+
+        } else if (stringContainer != null) {
+            switch (align) {
+                case LEFT:
+                    stringContainer.setAlignment(StringContainer.Align.Left);
+                    break;
+                case RIGHT:
+                    stringContainer.setAlignment(StringContainer.Align.Right);
+                    break;
+                case CENTER:
+                    stringContainer.setAlignment(StringContainer.Align.Center);
+                    break;
+            }
+            this.trueTypeContainer.updateGeometry();
+        }
+
     }
 
     /**
      *
-     * @param vAlign
+     * @param align
      */
-    public void setTextVerticalAlignment(BitmapFont.VAlign vAlign) {
-        bitmapText.setVerticalAlignment(vAlign);
+    public void setTextVerticalAlignment(TextAlign align) {
+        if (bitmapText != null) {
+            switch (align) {
+                case TOP:
+                    bitmapText.setVerticalAlignment(BitmapFont.VAlign.Top);
+                    break;
+                case BOTTOM:
+                    bitmapText.setVerticalAlignment(BitmapFont.VAlign.Bottom);
+                    break;
+                case CENTER:
+                    bitmapText.setVerticalAlignment(BitmapFont.VAlign.Center);
+                    break;
+            }
+
+        } else if (stringContainer != null) {
+            switch (align) {
+                case TOP:
+                    stringContainer.setVerticalAlignment(StringContainer.VAlign.Top);
+                    break;
+                case BOTTOM:
+                    stringContainer.setVerticalAlignment(StringContainer.VAlign.Bottom);
+                    break;
+                case CENTER:
+                    stringContainer.setVerticalAlignment(StringContainer.VAlign.Center);
+                    break;
+            }
+            this.trueTypeContainer.updateGeometry();
+        }
+    }
+
+    private boolean isTextEmpty(String text) {
+        return text == null || text.length() == 0 || text.equals(" ");
+    }
+
+    /**
+     *
+     * @param text
+     */
+    //This fixes the out of memory opengl error we get in android.
+    public void setText(String text) {
+
+        if (isTextEmpty(text)) {
+            if (bitmapText != null) {
+                this.bitmapText.removeFromParent();
+
+            } else if (stringContainer != null) {
+                this.trueTypeContainer.removeFromParent();
+
+            }
+        } else {
+            if (bitmapText != null) {
+                this.bitmapText.setText(text);
+                if (this.bitmapText.getParent() == null) widgetNode.attachChild(this.bitmapText);
+
+            } else if (stringContainer != null) {
+                this.stringContainer.setText(text);
+                if (this.trueTypeContainer.getParent() == null) widgetNode.attachChild(this.trueTypeContainer);
+                this.trueTypeContainer.updateGeometry();
+
+            }
+        }
+
+    }
+
+    /**
+     * Return the text value of this button
+     * @return 
+     */
+    public String getText() {
+        if (bitmapText != null) {
+            if (this.bitmapText.getParent() == null) {
+                return "";
+            } else {
+                return this.bitmapText.getText();
+            }            
+
+        } else if (stringContainer != null) {
+            if (this.trueTypeContainer.getParent() == null) {
+                return "";
+            } else {
+                return this.stringContainer.getText();
+            }            
+
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     *
+     * @param colorRGBA
+     */
+    public void setTextColor(ColorRGBA colorRGBA) {
+        if (bitmapText != null) {
+            this.bitmapText.setColor(colorRGBA);
+
+        } else if (stringContainer != null) {
+            this.trueTypeContainer.getMaterial().setColor("Color", colorRGBA);
+            this.trueTypeContainer.updateGeometry();
+
+        }
+    }
+
+    /**
+     * This will set the outline color if there is an outline
+     *
+     * @param colorRGBA
+     */
+    public void setOutlineColor(ColorRGBA colorRGBA) {
+        if (stringContainer != null) {
+            this.trueTypeContainer.getMaterial().setColor("Outline", colorRGBA);
+            this.trueTypeContainer.updateGeometry();
+
+        }
     }
 
     public int getUid() {
@@ -212,34 +384,18 @@ public class TouchButton extends ImageWidget implements Touchable {
 
     /**
      *
-     * @param text
-     */
-    public void setText(String text) {
-        textStr = text;
-        if (text == null || text.length() == 0) {
-            text = " ";
-        }
-        bitmapText.setText(text);
-    }
-
-    public String getText() {
-        return textStr;
-    }
-
-    /**
-     *
-     * @param colorRGBA
-     */
-    public void setTextColor(ColorRGBA colorRGBA) {
-        bitmapText.setColor(colorRGBA);
-    }
-
-    /**
-     *
      * @param size
      */
     public void setFontSize(float size) {
-        bitmapText.setSize(size * window.getScaleFactorHeight());// font size
+
+        if (bitmapText != null) {
+            bitmapText.setSize(size * window.getScaleFactorHeight());// font size
+
+        } else if (stringContainer != null) {
+            //TODO
+            Debug.log("WARNING: FontSize not supported on TouchButton: " + uid);
+        }
+
     }
 
     @Override
@@ -329,7 +485,7 @@ public class TouchButton extends ImageWidget implements Touchable {
     public void removeTouchButtonListener(TouchButtonListener touchButtonListener1) {
         this.touchButtonListeners.remove(touchButtonListener1);
     }
-    
+
     public void clearTouchButtonListeners() {
         this.touchButtonListeners.clear();
     }
@@ -338,10 +494,20 @@ public class TouchButton extends ImageWidget implements Touchable {
     public void setVisible(boolean visible) {
         super.setVisible(visible);
 
-        if (visible) {
-            bitmapText.setCullHint(Spatial.CullHint.Never);
-        } else {
-            bitmapText.setCullHint(Spatial.CullHint.Always);
+        if (bitmapText != null) {
+            if (visible && widgetNode.getCullHint().equals(Spatial.CullHint.Always)) {
+                bitmapText.setCullHint(Spatial.CullHint.Never);
+            } else if (!visible && widgetNode.getCullHint().equals(Spatial.CullHint.Never)) {
+                bitmapText.setCullHint(Spatial.CullHint.Always);
+            }
+
+        } else if (stringContainer != null) {
+            if (visible && widgetNode.getCullHint().equals(Spatial.CullHint.Always)) {
+                trueTypeContainer.setCullHint(Spatial.CullHint.Never);
+            } else if (!visible && widgetNode.getCullHint().equals(Spatial.CullHint.Never)) {
+                trueTypeContainer.setCullHint(Spatial.CullHint.Always);
+            }
+
         }
     }
 
@@ -366,6 +532,11 @@ public class TouchButton extends ImageWidget implements Touchable {
 
         if (bitmapText != null) {
             bitmapText.setAlpha(alpha);
+
+        } else if (stringContainer != null) {
+            //TODO: NEED TO find a way to handle this
+//            this.trueTypeContainer.getMaterial().setColor("Color", colorRGBA);
+//            this.trueTypeContainer.updateGeometry();
         }
     }
 
@@ -375,21 +546,46 @@ public class TouchButton extends ImageWidget implements Touchable {
         float recWidth = getWidth();
         float recHeight = (getHeight() * 0.5f);
 
-        bitmapText.setBox(new Rectangle(xP + left, yP - top, recWidth - right, recHeight + bottom));
+        if (bitmapText != null) {
+            bitmapText.setBox(new Rectangle(xP + left, yP - top, recWidth - right, recHeight + bottom));
+
+        } else if (stringContainer != null) {
+            recHeight = (getHeight());
+            stringContainer.setTextBox(new Rectangle(xP + left, yP - top, recWidth - right, recHeight + bottom));
+            this.trueTypeContainer.updateGeometry();
+
+        }
+
 
     }
 
     @Override
     public void updatePicture(String pictureFile) {
-        ColorRGBA colorRGBA = bitmapText.getColor().clone();
-        super.updatePicture(pictureFile); //To change body of generated methods, choose Tools | Templates.
+        ColorRGBA colorRGBA = null;
+        if (bitmapText != null) {
+            colorRGBA = bitmapText.getColor().clone();
+
+        } else if (stringContainer != null) {
+            colorRGBA = ((ColorRGBA) trueTypeContainer.getMaterial().getParam("Color").getValue()).clone();
+
+        }
+
+        super.updatePicture(pictureFile);
         setTextColor(colorRGBA);
     }
 
     @Override
     public void updateToOriginalPicture() {
-        ColorRGBA colorRGBA = bitmapText.getColor().clone();
-        super.updateToOriginalPicture(); //To change body of generated methods, choose Tools | Templates.
+        ColorRGBA colorRGBA = null;
+        if (bitmapText != null) {
+            colorRGBA = bitmapText.getColor().clone();
+
+        } else if (stringContainer != null) {
+            colorRGBA = ((ColorRGBA) trueTypeContainer.getMaterial().getParam("Color").getValue()).clone();
+
+        }
+
+        super.updateToOriginalPicture();
         setTextColor(colorRGBA);
     }
 

@@ -10,6 +10,7 @@ import com.jme3.scene.Node;
 import java.util.HashMap;
 import java.util.Map;
 import com.bruynhuis.galago.app.BaseApplication;
+import java.util.Iterator;
 
 /**
  * The SoundManager will manage SoundFX and Music in the game. It is also a
@@ -29,9 +30,8 @@ public class SoundManager {
     protected float musicVolume = 0.3f;
     protected float fxVolume = 0.7f;
     protected float musicSpeed = 0.5f;
-    
-//    private boolean allSoundsPreloaded = false;
 
+//    private boolean allSoundsPreloaded = false;
     public SoundManager(BaseApplication simpleApplication, Node soundNode) {
         this.application = simpleApplication;
         this.soundNode = soundNode;
@@ -305,7 +305,7 @@ public class SoundManager {
         soundFx.put(name, audioNode);
 
     }
-    
+
 //    /**
 //     * For internal use only
 //     */
@@ -336,7 +336,6 @@ public class SoundManager {
 //    public boolean isAllSoundsPreloaded() {
 //        return allSoundsPreloaded;
 //    }
-
     public Map<String, AudioNode> getMusic() {
         return music;
 
@@ -344,6 +343,34 @@ public class SoundManager {
 
     public Map<String, AudioNode> getSoundFx() {
         return soundFx;
+    }
+
+    public void preloadNextSoundFX() {
+        for (Iterator<AudioNode> it = getSoundFx().values().iterator(); it.hasNext();) {
+            AudioNode an = it.next();
+
+            if (an.getUserData("preloaded") == null) {
+                AudioNode audioNode = an.clone();
+                audioNode.setVolume(0f);
+                audioNode.playInstance();
+                an.setUserData("preloaded", true);
+                break;
+            }
+        }
+    }
+    
+    public int getCompletedPreloadedSoundFXCount() {
+        int completed = 0;
+        
+        for (Iterator<AudioNode> it = getSoundFx().values().iterator(); it.hasNext();) {
+            AudioNode an = it.next();
+
+            if (an.getUserData("preloaded") != null) {
+                completed ++;
+            }
+
+        }
+        return completed;
     }
 
     /**

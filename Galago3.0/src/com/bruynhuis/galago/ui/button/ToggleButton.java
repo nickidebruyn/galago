@@ -35,6 +35,12 @@ public class ToggleButton extends TouchButton {
         super(panel, id, offImage, width, height, true);
         this.offImage = offImage;
         this.onImage = onImage;
+        
+        if (bitmapText != null) {
+            bitmapText.removeFromParent();
+        } else if (trueTypeContainer != null) {
+            trueTypeContainer.removeFromParent();
+        }
 
     }
     

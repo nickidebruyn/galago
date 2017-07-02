@@ -1,0 +1,22 @@
+MaterialDef HGaussianBlur {
+
+    MaterialParameters {
+        Texture2D Texture
+        Float Size
+        Float Scale
+    }
+
+    Technique {
+        VertexShader GLSL100:   Common/MatDefs/Post/Post.vert
+        FragmentShader GLSL100: Common/MatDefs/TTF/Blur/HGaussianBlur.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+        }
+        
+        RenderState {
+            DepthTest Off
+            DepthWrite Off
+        }
+    }
+}

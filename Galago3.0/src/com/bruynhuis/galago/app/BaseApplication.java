@@ -40,6 +40,7 @@ import com.bruynhuis.galago.listener.SelectionActionListener;
 import com.bruynhuis.galago.listener.SensorListener;
 import com.bruynhuis.galago.messages.MessageManager;
 import com.bruynhuis.galago.resource.EffectManager;
+import com.bruynhuis.galago.resource.FontManager;
 import com.bruynhuis.galago.resource.ModelManager;
 import com.bruynhuis.galago.resource.ScreenManager;
 import com.bruynhuis.galago.resource.SoundManager;
@@ -48,6 +49,7 @@ import com.bruynhuis.galago.save.GameSaves;
 import com.bruynhuis.galago.sound.DesktopMidiPlayer;
 import com.bruynhuis.galago.sound.MidiPlayer;
 import com.bruynhuis.galago.screen.AbstractScreen;
+import com.bruynhuis.galago.ui.FontStyle;
 import com.bruynhuis.galago.ui.listener.GoogleAPIErrorListener;
 import com.bruynhuis.galago.ui.Label;
 import com.bruynhuis.galago.ui.Widget;
@@ -55,6 +57,10 @@ import com.bruynhuis.galago.ui.listener.SavedGameListener;
 import com.bruynhuis.galago.ui.tween.WidgetAccessor;
 import com.bruynhuis.galago.util.ByteArrayInfo;
 import com.bruynhuis.galago.util.SharedSystem;
+import com.bruynhuis.galago.ttf.TrueTypeLoader;
+import com.bruynhuis.galago.ui.field.ProgressBar;
+import com.bruynhuis.galago.util.Timer;
+import com.jme3.audio.AudioNode;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.MouseAxisTrigger;
@@ -88,7 +94,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     protected float SCREEN_WIDTH = 1280;
     protected float SCREEN_HEIGHT = 720;
     protected String gameSaveFileName = "defaultgame.save";
-    protected String GAME_FONT;
+//    protected String GAME_FONT;
     protected String SPLASH_IMAGE;
     protected Node soundNode;
     protected SoundManager soundManager;
@@ -97,8 +103,11 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     protected TextureManager textureManager;
     protected ModelManager modelManager;
     protected MessageManager messageManager;
+    protected FontManager fontManager;
     private int loadingCounter = 0;
     private boolean loading = false;
+    private int loadingTotalCount = 50;
+    private Timer loadingTimer = new Timer(10);
     protected GameSaves gameSaves;
     protected KeyboardInputListener keyboardInputListener;
     protected RemoteActionListener remoteActionListener;
@@ -155,7 +164,8 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     protected Window window;
     protected Panel splash;
     protected Label info;
-    protected String splashInfoMessage = "GalagoFramework @ 2016";
+    protected String splashInfoMessage = "GalagoFramework @ 2017";
+    protected ProgressBar loadingBar;
     protected VideoRecorderAppState recorderAppState;
     protected boolean record = false;
     protected StatsAppState statsAppState;
@@ -192,11 +202,13 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         this.SCREEN_WIDTH = width;
         this.SCREEN_HEIGHT = height;
         this.gameSaveFileName = gameSaveFileName;
-        this.GAME_FONT = gameFont;
+//        this.GAME_FONT = gameFont;
 
-        if (GAME_FONT == null) {
-            GAME_FONT = "Fonts/OpenSans.fnt";
+        if (gameFont == null) {
+            gameFont = "Fonts/OpenSans.fnt";
         }
+        
+        FontManager.DEFAULT_FONT = gameFont;
 
         this.SPLASH_IMAGE = splashImage;
 
@@ -260,6 +272,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 
         addPauseListener(this);
 
+        assetManager.registerLoader(TrueTypeLoader.class, "ttf");
         if (isMobileApp()) {
 //            assetManager.registerLoader(AndroidImageLoader.class, "jpg", "bmp", "gif", "png", "jpeg");            
         }
@@ -271,9 +284,19 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         //Needs to happen here because the splash image uses it.
         textureManager = new TextureManager(this);
         initTextures(textureManager);
+        
+        //Splash uses a label so this must happen before splash
+        fontManager = new FontManager(this);
+        fontManager.loadFont(new FontStyle(14));
+        fontManager.loadFont(new FontStyle(16));
+        fontManager.loadFont(new FontStyle(18)); 
+        fontManager.loadFont(new FontStyle(20));
+        fontManager.loadFont(new FontStyle(22));     
+                
         initSplash();
 
         loading = true;
+        loadingTimer.start();
 
         if (record) {
             recorderAppState = new VideoRecorderAppState();
@@ -316,28 +339,70 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         gameSaves = new GameSaves(this.gameSaveFileName);
         gameSaves.read();
     }
+    
+    private void updateProgress(String text, int progress) {
+        info.setText(text);
+        loadingBar.setProgress((float)progress/(float)loadingTotalCount);
+    }
 
     @Override
     public void simpleUpdate(float tpf) {
         tweenManager.update(tpf);
 
         if (loading) {
+            
+            loadingTimer.update(tpf);
+            if (loadingTimer.finished()) {
+                loadingCounter++;
+                loadingTimer.reset();
+            }
 
             if (loadingCounter == 1) {
+                updateProgress("Loading save data...", loadingCounter);
                 initGameSaves();
-                SharedSystem.getInstance().setBaseApplication(this);
+                SharedSystem.getInstance().setBaseApplication(this);                
             }
 
             if (loadingCounter == 2) {
+                updateProgress("Loading input...", loadingCounter);
                 initInput();
             }
 
             if (loadingCounter == 3) {
+                updateProgress("Loading models...", loadingCounter);
                 modelManager = new ModelManager(this);
                 initModelManager(modelManager);
             }
 
             if (loadingCounter == 4) {
+                updateProgress("Loading fonts...", loadingCounter);
+                //Load any fonts to be used                
+                initFonts(fontManager);
+
+            }
+
+            if (loadingCounter == 5) {
+                updateProgress("Loading fx...", loadingCounter);
+                effectManager = new EffectManager(this);
+                initEffect(effectManager);
+                
+            }
+
+            if (loadingCounter == 6) {                
+                if (isPhysicsEnabled()) {
+                    updateProgress("Loading physics...", loadingCounter);
+                    initPhysics();
+                }
+            }
+
+            if (loadingCounter == 7) {
+                updateProgress("Loading screens...", loadingCounter);
+                screenManager = new ScreenManager(this);
+                initScreens(screenManager);
+            }
+            
+            if (loadingCounter == 8) {
+                updateProgress("Loading sounds...", loadingCounter);
                 soundNode = new Node("Sound Node");
                 rootNode.attachChild(soundNode);
                 soundManager = new SoundManager(this, soundNode);
@@ -349,41 +414,31 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
                 } else {
                     info.setText("");
                 }
+                
+                loadingTotalCount = 8 + getSoundManager().getSoundFx().size();
 
             }
-
-            if (loadingCounter == 5) {
-                //This is moved to before the splash
-//                textureManager = new TextureManager(this);
-//                initTextures(textureManager);
-            }
-
-            if (loadingCounter == 6) {
-                effectManager = new EffectManager(this);
-                initEffect(effectManager);
-
-            }
-
-            if (loadingCounter == 7) {
-                if (isPhysicsEnabled()) {
-                    initPhysics();
+            
+            if (loadingCounter > 8) {
+                updateProgress("Loading music...", loadingCounter);
+                loadingTimer.stop();
+                
+                int count = getSoundManager().getCompletedPreloadedSoundFXCount();
+                if (count < getSoundManager().getSoundFx().size()) {
+                    getSoundManager().preloadNextSoundFX();
+                    loadingCounter++;
+                    
+                } else {
+                    updateProgress("Loading done...", loadingTotalCount);
+                    loading = false;
+                    loadingTimer.stop();
+                    window.getFader().setVisible(true);
+                    window.getFader().fadeOut();                    
+                    
                 }
+                
             }
 
-            if (loadingCounter == 8) {
-                screenManager = new ScreenManager(this);
-                initScreens(screenManager);
-
-            }
-
-
-            if (loadingCounter >= 100) {
-                loading = false;
-                window.getFader().setVisible(true);
-                window.getFader().fadeOut();
-            }
-
-            loadingCounter++;
 
         } else {
             //Set the font size for the stats
@@ -414,15 +469,15 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 
     }
 
-    @Override
-    protected BitmapFont loadGuiFont() {
-        if (GAME_FONT != null) {
-            return assetManager.loadFont(GAME_FONT);
-        } else {
-            return super.loadGuiFont();
-        }
-
-    }
+//    @Override
+//    protected BitmapFont loadGuiFont() {
+//        if (GAME_FONT != null) {
+//            return assetManager.loadFont(GAME_FONT);
+//        } else {
+//            return super.loadGuiFont();
+//        }
+//
+//    }
 
     /**
      * Helper method that will get the game save data.
@@ -478,14 +533,36 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         window.add(splash);
         splash.center();
 
-        info = new Label(splash, splashInfoMessage, 18, 500, 40);
-        info.centerBottom(0, 2);
+        info = new Label(splash, splashInfoMessage, 14, 500, 40);
+        info.centerAt(0, -100);
+        info.setTextColor(ColorRGBA.DarkGray);
+        
+        loadingBar = new ProgressBar(splash, "Resources/progressbar-border.png", "Resources/progressbar.png", 256, 10);
+        loadingBar.centerAt(0, -150);
+
+        splash.add(loadingBar);
 
         //Add the fade over the other gui's
         Fader fader = new Fader(window, ColorRGBA.Black, 100f, 100f, 1f, 1f);
         fader.addFadeListener(this);
         window.setFader(fader);
         fader.setVisible(false);
+    }
+    
+    private void updateProgress() {
+        int completed = 0;
+        
+        for (Iterator<AudioNode> it = getSoundManager().getSoundFx().values().iterator(); it.hasNext();) {
+            AudioNode an = it.next();
+
+            if (an.getUserData("preloaded") != null) {
+                completed ++;
+            }
+
+        }
+        float progress = (float)completed/(float)getSoundManager().getSoundFx().size();
+        loadingBar.setProgress(progress);
+
     }
 
     protected abstract void initPhysics();
@@ -519,6 +596,13 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
      * @param textureManager
      */
     protected abstract void initTextures(TextureManager textureManager);
+    
+    /**
+     * Init the fonts to be used
+     *
+     * @param fontManager
+     */
+    protected abstract void initFonts(FontManager fontManager);
 
     /**
      * This method returns the modelManager class.
@@ -527,6 +611,14 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
      */
     public ModelManager getModelManager() {
         return modelManager;
+    }
+
+    /**
+     * Returns the font manager
+     * @return 
+     */
+    public FontManager getFontManager() {
+        return fontManager;
     }
 
     /**
@@ -740,6 +832,10 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 
         if (messageManager != null) {
             messageManager.destroy();
+        }
+        
+        if (fontManager != null) {
+            fontManager.destroy();
         }
 
         super.destroy();

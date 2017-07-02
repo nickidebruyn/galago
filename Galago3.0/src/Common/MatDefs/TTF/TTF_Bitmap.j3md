@@ -1,0 +1,20 @@
+MaterialDef TrueTypeFont {
+    MaterialParameters {
+        Texture2D Texture
+        Color Color (Color)
+    }
+    Technique {
+        VertexShader GLSL100: Common/MatDefs/TTF/TTF_Bitmap.vert
+        FragmentShader GLSL100: Common/MatDefs/TTF/TTF_Bitmap.frag
+        
+        WorldParameters {
+            WorldViewProjectionMatrix
+        }
+        
+        RenderState {
+            Blend Alpha
+            DepthWrite Off
+            DepthTest Off
+        }
+    }
+}

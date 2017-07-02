@@ -24,13 +24,13 @@ import com.bruynhuis.galago.listener.PickListener;
 import com.bruynhuis.galago.listener.TouchPickListener;
 import com.bruynhuis.galago.screen.AbstractScreen;
 import com.bruynhuis.galago.ui.Label;
+import com.bruynhuis.galago.ui.TextAlign;
 import com.bruynhuis.galago.ui.panel.Panel;
 import com.bruynhuis.galago.ui.button.TouchButton;
 import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
 import com.bruynhuis.galago.ui.listener.TouchButtonListener;
 import com.bruynhuis.galago.ui.panel.VPanel;
 import com.bruynhuis.galago.ui.effect.TouchEffect;
-import com.jme3.font.BitmapFont;
 import com.jme3.scene.debug.Arrow;
 import com.jme3.scene.debug.Grid;
 
@@ -201,7 +201,7 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
         positionLabel = new Label(hudPanel, "Point: (0, 0)", 16, 200, 30);
         positionLabel.setTextColor(ColorRGBA.LightGray);
         positionLabel.rightBottom(100, 5);
-        positionLabel.setAlignment(BitmapFont.Align.Right);
+        positionLabel.setAlignment(TextAlign.RIGHT);
 
 //        defaultButton = new TouchButton(hudPanel, "edit_default_button", "Default");
 //        defaultButton.rightBottom(5, 5);

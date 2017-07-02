@@ -12,6 +12,7 @@ import com.bruynhuis.galago.listener.TouchPickListener;
 import com.bruynhuis.galago.screen.AbstractScreen;
 import com.bruynhuis.galago.sprite.Sprite;
 import com.bruynhuis.galago.ui.Label;
+import com.bruynhuis.galago.ui.TextAlign;
 import com.bruynhuis.galago.ui.button.TouchButton;
 import com.bruynhuis.galago.ui.effect.TouchEffect;
 import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
@@ -19,7 +20,6 @@ import com.bruynhuis.galago.ui.listener.TouchButtonListener;
 import com.bruynhuis.galago.ui.panel.HPanel;
 import com.bruynhuis.galago.ui.panel.Panel;
 import com.bruynhuis.galago.ui.panel.VPanel;
-import com.jme3.font.BitmapFont;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
@@ -104,7 +104,7 @@ public abstract class Physics2DEditor extends AbstractScreen implements PickList
         infoLabel = new Label(hudPanel, "Item: ", 18, 1280, 40);
         infoLabel.leftBottom(2, 2);
         infoLabel.setTextColor(ColorRGBA.Green);
-        infoLabel.setAlignment(BitmapFont.Align.Left);
+        infoLabel.setAlignment(TextAlign.LEFT);
 
         toolsPanel = new VPanel(hudPanel, null, buttonSize, 680);
         toolsPanel.rightTop(0, 0);

@@ -6,7 +6,7 @@ package com.bruynhuis.galago.ui.field;
 
 import com.bruynhuis.galago.ui.Image;
 import com.bruynhuis.galago.ui.Label;
-import com.bruynhuis.galago.ui.button.TouchButton;
+import com.bruynhuis.galago.ui.button.ControlButton;
 import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
 import com.bruynhuis.galago.ui.listener.ValueChangeListener;
 import com.bruynhuis.galago.ui.panel.Panel;
@@ -30,7 +30,7 @@ public class HSlider extends Panel {
     private float incrementValue = 1f;
     private Image buttonImage;
     private Label label;
-    private TouchButton touchButton;
+    private ControlButton touchButton;
     private String labelText = "";
     private boolean calculateValue = false;
     private List<ValueChangeListener> valueChangeListeners = new ArrayList<ValueChangeListener>();
@@ -52,7 +52,7 @@ public class HSlider extends Panel {
         buttonImage = new Image(this, "Resources/button-slider.png", 24, 54, true);
         buttonImage.center();
 
-        touchButton = new TouchButton(this, "slider-button", "Resources/blank.png", NATIVE_WIDTH, 54, true);
+        touchButton = new ControlButton(this, "slider-button", NATIVE_WIDTH, 54, true);
         touchButton.center();
         touchButton.addTouchButtonListener(new TouchButtonAdapter() {
             @Override
@@ -198,5 +198,7 @@ public class HSlider extends Panel {
         return label;
     }
     
-    
+    public void setLabelColor(ColorRGBA colorRGBA) {
+        label.setTextColor(colorRGBA);
+    }
 }
