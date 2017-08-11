@@ -4,8 +4,6 @@
  */
 package com.bruynhuis.galago.listener;
 
-import com.bruynhuis.galago.app.BaseApplication;
-import com.bruynhuis.galago.util.SharedSystem;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.input.InputManager;
@@ -48,7 +46,6 @@ public class TouchPickListener implements ActionListener, AnalogListener {
     private boolean enabled = true;
     private boolean keyDown = false;
     private PickEvent pickEvent;
-    private BaseApplication baseApplication;
 
     public TouchPickListener(Camera cam, Node scene) {
         this.cam = cam;
@@ -118,7 +115,6 @@ public class TouchPickListener implements ActionListener, AnalogListener {
 
         if (enabled) {
             keyDown = keyPressed;
-            baseApplication = SharedSystem.getInstance().getBaseApplication();
 
             if (name.equals(PICK_ACTION_LEFT) || name.equals(PICK_ACTION_RIGHT)) {
 
@@ -217,7 +213,6 @@ public class TouchPickListener implements ActionListener, AnalogListener {
     @Override
     public void onAnalog(String name, float value, float tpf) {
         if (enabled && pickListener != null) {
-            baseApplication = SharedSystem.getInstance().getBaseApplication();
             
             //Now we call the drag listener
             checkCursorCollision();

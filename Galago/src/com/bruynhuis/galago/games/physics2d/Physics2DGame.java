@@ -287,6 +287,7 @@ public abstract class Physics2DGame implements PhysicsCollisionListener {
         rootNode.detachAllChildren();
 
         baseApplication.getDyn4jAppState().getPhysicsSpace().clear();
+        baseApplication.getDyn4jAppState().getPhysicsSpace().addPhysicsTickListener(baseApplication);
         player = null;
         System.gc(); //Force memory to be released;
 
@@ -855,6 +856,7 @@ public abstract class Physics2DGame implements PhysicsCollisionListener {
 
         levelNode.removeFromParent();
         baseApplication.getDyn4jAppState().getPhysicsSpace().clear();
+        baseApplication.getDyn4jAppState().getPhysicsSpace().addPhysicsTickListener(baseApplication);
 
         tileMap.getTiles().clear();
 

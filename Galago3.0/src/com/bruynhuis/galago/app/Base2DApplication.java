@@ -7,6 +7,8 @@ package com.bruynhuis.galago.app;
 import aurelienribon.tweenengine.Tween;
 import com.bruynhuis.galago.control.tween.Rigidbody2DAccessor;
 import com.bruynhuis.galago.sprite.physics.Dyn4jAppState;
+import com.bruynhuis.galago.sprite.physics.PhysicsSpace;
+import com.bruynhuis.galago.sprite.physics.PhysicsTickListener;
 import com.bruynhuis.galago.sprite.physics.ThreadingType;
 import com.jme3.material.MatParam;
 import com.jme3.material.MatParamTexture;
@@ -20,7 +22,7 @@ import com.jme3.texture.Texture;
  * 
  * @author nidebruyn
  */
-public abstract class Base2DApplication extends BaseApplication {
+public abstract class Base2DApplication extends BaseApplication implements PhysicsTickListener {
     
     protected Dyn4jAppState dyn4jAppState;
     protected float frustumSize = 10f;
@@ -51,7 +53,8 @@ public abstract class Base2DApplication extends BaseApplication {
         dyn4jAppState = new Dyn4jAppState(ThreadingType.SEQUENTIAL);
         stateManager.attach(dyn4jAppState);
         dyn4jAppState.getPhysicsSpace().setGravity(0, -20.0f);
-
+        dyn4jAppState.getPhysicsSpace().addPhysicsTickListener(this);
+        
     }
     
     /**
@@ -93,5 +96,14 @@ public abstract class Base2DApplication extends BaseApplication {
             MatParamTexture mpt = (MatParamTexture) mp;
             mpt.getTextureValue().setMagFilter(Texture.MagFilter.Nearest);
         }
+    }
+
+    @Override
+    public void prePhysicsTick(PhysicsSpace space, float tpf) {
+        getTweenManagerPhysics().update(tpf);
+    }
+
+    @Override
+    public void physicsTick(PhysicsSpace space, float tpf) {
     }
 }

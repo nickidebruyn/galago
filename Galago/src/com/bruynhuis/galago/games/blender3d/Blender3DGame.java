@@ -78,7 +78,7 @@ public abstract class Blender3DGame implements PhysicsCollisionListener {
     public void load() {
         baseApplication.getBulletAppState().setEnabled(false);
 
-        levelNode = (Node) baseApplication.getAssetManager().loadModel(sceneFile);
+        levelNode = (Node)((Node) baseApplication.getAssetManager().loadModel(sceneFile)).getChild(0);
         rootNode.attachChild(levelNode);
 
         SceneGraphVisitor sgv = new SceneGraphVisitor() {

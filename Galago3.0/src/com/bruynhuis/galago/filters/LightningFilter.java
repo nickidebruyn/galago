@@ -20,10 +20,6 @@ import java.io.IOException;
  * @author NideBruyn
  */
 public class LightningFilter extends Filter {
-    
-    private float amount = 0.8f;
-    private float time = 0f;
-    private float speed = 0.3f;
 
     /**
      * creates a NoiseFilter
@@ -35,57 +31,12 @@ public class LightningFilter extends Filter {
 
     @Override
     protected Material getMaterial() {
-        material.setFloat("Amount", amount);
-        material.setFloat("Speed", speed);
-        material.setFloat("Time", time);
         return material;
     }
     
     @Override
     protected void initFilter(AssetManager manager, RenderManager renderManager, ViewPort vp, int w, int h) {
         material = new Material(manager, "Resources/filters/lightning.j3md");
-    }
-
-    public float getAmount() {
-        return amount;
-    }
-
-    public void setAmount(float amount) {
-        this.amount = amount;
-        if (material != null) {
-            material.setFloat("Amount", amount);
-        }
-    }
-
-    public float getTime() {
-        return time;
-    }
-
-    @Override
-    protected void preFrame(float tpf) {
-        time += tpf;
-        if (time >= 1000) {
-            time = 0;
-        }
-        setTime(time);
-    }
-
-    public void setTime(float time) {
-        this.time = time;
-        if (material != null) {
-            material.setFloat("Time", time);
-        }
-    }
-
-    public float getSpeed() {
-        return speed;
-    }
-
-    public void setSpeed(float speed) {
-        this.speed = speed;
-        if (material != null) {
-            material.setFloat("Speed", speed);
-        }
     }
 
     @Override

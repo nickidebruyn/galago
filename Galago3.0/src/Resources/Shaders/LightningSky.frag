@@ -1,9 +1,12 @@
-uniform vec2 g_Resolution;
-uniform sampler2D m_Texture;
-uniform float m_Time;
 varying vec2 texCoord;
 
-const int LIGHTNING_PARTS = 12;
+uniform sampler2D m_ColorMap;
+uniform vec4 m_StartColor;
+uniform vec4 m_EndColor;
+uniform float m_Angle;
+uniform float g_Time;
+
+const int LIGHTNING_PARTS = 10;
 
 float hash(float x) {
 	return fract(21654.6512 * sin(385.51 * x));
@@ -69,8 +72,8 @@ float lightning2(vec2 ls, vec2 le, float intensity,vec2 uv) {
 		vec2 ltemp1 = mix(ls,le,float(i) / float(LIGHTNING_PARTS));
 		vec2 ltemp2 = mix(ls,le,float(i+1) / float(LIGHTNING_PARTS));
 		float h3= fract(21654.65155 * sin(35.51 * ls.x));
-		float lh1 = lhash(ltemp1.y, m_Time);
-		float lh2 = lhash(ltemp2.y, m_Time);
+		float lh1 = lhash(ltemp1.y, g_Time);
+		float lh2 = lhash(ltemp2.y, g_Time);
 		ltemp1.x += lh1;
 		ltemp2.x += lh2;
 		
@@ -100,8 +103,8 @@ float lightning(vec2 ls, vec2 le, float intensity,vec2 uv) {
 		vec2 ltemp1 = mix(ls,le,float(i) / float(LIGHTNING_PARTS));
 		vec2 ltemp2 = mix(ls,le,float(i+1) / float(LIGHTNING_PARTS));
 		float h3 = fract(22654.65155 * ls.x * sin(3542.51 * ltemp1.y * le.y)) - sqrt(ltemp1.y) + 0.6;
-		float lh1 = lhash(ltemp1.y + ltemp1.x, m_Time);
-		float lh2 = lhash(ltemp2.y + ltemp2.x, m_Time);
+		float lh1 = lhash(ltemp1.y + ltemp1.x, g_Time);
+		float lh2 = lhash(ltemp2.y + ltemp2.x, g_Time);
 		ltemp1.x += lh1;
 		ltemp2.x += lh2;
 		
@@ -116,14 +119,18 @@ float lightning(vec2 ls, vec2 le, float intensity,vec2 uv) {
 	return f;
 }
 
-void main() {
 
-	vec2 uv = texCoord.xy / g_Resolution.xy;
-	uv = uv*2.0 -1.0;
-	uv.x *= g_Resolution.x / g_Resolution.y;	
+
+void main(){
+    
+        vec2 uv = texCoord.xy;
+	//vec2 uv = texCoord.xy / g_Resolution.xy;
+	uv = uv*2.0 - 1.0;
+        uv = uv*-1.0;
+	//uv.x *= g_Resolution.x / g_Resolution.y;	
 		
 	//fractal brownian motion
-	vec2 cad = uv + vec2(m_Time, 0.0);
+	vec2 cad = uv + vec2(g_Time*0.01, 0.0);
 	float p = fbm(cad);	
 	p = 1.0 - abs(p * 2.0 - 1.0);
 	
@@ -131,17 +138,16 @@ void main() {
 	vec3 col = pow(vec3(p), vec3(0.7)) - (uv.y + 3.0) * 0.2;
 	
 	
-	
+
+        //Lightning bolts
 	vec2 ls = vec2(0.0,1.01);
 	vec2 le = vec2(0.0 ,-1.0);
-	//ls.x = mod(-m_Time,2.0)-1.0;
-	//le.x = mod(-m_Time,2.0)-1.0;
 	
-	float f = 3.0;
-        for(int i = 0; i < 10; i++ ) {
+	float f = 1.0;
+        for(int i = 0; i < 8; i++ ) {
 		//Lightning Seeds
-		float h = hash(vec2(sqrt(float(i)),floor((m_Time) * 7.0 + (float(i) / 10.0)) * float(i)));
-		ls.x = hash(h) * 3.0  - mod(m_Time,3.0);
+		float h = hash(vec2(sqrt(float(i)),floor((g_Time) * 7.0 + (float(i) / 10.0)) * float(i)));
+		ls.x = hash(h) * 3.0  - mod(g_Time,3.0);
 		le.x = ls.x + sqrt(hash(sqrt(h + float(i)))) - 0.5;
 		
 		if(h > 0.96)

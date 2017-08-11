@@ -521,4 +521,17 @@ public class Window {
             
         }
     }
+    
+    /**
+     * Helper method that will pad text to the front of the string value
+     * @param text
+     * @param length
+     * @return 
+     */
+    public String padText(String text, int length) {
+        while(text.length() < length) {
+            text = "0" + text;
+        }
+        return text;
+    }
 }

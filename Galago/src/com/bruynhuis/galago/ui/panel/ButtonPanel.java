@@ -157,7 +157,7 @@ public class ButtonPanel extends Panel implements ActionListener, JoystickListen
     public void stick(JoystickEvent joystickEvent, float fps) {
 //        Debug.log("down: " + joystickEvent.isKeyDown());
 
-        if (joystickEvent.isKeyDown()) {
+        if (joystickEvent.isAxisDown()) {
             if (joystickEvent.isUp() || joystickEvent.isLeft()) {
                 swapDown(fps);
             }
@@ -168,7 +168,7 @@ public class ButtonPanel extends Panel implements ActionListener, JoystickListen
 
 
         if ((joystickEvent.isButton1() || joystickEvent.isButton3()) && selectedButton != null) {
-            if (joystickEvent.isKeyDown()) {
+            if (joystickEvent.isButtonDown()) {
                 selectedButton.fireTouchDown(0, 0, 1f);
             } else {
                 selectedButton.fireTouchUp(0, 0, 1f);

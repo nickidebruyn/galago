@@ -123,11 +123,11 @@ public class EffectManager {
         SpatialLifeControl control = new SpatialLifeControl(activeTimeInMilliSec);
         sp.addControl(control);
         
-//        if (application.getCurrentScreen() != null) {
-//            application.getCurrentScreen().getRootNode().attachChild(sp);
-//        } else {
+        if (application.getCurrentScreen() != null) {
+            application.getCurrentScreen().getRootNode().attachChild(sp);
+        } else {
             application.getRootNode().attachChild(sp);
-//        }        
+        }        
 
         //Call the particle respawn
         doParticleRespawn(sp);

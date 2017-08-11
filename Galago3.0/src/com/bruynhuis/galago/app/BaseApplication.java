@@ -170,6 +170,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     protected boolean record = false;
     protected StatsAppState statsAppState;
     protected TweenManager tweenManager;
+    protected TweenManager tweenManagerPhysics;
     protected MidiPlayer midiPlayer;
     protected AbstractScreen currentScreen;
     private boolean firePauseAction = false;
@@ -268,6 +269,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         Tween.registerAccessor(Vector3f.class, new Vector3fAccessor());
 
         tweenManager = new TweenManager();
+        tweenManagerPhysics = new TweenManager();
         messageManager = new MessageManager(this);
 
         addPauseListener(this);
@@ -1522,6 +1524,14 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
      */
     public TweenManager getTweenManager() {
         return tweenManager;
+    }
+
+    /**
+     * Returns the tween manager which will run in the physics loop
+     * @return 
+     */
+    public TweenManager getTweenManagerPhysics() {
+        return tweenManagerPhysics;
     }
 
     /**

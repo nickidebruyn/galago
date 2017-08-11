@@ -199,7 +199,7 @@ public class AnimatedSprite extends Sprite implements Savable {
 
     public void stop() {
         frameTimer.stop();
-        setCullHint(Spatial.CullHint.Always);
+//        setCullHint(Spatial.CullHint.Always);
     }
 
     public void pause() {

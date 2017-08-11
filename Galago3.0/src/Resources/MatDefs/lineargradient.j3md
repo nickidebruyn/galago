@@ -1,0 +1,22 @@
+MaterialDef Colored LinearGradient {
+
+    MaterialParameters {
+        Texture2D ColorMap
+        Color StartColor (Color)
+        Color EndColor (Color)
+        Float Angle: 0.0
+    }
+
+    Technique {
+        VertexShader GLSL100:   Resources/Shaders/lineargradient.vert
+        FragmentShader GLSL100: Resources/Shaders/lineargradient.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+        }
+    }
+
+    Technique {
+    }
+
+}

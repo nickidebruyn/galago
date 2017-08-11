@@ -35,7 +35,7 @@ public class TouchStick extends Panel {
         super(panel, null, width, height, true);
         
         bottomControl = new ControlButton(this, uid + "_buttom", "Resources/button_round.png", width, height, true);        
-        bottomControl.setTransparency(0.8f);
+        bottomControl.setTransparency(0.9f);
         bottomControl.addTouchButtonListener(new TouchButtonAdapter() {
 
             @Override

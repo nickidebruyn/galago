@@ -489,7 +489,7 @@ public abstract class Platform2DEditor extends AbstractScreen implements PickLis
 
     public void stick(JoystickEvent joystickEvent, float fps) {
         if (isActive()) {
-            if (game != null && joystickEvent.isKeyDown()) {
+            if (game != null && joystickEvent.isAxisDown()) {
                 
                 targetLookAtPoint = marker.getWorldTranslation().clone();
 

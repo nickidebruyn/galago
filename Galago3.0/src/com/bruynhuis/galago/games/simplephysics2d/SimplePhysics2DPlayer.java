@@ -88,4 +88,10 @@ public abstract class SimplePhysics2DPlayer {
     }
     
     public abstract void doDie();
+
+    public int getLives() {
+        return lives;
+    }
+    
+    
 }

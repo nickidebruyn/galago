@@ -5,18 +5,21 @@
 package com.bruynhuis.galago.listener;
 
 /**
- * This class will contain pick data when a user touches the screen and drag the screen.
- * 
+ * This class will contain pick data when a user touches the screen and drag the
+ * screen.
+ *
  * @author nidebruyn
  */
 public class JoystickEvent {
-    
-    private boolean keyDown = false;
+
+    private boolean axisDown = false;
     private boolean left = false;
     private boolean right = false;
     private boolean up = false;
     private boolean down = false;
     private float analogValue;
+    
+    private boolean buttonDown = false;
     private boolean button1 = false;
     private boolean button2 = false;
     private boolean button3 = false;
@@ -36,12 +39,16 @@ public class JoystickEvent {
         this.analogValue = analogValue;
     }
 
-    public boolean isKeyDown() {
-        return keyDown;
+    public void setAxisDown(boolean axisDown) {
+        this.axisDown = axisDown;
     }
 
-    public void setKeyDown(boolean keyDown) {
-        this.keyDown = keyDown;
+    public boolean isButtonDown() {
+        return buttonDown;
+    }
+
+    public void setButtonDown(boolean keyDown) {
+        this.buttonDown = keyDown;
     }
 
     public boolean isLeft() {
@@ -155,6 +162,56 @@ public class JoystickEvent {
     public void setButton10(boolean button10) {
         this.button10 = button10;
     }
+//
+//    public void clearAll() {
+//        buttonDown = false;
+//        left = false;
+//        right = false;
+//        up = false;
+//        down = false;
+//        analogValue = 0;
+//        button1 = false;
+//        button2 = false;
+//        button3 = false;
+//        button4 = false;
+//        button5 = false;
+//        button6 = false;
+//        button7 = false;
+//        button8 = false;
+//        button9 = false;
+//        button10 = false;
+//    }
+    
+    public void clearButtons() {
+        button1 = false;
+        button2 = false;
+        button3 = false;
+        button4 = false;
+        button5 = false;
+        button6 = false;
+        button7 = false;
+        button8 = false;
+        button9 = false;
+        button10 = false;
+    }
+    
+    public void clearAxis() {
+        left = false;
+        right = false;
+        up = false;
+        down = false;
+        analogValue = 0;
+    }
+    
+    public boolean isAxisDown() {
+        return axisDown;
+//        return isLeft() || isRight() || isUp() || isDown();
+    }
 
+    @Override
+    public String toString() {
+        return "JoystickEvent{" + "axisDown=" + axisDown + ", left=" + left + ", right=" + right + ", up=" + up + ", down=" + down + ", analogValue=" + analogValue + ", buttonDown=" + buttonDown + ", button1=" + button1 + ", button2=" + button2 + ", button3=" + button3 + ", button4=" + button4 + ", button5=" + button5 + ", button6=" + button6 + ", button7=" + button7 + ", button8=" + button8 + ", button9=" + button9 + ", button10=" + button10 + '}';
+    }
+    
     
 }

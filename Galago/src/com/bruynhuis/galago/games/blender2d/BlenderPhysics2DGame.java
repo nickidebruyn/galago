@@ -192,6 +192,8 @@ public abstract class BlenderPhysics2DGame implements PhysicsCollisionListener {
         rootNode.detachAllChildren();
 
         baseApplication.getDyn4jAppState().getPhysicsSpace().clear();
+        baseApplication.getDyn4jAppState().getPhysicsSpace().addPhysicsTickListener(baseApplication);
+        
         player = null;
         System.gc(); //Force memory to be released;
 
