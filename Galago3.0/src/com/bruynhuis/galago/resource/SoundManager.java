@@ -301,7 +301,7 @@ public class SoundManager {
         AudioNode audioNode = new AudioNode(application.getAssetManager(), soundPath, false);
         audioNode.setPositional(false);
         audioNode.setLooping(false);
-        audioNode.setVolume(fxVolume);
+        audioNode.setVolume(0.0f);
         soundFx.put(name, audioNode);
 
     }
@@ -350,11 +350,13 @@ public class SoundManager {
             AudioNode an = it.next();
 
             if (an.getUserData("preloaded") == null) {
-                AudioNode audioNode = an.clone();
-                audioNode.setVolume(0f);
-                audioNode.setPitch(0.5f);
-                audioNode.playInstance();
+//                AudioNode audioNode = an.clone();
+                an.setVolume(0f);
+//                audioNode.setPitch(0.5f);
+                an.playInstance();                
                 an.setUserData("preloaded", true);
+//                audioNode.pause();
+//                an.setVolume(fxVolume);
                 break;
             }
         }
@@ -385,8 +387,13 @@ public class SoundManager {
         }
 
         AudioNode audioNode = soundFx.get(name);
+        audioNode.setVolume(fxVolume);
         audioNode.playInstance(); // play once!
 
+    }
+
+    public void setFxVolume(float fxVolume) {
+        this.fxVolume = fxVolume;
     }
 
     public boolean isPlaying(String name) {

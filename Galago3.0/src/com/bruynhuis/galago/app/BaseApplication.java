@@ -60,7 +60,6 @@ import com.bruynhuis.galago.util.SharedSystem;
 import com.bruynhuis.galago.ttf.TrueTypeLoader;
 import com.bruynhuis.galago.ui.field.ProgressBar;
 import com.bruynhuis.galago.util.Timer;
-import com.jme3.audio.AudioNode;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.MouseAxisTrigger;
@@ -106,8 +105,9 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     protected FontManager fontManager;
     private int loadingCounter = 0;
     private boolean loading = false;
-    private int loadingTotalCount = 50;
-    private Timer loadingTimer = new Timer(10);
+    private int loadingTotalCount = 20;
+    private Timer loadingTimer = new Timer(1f);
+    private Timer soundLoadingTimer = new Timer(0.1f); 
     protected GameSaves gameSaves;
     protected KeyboardInputListener keyboardInputListener;
     protected RemoteActionListener remoteActionListener;
@@ -116,7 +116,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     protected GoogleAPIErrorListener googleAPIErrorListener;
     protected SavedGameListener savedGameListener;
     protected PauseListener pauseListener;
-    protected SensorListener sensorListener;    
+    protected SensorListener sensorListener;
     protected LiveCameraListener liveCameraListener;
     protected RewardAdListener rewardAdListener;
     public static final String TYPE = "TYPE";
@@ -182,6 +182,8 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     protected int frameCounter = 0;
     protected int fps = 0;
     protected boolean rewardAdLoaded = false;
+    protected boolean loadingBarVisible = true;
+//    private boolean soundsLoaded = false;
 
     /**
      * Your the main java class in your game should call this constructor to
@@ -208,7 +210,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         if (gameFont == null) {
             gameFont = "Fonts/OpenSans.fnt";
         }
-        
+
         FontManager.DEFAULT_FONT = gameFont;
 
         this.SPLASH_IMAGE = splashImage;
@@ -286,15 +288,15 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         //Needs to happen here because the splash image uses it.
         textureManager = new TextureManager(this);
         initTextures(textureManager);
-        
+
         //Splash uses a label so this must happen before splash
         fontManager = new FontManager(this);
         fontManager.loadFont(new FontStyle(14));
         fontManager.loadFont(new FontStyle(16));
-        fontManager.loadFont(new FontStyle(18)); 
+        fontManager.loadFont(new FontStyle(18));
         fontManager.loadFont(new FontStyle(20));
-        fontManager.loadFont(new FontStyle(22));     
-                
+        fontManager.loadFont(new FontStyle(22));
+
         initSplash();
 
         loading = true;
@@ -341,18 +343,36 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         gameSaves = new GameSaves(this.gameSaveFileName);
         gameSaves.read();
     }
-    
+
     private void updateProgress(String text, int progress) {
         info.setText(text);
-        loadingBar.setProgress((float)progress/(float)loadingTotalCount);
+        loadingBar.setProgress((float) progress / (float) loadingTotalCount);
     }
 
     @Override
     public void simpleUpdate(float tpf) {
         tweenManager.update(tpf);
 
+        //Update preloading sound
+//        if (getSoundManager() != null && !soundsLoaded) {
+//            soundLoadingTimer.update(tpf);
+//            if (soundLoadingTimer.finished()) {
+//                int count = getSoundManager().getCompletedPreloadedSoundFXCount();
+//                if (count < getSoundManager().getSoundFx().size()) {
+//                    getSoundManager().preloadNextSoundFX();
+//                    log("preloading sounds: " + count);
+//                    soundLoadingTimer.reset();
+//
+//                } else {
+//                    soundsLoaded = true;
+//                    soundLoadingTimer.stop();
+//                }
+//            }
+//
+//        }
+
         if (loading) {
-            
+
             loadingTimer.update(tpf);
             if (loadingTimer.finished()) {
                 loadingCounter++;
@@ -362,7 +382,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
             if (loadingCounter == 1) {
                 updateProgress("Loading save data...", loadingCounter);
                 initGameSaves();
-                SharedSystem.getInstance().setBaseApplication(this);                
+                SharedSystem.getInstance().setBaseApplication(this);
             }
 
             if (loadingCounter == 2) {
@@ -387,10 +407,10 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
                 updateProgress("Loading fx...", loadingCounter);
                 effectManager = new EffectManager(this);
                 initEffect(effectManager);
-                
+
             }
 
-            if (loadingCounter == 6) {                
+            if (loadingCounter == 6) {
                 if (isPhysicsEnabled()) {
                     updateProgress("Loading physics...", loadingCounter);
                     initPhysics();
@@ -402,7 +422,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
                 screenManager = new ScreenManager(this);
                 initScreens(screenManager);
             }
-            
+
             if (loadingCounter == 8) {
                 updateProgress("Loading sounds...", loadingCounter);
                 soundNode = new Node("Sound Node");
@@ -416,8 +436,9 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
                 } else {
                     info.setText("");
                 }
-                
+
                 loadingTotalCount = 8 + getSoundManager().getSoundFx().size();
+                soundLoadingTimer.start();
 
             }
             
@@ -425,21 +446,37 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
                 updateProgress("Loading music...", loadingCounter);
                 loadingTimer.stop();
                 
-                int count = getSoundManager().getCompletedPreloadedSoundFXCount();
-                if (count < getSoundManager().getSoundFx().size()) {
-                    getSoundManager().preloadNextSoundFX();
-                    loadingCounter++;
-                    
-                } else {
-                    updateProgress("Loading done...", loadingTotalCount);
-                    loading = false;
-                    loadingTimer.stop();
-                    window.getFader().setVisible(true);
-                    window.getFader().fadeOut();                    
-                    
-                }
+                soundLoadingTimer.update(tpf);
                 
+                if (soundLoadingTimer.finished()) {
+                    
+                    int count = getSoundManager().getCompletedPreloadedSoundFXCount();
+                    if (count < getSoundManager().getSoundFx().size()) {
+                        getSoundManager().preloadNextSoundFX();
+                        loadingCounter++;
+                        soundLoadingTimer.reset();
+
+                    } else {
+                        updateProgress("Loading done...", loadingTotalCount);
+                        loading = false;
+                        soundLoadingTimer.stop();
+                        window.getFader().setVisible(true);
+                        window.getFader().fadeOut();
+
+                    }
+                }
+
             }
+
+//            if (loadingCounter == 9) {
+//                updateProgress("Loading music...", loadingCounter);
+//                loadingTimer.stop();
+//                soundLoadingTimer.start();
+//                loading = false;
+//                window.getFader().setVisible(true);
+//                window.getFader().fadeOut();
+//
+//            }
 
 
         } else {
@@ -463,8 +500,8 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
                 }
                 fireResumeAction = false;
             }
-           
-  
+
+
         }
 
 
@@ -480,7 +517,6 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 //        }
 //
 //    }
-
     /**
      * Helper method that will get the game save data.
      *
@@ -527,6 +563,10 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 
     }
 
+    protected void setLoadingScreenVisible(boolean visible) {
+        loadingBarVisible = visible;
+    }
+
     protected void initSplash() {
         window = new Window(this, getGuiNode(), SCREEN_WIDTH, SCREEN_HEIGHT, getBitmapFont());
 
@@ -538,7 +578,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         info = new Label(splash, splashInfoMessage, 14, 500, 40);
         info.centerAt(0, -100);
         info.setTextColor(ColorRGBA.DarkGray);
-        
+
         loadingBar = new ProgressBar(splash, "Resources/progressbar-border.png", "Resources/progressbar.png", 256, 10);
         loadingBar.centerAt(0, -150);
 
@@ -549,24 +589,26 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         fader.addFadeListener(this);
         window.setFader(fader);
         fader.setVisible(false);
-    }
-    
-    private void updateProgress() {
-        int completed = 0;
-        
-        for (Iterator<AudioNode> it = getSoundManager().getSoundFx().values().iterator(); it.hasNext();) {
-            AudioNode an = it.next();
 
-            if (an.getUserData("preloaded") != null) {
-                completed ++;
-            }
-
-        }
-        float progress = (float)completed/(float)getSoundManager().getSoundFx().size();
-        loadingBar.setProgress(progress);
-
+        info.setVisible(loadingBarVisible);
+        loadingBar.setVisible(loadingBarVisible);
     }
 
+//    private void updateProgress() {
+//        int completed = 0;
+//        
+//        for (Iterator<AudioNode> it = getSoundManager().getSoundFx().values().iterator(); it.hasNext();) {
+//            AudioNode an = it.next();
+//
+//            if (an.getUserData("preloaded") != null) {
+//                completed ++;
+//            }
+//
+//        }
+//        float progress = (float)completed/(float)getSoundManager().getSoundFx().size();
+//        loadingBar.setProgress(progress);
+//
+//    }
     protected abstract void initPhysics();
 
     public abstract void showDebuging();
@@ -598,7 +640,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
      * @param textureManager
      */
     protected abstract void initTextures(TextureManager textureManager);
-    
+
     /**
      * Init the fonts to be used
      *
@@ -617,7 +659,8 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 
     /**
      * Returns the font manager
-     * @return 
+     *
+     * @return
      */
     public FontManager getFontManager() {
         return fontManager;
@@ -835,7 +878,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         if (messageManager != null) {
             messageManager.destroy();
         }
-        
+
         if (fontManager != null) {
             fontManager.destroy();
         }
@@ -930,7 +973,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     public void addLiveCameraListener(LiveCameraListener liveCameraListener) {
         this.liveCameraListener = liveCameraListener;
     }
-    
+
     public void addRewardAdListener(RewardAdListener rewardAdListener) {
         this.rewardAdListener = rewardAdListener;
     }
@@ -945,39 +988,39 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
             sensorListener.doSensorAction(fisting, tilting, twisting);
         }
     }
-    
+
     /**
      * This method is for internal use and should not be called.
      *
-     * @param 
+     * @param
      */
     public void fireRewardAdRewardListener(int amount, String type) {
         if (rewardAdListener != null) {
             rewardAdListener.doAdRewarded(amount, type);
         }
-    }    
-    
+    }
+
     /**
      * This method is for internal use and should not be called.
      *
-     * @param 
+     * @param
      */
     public void fireRewardAdClosedListener() {
         if (rewardAdListener != null) {
             rewardAdListener.doAdClosed();
         }
-    }    
-    
+    }
+
     /**
      * This method is for internal use and should not be called.
      *
-     * @param 
+     * @param
      */
     public void fireRewardAdLoadedListener() {
         if (rewardAdListener != null) {
             rewardAdListener.doAdLoaded();
         }
-    }    
+    }
 
     /**
      * This method is not for external use. It will be called from the mobile
@@ -1528,7 +1571,8 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 
     /**
      * Returns the tween manager which will run in the physics loop
-     * @return 
+     *
+     * @return
      */
     public TweenManager getTweenManagerPhysics() {
         return tweenManagerPhysics;
@@ -1604,7 +1648,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         return joystickInputListener;
     }
 
-    public int getFPS() {        
+    public int getFPS() {
         secondCounter += getTimer().getTimePerFrame();
         frameCounter++;
         if (secondCounter >= 1.0f) {
@@ -1612,7 +1656,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
             secondCounter = 0.0f;
             frameCounter = 0;
         }
-        
+
         return fps;
     }
 
@@ -1622,6 +1666,5 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 
     public void setRewardAdLoaded(boolean rewardAdLoaded) {
         this.rewardAdLoaded = rewardAdLoaded;
-    }   
-    
+    }
 }
