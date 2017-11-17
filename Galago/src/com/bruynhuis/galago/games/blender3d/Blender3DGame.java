@@ -220,7 +220,10 @@ public abstract class Blender3DGame implements PhysicsCollisionListener {
 
             if (checkCollisionWithType(event.getNodeA(), event.getNodeB(), TYPE_PLAYER, TYPE_STATIC)) {
                 fireCollisionPlayerWithStaticListener(lastCollidedSpatial, lastColliderSpatial);
-
+                
+            } else if (checkCollisionWithType(event.getNodeA(), event.getNodeB(), TYPE_PLAYER, TYPE_TERRAIN)) {
+                fireCollisionPlayerWithTerrainListener(lastCollidedSpatial, lastColliderSpatial);
+                
             } else if (checkCollisionWithType(event.getNodeA(), event.getNodeB(), TYPE_PLAYER, TYPE_PICKUP)) {
                 fireCollisionPlayerWithPickupListener(lastCollidedSpatial, lastColliderSpatial);
 

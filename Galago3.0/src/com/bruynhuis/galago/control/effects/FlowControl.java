@@ -65,6 +65,14 @@ public class FlowControl extends AbstractControl {
         geometry.setMaterial(material);
     }
 
+    public Vector2f getUvTranslate() {
+        return uvTranslate;
+    }
+
+    public void setUvTranslate(Vector2f uvTranslate) {
+        this.uvTranslate = uvTranslate;
+    }
+
     @Override
     protected void controlUpdate(float tpf) {
         

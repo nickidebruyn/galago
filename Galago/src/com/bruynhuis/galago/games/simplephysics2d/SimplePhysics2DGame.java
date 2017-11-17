@@ -409,7 +409,7 @@ public abstract class SimplePhysics2DGame implements PhysicsCollisionListener {
     public void optimize() {
         //Optimize
         if (baseApplication.isMobileApp()) {
-            SpatialUtils.makeUnshaded(rootNode);
+//            SpatialUtils.makeUnshaded(rootNode);
         }
         ((BatchNode) terrainNode).batch();
         ((BatchNode) vegetationNode).batch();
