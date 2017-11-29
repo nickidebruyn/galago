@@ -17,6 +17,7 @@ import com.bruynhuis.galago.ttf.util.StringContainer;
 import com.bruynhuis.galago.util.Debug;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
+import com.jme3.font.LineWrapMode;
 import com.jme3.font.Rectangle;
 import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Spatial;
@@ -107,7 +108,36 @@ public class Label extends Widget {
 
 //        bitmapText.setLocalTranslation(bitmapText.getLocalTranslation().x, bitmapText.getLocalTranslation().y, 0.001f);
     }
+    
+    
+    public void setWrapMode(LineWrapMode lineWrapMode) {
+        if (bitmapText != null) {
+            this.bitmapText.setLineWrapMode(lineWrapMode);
+            
+        } else if (stringContainer != null) {
+            
+            switch (lineWrapMode) {
+                case Clip:
+                    stringContainer.setWrapMode(StringContainer.WrapMode.Clip);
+                    break;
+                case Word:
+                    stringContainer.setWrapMode(StringContainer.WrapMode.Word);
+                    break;
+                    
+                case NoWrap:
+                    stringContainer.setWrapMode(StringContainer.WrapMode.NoWrap);
+                    break;
+                    
+                case Character:
+                    stringContainer.setWrapMode(StringContainer.WrapMode.CharClip);
+                    break;
 
+            }
+            
+            this.trueTypeContainer.updateGeometry();
+        }
+    }
+    
     /**
      *
      * @param align

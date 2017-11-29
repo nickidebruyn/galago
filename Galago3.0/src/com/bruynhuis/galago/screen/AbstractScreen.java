@@ -147,7 +147,7 @@ public abstract class AbstractScreen extends AbstractAppState implements EscapeL
         init();
 
         //Add the fade over the other gui's
-        fader = new Fader(window, ColorRGBA.Black, 10f, 10f, 1f, 1f);
+        fader = new Fader(window, ColorRGBA.Black, 5f, 5f, 1f, 1f);
         fader.setName("Fader screens");
         fader.addFadeListener(this);
         window.setFader(fader);

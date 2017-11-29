@@ -18,11 +18,17 @@ import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.GhostControl;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.export.binary.BinaryImporter;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.SceneGraphVisitor;
 import com.jme3.scene.control.AbstractControl;
+import com.jme3.system.JmeSystem;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -60,12 +66,17 @@ public abstract class Blender3DGame implements PhysicsCollisionListener {
     protected Blender3DGameListener gameListener;
     protected Spatial lastCollidedSpatial;
     protected Spatial lastColliderSpatial;
+    protected boolean testLevel = false;
 
     public Blender3DGame(Base3DApplication baseApplication, Node rootNode, String sceneFile) {
         this.baseApplication = baseApplication;
         this.rootNode = rootNode;
         this.sceneFile = sceneFile;
 
+    }
+
+    public void setTestLevel(boolean testLevel) {
+        this.testLevel = testLevel;
     }
 
     public abstract void init();
@@ -78,8 +89,35 @@ public abstract class Blender3DGame implements PhysicsCollisionListener {
     public void load() {
         baseApplication.getBulletAppState().setEnabled(false);
 
-        levelNode = (Node)((Node) baseApplication.getAssetManager().loadModel(sceneFile)).getChild(0);
-        rootNode.attachChild(levelNode);
+        if (testLevel) {
+            
+            File folder = JmeSystem.getStorageFolder();
+
+            if (folder != null && folder.exists()) {
+                File file = new File(folder.getAbsolutePath() + File.separator + sceneFile);
+                if (file.exists()) {
+                    BinaryImporter bi = BinaryImporter.getInstance();
+                    bi.setAssetManager(baseApplication.getAssetManager());
+                    try {
+                        levelNode = (Node) bi.load(file);
+                        
+                    } catch (IOException ex) {
+                        Logger.getLogger(Blender3DGame.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    rootNode.attachChild(levelNode);
+
+                }
+            }
+            
+            if (levelNode == null) {
+                levelNode = new Node("level-root");
+                rootNode.attachChild(levelNode);
+            }
+            
+        } else {
+            levelNode = (Node) baseApplication.getAssetManager().loadModel(sceneFile);
+            rootNode.attachChild(levelNode);
+        }
 
         SceneGraphVisitor sgv = new SceneGraphVisitor() {
             public void visit(Spatial spatial) {
@@ -181,6 +219,8 @@ public abstract class Blender3DGame implements PhysicsCollisionListener {
         rootNode.detachAllChildren();
 
         baseApplication.getBulletAppState().getPhysicsSpace().destroy();
+        baseApplication.getBulletAppState().getPhysicsSpace().create();
+        
         player = null;
         System.gc(); //Force memory to be released;
 
@@ -220,10 +260,10 @@ public abstract class Blender3DGame implements PhysicsCollisionListener {
 
             if (checkCollisionWithType(event.getNodeA(), event.getNodeB(), TYPE_PLAYER, TYPE_STATIC)) {
                 fireCollisionPlayerWithStaticListener(lastCollidedSpatial, lastColliderSpatial);
-                
+
             } else if (checkCollisionWithType(event.getNodeA(), event.getNodeB(), TYPE_PLAYER, TYPE_TERRAIN)) {
                 fireCollisionPlayerWithTerrainListener(lastCollidedSpatial, lastColliderSpatial);
-                
+
             } else if (checkCollisionWithType(event.getNodeA(), event.getNodeB(), TYPE_PLAYER, TYPE_PICKUP)) {
                 fireCollisionPlayerWithPickupListener(lastCollidedSpatial, lastColliderSpatial);
 
@@ -504,7 +544,7 @@ public abstract class Blender3DGame implements PhysicsCollisionListener {
         if (spatial.getUserData(SENSOR) != null) {
             GhostControl ghostControl = null;
             if (collisionShape == null) {
-                ghostControl = new GhostControl();                
+                ghostControl = new GhostControl();
             } else {
                 ghostControl = new GhostControl(collisionShape);
             }
@@ -527,7 +567,7 @@ public abstract class Blender3DGame implements PhysicsCollisionListener {
         }
 
     }
-    
+
     /**
      * Add a type pickup. If the player collides with this it gains something.
      *

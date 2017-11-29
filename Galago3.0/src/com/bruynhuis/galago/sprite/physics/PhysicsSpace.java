@@ -48,6 +48,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
 import java.util.ArrayList;
 import org.dyn4j.collision.manifold.Manifold;
+import org.dyn4j.collision.manifold.ManifoldPoint;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.dynamics.CollisionAdapter;
 import org.dyn4j.dynamics.Step;
@@ -109,7 +110,12 @@ public class PhysicsSpace {
             @Override
             public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Manifold manifold) {
                 if (body1 != null && body2 != null) {
-                    fireCollisionListenerEvent(body1, fixture1, body2, fixture2);
+                    Vector3f collisionPoint = null;
+                    if (manifold.getPoints() != null && manifold.getPoints().size() > 0) {
+                        ManifoldPoint mp = manifold.getPoints().get(0);
+                        collisionPoint = new Vector3f((float)mp.getPoint().x, (float)mp.getPoint().y, (float)mp.getDepth());
+                    }
+                    fireCollisionListenerEvent(body1, fixture1, body2, fixture2, collisionPoint);
                     return true;
                     
                 } else {
@@ -265,14 +271,14 @@ public class PhysicsSpace {
 //        }
 //    }
 
-    protected void fireCollisionListenerEvent(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2) {
+    protected void fireCollisionListenerEvent(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Vector3f collisionPoint) {
         for (int i = 0; i < collisionListeners.size(); i++) {
             PhysicsCollisionListener physicsCollisionListener = collisionListeners.get(i);
             Spatial spatialA = (Spatial)body1.getUserData();
             Spatial spatialB = (Spatial)body2.getUserData();
             
             if (spatialA != null && spatialB != null && fixture1 != null && fixture2 != null) {
-                physicsCollisionListener.collision(spatialA, (CollisionShape)fixture1.getUserData(), spatialB, (CollisionShape)fixture2.getUserData());
+                physicsCollisionListener.collision(spatialA, (CollisionShape)fixture1.getUserData(), spatialB, (CollisionShape)fixture2.getUserData(), collisionPoint);
             }            
         }
     }

@@ -131,11 +131,6 @@ public class Sprite extends Node {
         Texture texture = baseApplication.getAssetManager().loadTexture(imagePath);
 //        texture.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         texture.setWrap(Texture.WrapMode.Repeat);
-        if (baseApplication.getTextureManager().isPixelated()) {
-            texture.setMinFilter(Texture.MinFilter.NearestNoMipMaps);
-        } else {
-//            texture.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
-        }
 
 //        Material material = new Material(baseApplication.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
         Material material = new Material(baseApplication.getAssetManager(), "Resources/MatDefs/SpriteShader.j3md");

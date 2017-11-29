@@ -17,7 +17,6 @@ import com.bruynhuis.galago.sprite.Sprite;
 import com.bruynhuis.galago.sprite.physics.PhysicsCollisionListener;
 import com.bruynhuis.galago.sprite.physics.RigidBodyControl;
 import com.bruynhuis.galago.sprite.physics.shape.CollisionShape;
-import com.bruynhuis.galago.util.SpatialUtils;
 import com.jme3.math.Vector2f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
@@ -119,7 +118,7 @@ public abstract class SimplePhysics2DGame implements PhysicsCollisionListener {
     }
 
     @Override
-    public void collision(Spatial spatialA, CollisionShape collisionShapeA, Spatial spatialB, CollisionShape collisionShapeB) {
+    public void collision(Spatial spatialA, CollisionShape collisionShapeA, Spatial spatialB, CollisionShape collisionShapeB, Vector3f point) {
         if (player != null) {
 
 //            log("Collision: " + spatialA.getName() + " with " + spatialB.getName());
@@ -129,6 +128,9 @@ public abstract class SimplePhysics2DGame implements PhysicsCollisionListener {
 
             } else if (checkCollisionWithType(spatialA, spatialB, TYPE_PLAYER, TYPE_TERRAIN)) {
                 fireCollisionPlayerWithTerrainListener(lastCollidedSpatial, lastColliderSpatial);
+                
+            } else if (checkCollisionWithType(spatialA, spatialB, TYPE_PLAYER, TYPE_PLAYER)) {
+                fireCollisionPlayerWithPlayerListener(lastCollidedSpatial, lastColliderSpatial);
 
             } else if (checkCollisionWithType(spatialA, spatialB, TYPE_PLAYER, TYPE_PICKUP)) {
                 fireCollisionPlayerWithPickupListener(lastCollidedSpatial, lastColliderSpatial);
@@ -244,6 +246,12 @@ public abstract class SimplePhysics2DGame implements PhysicsCollisionListener {
     protected void fireCollisionPlayerWithTerrainListener(Spatial collided, Spatial collider) {
         if (gameListener != null) {
             gameListener.doCollisionPlayerWithTerrain(collided, collider);
+        }
+    }
+    
+    protected void fireCollisionPlayerWithPlayerListener(Spatial collided, Spatial collider) {
+        if (gameListener != null) {
+            gameListener.doCollisionPlayerWithPlayer(collided, collider);
         }
     }
 

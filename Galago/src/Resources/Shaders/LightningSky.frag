@@ -1,9 +1,9 @@
 varying vec2 texCoord;
 
 uniform sampler2D m_ColorMap;
-uniform vec4 m_StartColor;
-uniform vec4 m_EndColor;
-uniform float m_Angle;
+uniform float m_CloudDensity;
+uniform float m_Blending;
+uniform float m_CloudSpeed;
 uniform float g_Time;
 
 const int LIGHTNING_PARTS = 10;
@@ -130,14 +130,17 @@ void main(){
 	//uv.x *= g_Resolution.x / g_Resolution.y;	
 		
 	//fractal brownian motion
-	vec2 cad = uv + vec2(g_Time*0.01, 0.0);
+	vec2 cad = uv + vec2(g_Time*m_CloudSpeed, 0.0);
 	float p = fbm(cad);	
 	p = 1.0 - abs(p * 2.0 - 1.0);
 	
-	//Background
-	vec3 col = pow(vec3(p), vec3(0.7)) - (uv.y + 3.0) * 0.2;
+	//Fog Background
+	vec3 col = pow(vec3(p), vec3(0.7)) - (uv.y + 3.0) * m_CloudDensity;
 	
-	
+        //or Black background
+	//vec3 col = vec3(0);
+
+        vec4 texColor = texture2D(m_ColorMap, texCoord);
 
         //Lightning bolts
 	vec2 ls = vec2(0.0,1.01);
@@ -153,8 +156,8 @@ void main(){
 		if(h > 0.96)
 			f = min(f,lightning(ls,le,1.0,uv));	
 	}
-	col = mix( col, vec3(1.0), 1.0-smoothstep(0.0,0.2,pow(f / 2.0,0.5) - uv.y/40.0) );
+	col = mix( col, vec3(1.0), 1.0-smoothstep(0.0,0.1,pow(f / 2.0,0.5) - uv.y/30.0) );
 	
-	gl_FragColor = vec4(col,1.0);
+	gl_FragColor = mix(vec4(col,1.0), texColor, m_Blending);
 
 }

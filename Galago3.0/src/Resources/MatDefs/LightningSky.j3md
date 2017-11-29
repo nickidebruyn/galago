@@ -2,9 +2,9 @@ MaterialDef Colored LinearGradient {
 
     MaterialParameters {
         Texture2D ColorMap
-        Color StartColor (Color)
-        Color EndColor (Color)
-        Float Angle: 0.0
+        Float CloudDensity: 0.2
+        Float Blending: 0.3
+        Float CloudSpeed: 0.03
     }
 
     Technique {

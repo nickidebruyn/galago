@@ -37,6 +37,14 @@ public class RotationControl extends AbstractControl {
     public RotationControl(Vector3f v) {
         this.rotator = v;
     }    
+
+    public void setRotator(Vector3f rotator) {
+        this.rotator = rotator;
+    }
+
+    public Vector3f getRotator() {
+        return rotator;
+    }
     
 
     @Override

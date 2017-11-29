@@ -77,7 +77,7 @@ public class FontManager {
 
         } else if (isBitmapFont(fontStyle)) {
             BitmapFont bf = application.getAssetManager().loadFont(fontStyle.getFontFile());
-            bitmapFonts.put(fontStyle.getUniqueKey(), bf);
+            bitmapFonts.put(fontStyle.getFontFile(), bf);
 
         } else {
             throw new RuntimeException("Unsupported font format. Load only \".ttf\" or \".fnt\"");
@@ -94,7 +94,7 @@ public class FontManager {
     }
 
     public BitmapFont getBitmapFonts(FontStyle fontStyle) {
-        BitmapFont bf = bitmapFonts.get(fontStyle.getUniqueKey());
+        BitmapFont bf = bitmapFonts.get(fontStyle.getFontFile());
         if (bf == null && isBitmapFont(fontStyle)) {
             throw new RuntimeException("WARNING: Bitmap font was not preloaded in BaseApplication " + fontStyle.getUniqueKey());
         }

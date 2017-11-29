@@ -1,0 +1,24 @@
+MaterialDef Colored Water {
+
+    MaterialParameters {
+        Texture2D ColorMap
+        Float Speed: 1
+        Vector2 Scale: 1 1
+        Color StartColor (Color)
+        Color EndColor (Color)
+    }
+
+    Technique {
+        VertexShader GLSL100:   Resources/Shaders/Water.vert
+        FragmentShader GLSL100: Resources/Shaders/Water.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            Time
+        }
+    }
+
+    Technique {
+    }
+
+}

@@ -165,8 +165,10 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
             } else {
 //                if (this.body.getMass().getType().equals(Mass.Type.NORMAL)) {
 //                    System.out.println("multiple bodies and mass");
-                    setPhysicLocation(this.body);
-                    setPhysicRotation(this.body);
+                //TODO: We do not want to update the physics location of the spatial because it will be set by the 
+                //Collision shape location
+//                    setPhysicLocation(this.body);
+//                    setPhysicRotation(this.body);
 //                }
             }
 

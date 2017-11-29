@@ -1,0 +1,22 @@
+MaterialDef Colored Lava {
+
+    MaterialParameters {
+        Texture2D ColorMap
+        Float LavaSpeed: 0.03
+        Vector2 TextureScale: 1 1
+    }
+
+    Technique {
+        VertexShader GLSL100:   Resources/Shaders/Lava.vert
+        FragmentShader GLSL100: Resources/Shaders/Lava.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            Time
+        }
+    }
+
+    Technique {
+    }
+
+}

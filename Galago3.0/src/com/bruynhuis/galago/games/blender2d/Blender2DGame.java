@@ -223,7 +223,7 @@ public abstract class Blender2DGame implements PhysicsCollisionListener {
     }
 
     @Override
-    public void collision(Spatial spatialA, CollisionShape collisionShapeA, Spatial spatialB, CollisionShape collisionShapeB) {
+    public void collision(Spatial spatialA, CollisionShape collisionShapeA, Spatial spatialB, CollisionShape collisionShapeB, Vector3f point) {
         if (player != null) {
 
 //            log("Collision: " + spatialA.getName() + " with " + spatialB.getName());

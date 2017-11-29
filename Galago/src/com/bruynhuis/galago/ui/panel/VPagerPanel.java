@@ -30,6 +30,7 @@ public class VPagerPanel extends Panel implements TouchButtonListener {
     private float depthFactor = 0;
     private float touchedDownY = 0;
     private float touchedUpY = 0;
+    private float centerOffsetLeft = 0;
     
     /**
      * 
@@ -63,6 +64,12 @@ public class VPagerPanel extends Panel implements TouchButtonListener {
         layout();
     }
     
+    public void layout(float offsetX, float offsetY) {
+        centerOffset = -maxCenterOffset + offsetY;
+        centerOffsetLeft = offsetX;
+        layout();
+    }
+    
     /**
      * This method will handle the way we layout the 
      */
@@ -75,7 +82,7 @@ public class VPagerPanel extends Panel implements TouchButtonListener {
         
         for (int i = pages.size()-1; i >= 0; i--) {            
             Widget widget = pages.get(i);
-            widget.setPosition(0, position + centerOffset);
+            widget.setPosition(centerOffsetLeft, position + centerOffset);
             position += sectionSize;
             
             distanceFromCenter = FastMath.abs(-this.getPosition().y + widget.getWidgetNode().getWorldTranslation().y - (getHeight()*0.5f));
