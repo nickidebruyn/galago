@@ -303,11 +303,33 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
         for (int i = 0; i < tileMap.getTiles().size(); i++) {
             Tile tile = tileMap.getTiles().get(i);
             if ((tile.getxPos() == position.getX())
-                    && (tile.getyPos() == position.getY())) {
+                    && (tile.getyPos() == position.getY())
+                    && (tile.getzPos() == position.getZ())) {
                 selectedTile = tile;
             }
         }
         return selectedTile;
+    }
+    
+    /**
+     * This method will return true if a tile type is at a position
+     * @param position
+     * @param tiletype
+     * @return 
+     */
+    public boolean hasTileAtPosition(Vector3f position, String tiletype) {
+        boolean hasTile = false;
+        for (int i = 0; i < tileMap.getTiles().size(); i++) {
+            Tile tile = tileMap.getTiles().get(i);
+            if ((tile.getxPos() == position.getX())
+                    && (tile.getyPos() == position.getY())) {
+                if (tile.getUid().equals(tiletype)) {
+                    hasTile = true;
+                    break;
+                }
+            }
+        }
+        return hasTile;
     }
 
     /**

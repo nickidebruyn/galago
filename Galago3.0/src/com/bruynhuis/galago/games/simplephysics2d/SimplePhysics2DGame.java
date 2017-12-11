@@ -411,7 +411,7 @@ public abstract class SimplePhysics2DGame implements PhysicsCollisionListener {
         loading = false;
 
         //Optimize
-        optimize();
+//        optimize();
     }
 
     public void optimize() {

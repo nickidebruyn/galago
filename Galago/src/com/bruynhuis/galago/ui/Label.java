@@ -14,10 +14,12 @@ import com.bruynhuis.galago.ui.panel.Panel;
 import com.bruynhuis.galago.ttf.TrueTypeFont;
 import com.bruynhuis.galago.ttf.shapes.TrueTypeContainer;
 import com.bruynhuis.galago.ttf.util.StringContainer;
+import com.bruynhuis.galago.util.Debug;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
 import com.jme3.font.LineWrapMode;
 import com.jme3.font.Rectangle;
+import com.jme3.material.MatParam;
 import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Spatial;
 
@@ -74,7 +76,7 @@ public class Label extends Widget {
     public Label(Panel panel, String text, float width, float height, FontStyle fontStyle) {
         super(panel.getWindow(), panel, width, height, false);
         this.panel = panel;
-
+        
         bitmapFont = panel.getWindow().getApplication().getFontManager().getBitmapFonts(fontStyle);
 //        Rectangle textBox = new Rectangle(-getWidth() * 0.5f, getHeight() * 0.5f, getWidth(), getHeight() *0.5f);
 
@@ -108,6 +110,7 @@ public class Label extends Widget {
 //        bitmapText.setLocalTranslation(bitmapText.getLocalTranslation().x, bitmapText.getLocalTranslation().y, 0.001f);
     }
     
+    
     public void setWrapMode(LineWrapMode lineWrapMode) {
         if (bitmapText != null) {
             this.bitmapText.setLineWrapMode(lineWrapMode);
@@ -135,7 +138,7 @@ public class Label extends Widget {
             this.trueTypeContainer.updateGeometry();
         }
     }
-
+    
     /**
      *
      * @param align
@@ -314,6 +317,22 @@ public class Label extends Widget {
         }
 
     }
+    
+    /**
+     *
+     * @param size
+     */
+    public void setFontSize(float size) {
+
+        if (bitmapText != null) {
+            bitmapText.setSize(size * window.getScaleFactorHeight());// font size
+
+        } else if (stringContainer != null) {
+            //TODO
+            Debug.log("WARNING: FontSize not supported on Label, " + getText());
+        }
+
+    }
 
     @Override
     public void setTransparency(float alpha) {
@@ -322,9 +341,11 @@ public class Label extends Widget {
 
         } else if (stringContainer != null) {
             //TODO: NEED TO find a way to handle this
-            
-//            this.trueTypeContainer.getMaterial().setColor("Color", colorRGBA);
-//            this.trueTypeContainer.updateGeometry();
+            MatParam matParam = this.trueTypeContainer.getMaterial().getParam("Color");
+            ColorRGBA col = (ColorRGBA) matParam.getValue();
+            col.a = alpha;
+            this.trueTypeContainer.getMaterial().setColor("Color", col);
+            this.trueTypeContainer.updateGeometry();
 
         }
         

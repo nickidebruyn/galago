@@ -32,6 +32,7 @@ import com.bruynhuis.galago.ttf.shapes.TrueTypeContainer;
 import com.bruynhuis.galago.ttf.util.StringContainer;
 import com.bruynhuis.galago.util.Debug;
 import com.jme3.font.LineWrapMode;
+import com.jme3.material.MatParam;
 import java.util.ArrayList;
 
 /**
@@ -535,8 +536,11 @@ public class TouchButton extends ImageWidget implements Touchable {
 
         } else if (stringContainer != null) {
             //TODO: NEED TO find a way to handle this
-//            this.trueTypeContainer.getMaterial().setColor("Color", colorRGBA);
-//            this.trueTypeContainer.updateGeometry();
+            MatParam matParam = this.trueTypeContainer.getMaterial().getParam("Color");
+            ColorRGBA col = (ColorRGBA) matParam.getValue();
+            col.a = alpha;
+            this.trueTypeContainer.getMaterial().setColor("Color", col);
+            this.trueTypeContainer.updateGeometry();
         }
     }
 

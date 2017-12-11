@@ -7,6 +7,9 @@ package com.bruynhuis.galago.games.platform2d.editor;
 import com.bruynhuis.galago.app.Base2DApplication;
 import com.bruynhuis.galago.games.platform2d.Platform2DGame;
 import com.bruynhuis.galago.games.platform2d.Tile;
+import com.bruynhuis.galago.listener.KeyboardControlEvent;
+import com.bruynhuis.galago.listener.KeyboardControlInputListener;
+import com.bruynhuis.galago.listener.KeyboardControlListener;
 import com.bruynhuis.galago.listener.PickEvent;
 import com.bruynhuis.galago.listener.PickListener;
 import com.bruynhuis.galago.listener.TouchPickListener;
@@ -23,22 +26,28 @@ import java.util.Iterator;
  *
  * @author Nidebruyn
  */
-public abstract class Platform2DEditScreen extends AbstractScreen implements PickListener {
+public abstract class Platform2DEditScreen extends AbstractScreen implements PickListener, KeyboardControlListener {
 
     public static final String FILE_EXT = ".blv";
     private Base2DApplication mainApplication;
     private TouchPickListener touchPickListener;
+    private KeyboardControlInputListener keyboardControlInputListener;
     private FileNameDialog fileNameDialog;
     private ConfirmDialog trashConfirmDialog;
     private ConfirmDialog saveConfirmDialog;
     private Platform2DGame game;
     protected int columns = 26;
     protected int rows = 16;
-    private Toolbar toolbar;
+    protected Toolbar toolbar;
     private Menubar menubar;
-    private String fileName = "default-level" + FILE_EXT;
+    protected String fileName = "default-level" + FILE_EXT;
     private boolean floodFill = false;
     private ArrayList<Sprite> worksheetTiles = new ArrayList<Sprite>();
+    private boolean moveLeft;
+    private boolean moveRight;
+    private float moveSpeed = 5;
+    private boolean moveUp;
+    private boolean moveDown;
     
     public void setFileName(String fileName) {
         this.fileName = fileName;
@@ -138,21 +147,33 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
                 }
             }
         });
+        
+        initUI();
 
         touchPickListener = new TouchPickListener(camera, rootNode);
         touchPickListener.setPickListener(this);
+        
+        keyboardControlInputListener = new KeyboardControlInputListener();
+        keyboardControlInputListener.addKeyboardControlListener(this);
     }
+    
+    protected abstract void initUI();
 
     @Override
     protected void load() {
 
+        moveLeft = false;
+        moveRight = false;
+        moveUp = false;
+        moveDown = false;
+        
         game = initGame();        
         game.edit(fileName);
         game.load();
 
         loadWorksheet();
 //
-//        camera.setLocation(new Vector3f(-1.2f, 0.8f, 10));
+        camera.setLocation(new Vector3f(game.getStartPosition().x, game.getStartPosition().y, 10));
 //
 //        if (mainApplication.isMobileApp()) {
 //            mainApplication.setCameraDistanceFrustrum(9.4f);
@@ -178,7 +199,7 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
             }
         }
 
-        worksheet.center();
+//        worksheet.center();
 
     }
 
@@ -186,12 +207,14 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
     protected void show() {
         setPreviousScreen(null);
         touchPickListener.registerWithInput(inputManager);
+        keyboardControlInputListener.registerWithInput(inputManager);
 
     }
 
     @Override
     protected void exit() {
         touchPickListener.unregisterInput();
+        keyboardControlInputListener.unregisterInput();
         game.close();
     }
 
@@ -234,7 +257,7 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
 
     private boolean isPickPositionValid(PickEvent pickEvent) {
         return pickEvent.getContactObject() != null && !pickEvent.getContactObject().getParent().getName().startsWith("sky-")
-                && !fileNameDialog.isVisible();
+                && !fileNameDialog.isVisible() && !trashConfirmDialog.isVisible() && !saveConfirmDialog.isVisible();
     }
 
     public void picked(PickEvent pickEvent, float tpf) {
@@ -243,9 +266,9 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
 
             if (pickEvent.getContactObject().getParent() instanceof Sprite) {
 
-                Sprite sprite = (Sprite) pickEvent.getContactObject().getParent();
+                Sprite sprite = (Sprite) pickEvent.getContactObject().getParent();                
                 Tile selectedTile = game.getTileAtPosition(sprite.getWorldTranslation());
-
+                log("Tile at pos: " + sprite.getWorldTranslation());
 
                 if (floodFill) {
                     log("Flood fill: " + selectedTile);
@@ -263,7 +286,9 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
                         if (selectedTile != null && !selectedTile.getUid().startsWith("sky-")) {
                             game.removeTile(selectedTile);
                         }
-
+                    } else if (toolbar.getSelectedItem() != null && selectedTile != null && !game.hasTileAtPosition(sprite.getWorldTranslation(), toolbar.getSelectedItem())) {
+                        log("Selected Tile: " + selectedTile.getUid() + ";  Tile to add: " + toolbar.getSelectedItem());
+                        doPaintAction(sprite.getWorldTranslation().x, sprite.getWorldTranslation().y);
                     }
                 }
 
@@ -282,7 +307,7 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
                 Tile selectedTile = game.getTileAtPosition(sprite.getWorldTranslation());
 
                 if (!floodFill) {
-                    log("Picked: " + selectedTile);
+//                    log("Picked: " + selectedTile);
 
                     if (selectedTile == null) {
                         doPaintAction(sprite.getWorldTranslation().x, sprite.getWorldTranslation().y);
@@ -294,6 +319,9 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
                             game.removeTile(selectedTile);
                         }
 
+                    } else if (toolbar.getSelectedItem() != null && selectedTile != null && !game.hasTileAtPosition(sprite.getWorldTranslation(), toolbar.getSelectedItem())) {
+                        log("Selected Tile: " + selectedTile.getUid() + ";  Tile to add: " + toolbar.getSelectedItem());
+                        doPaintAction(sprite.getWorldTranslation().x, sprite.getWorldTranslation().y);
                     }
                 }
 
@@ -337,4 +365,51 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
 
 
     }
+
+    @Override
+    public void onKey(KeyboardControlEvent keyboardControlEvent, float fps) {
+        if (isActive()) {
+            
+            if (keyboardControlEvent.isLeft()) {
+                moveLeft = keyboardControlEvent.isKeyDown();
+                
+            }
+            
+            if (keyboardControlEvent.isRight()) {
+                moveRight = keyboardControlEvent.isKeyDown();
+                
+            }
+            
+            if (keyboardControlEvent.isUp()) {
+                moveUp = keyboardControlEvent.isKeyDown();
+                
+            }
+            
+            if (keyboardControlEvent.isDown()) {
+                moveDown = keyboardControlEvent.isKeyDown();
+                
+            }
+            
+        }
+    }
+
+    @Override
+    public void update(float tpf) {
+        if (isActive()) {
+            if (moveLeft) {
+                camera.setLocation(camera.getLocation().add(-tpf*moveSpeed, 0, 0));
+                
+            } else if (moveRight) {
+                camera.setLocation(camera.getLocation().add(tpf*moveSpeed, 0, 0));
+                
+            } else if (moveUp) {
+                camera.setLocation(camera.getLocation().add(0, tpf*moveSpeed, 0));
+                
+            } else if (moveDown) {
+                camera.setLocation(camera.getLocation().add(0, -tpf*moveSpeed, 0));
+            }
+        }
+    }
+    
+    
 }

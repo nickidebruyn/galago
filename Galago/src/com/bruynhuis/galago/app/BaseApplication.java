@@ -1492,6 +1492,8 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         if (statsAppState == null) {
             statsAppState = new StatsAppState(guiNode, guiFont);
             stateManager.attach(statsAppState);
+        } else {
+            stateManager.attach(statsAppState);
         }
     }
 
@@ -1503,6 +1505,8 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
             StatsAppState statsAppState = stateManager.getState(StatsAppState.class);
             stateManager.detach(statsAppState);
 
+        } else if (statsAppState != null) {
+            stateManager.detach(statsAppState);
         }
     }
 

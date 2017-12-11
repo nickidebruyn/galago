@@ -31,6 +31,7 @@ public class Menubar extends Panel {
         addPlayButton(ACTION_PLAY, buttonAdapter);
         addSpace();
         addSpace();
+        addSpace();
         addToolButton(ACTION_SAVE, "Resources/editor/icon-save.png", buttonAdapter);
         addToolButton(ACTION_OPEN, "Resources/editor/icon-open.png", buttonAdapter);
         addToolButton(ACTION_NEW, "Resources/editor/icon-new.png", buttonAdapter);

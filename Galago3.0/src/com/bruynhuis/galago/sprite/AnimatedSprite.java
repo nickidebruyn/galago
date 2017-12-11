@@ -167,6 +167,10 @@ public class AnimatedSprite extends Sprite implements Savable {
         this.loop = loop;
         this.reverse = reverse;
         this.cycle = cycle;
+        
+        if (currentAnimation != null && currentAnimation.getName().equals(animation)) {
+            return;
+        }
 
         currentAnimation = animationMap.get(animation);
         if (reverse) {

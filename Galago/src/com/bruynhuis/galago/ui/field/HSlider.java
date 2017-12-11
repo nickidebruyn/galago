@@ -42,6 +42,7 @@ public class HSlider extends Panel {
 
     public HSlider(Panel parent, float width) {
         super(parent, "Resources/hslider.png", width, 54, true);
+        float scaling = width/NATIVE_WIDTH;
         NATIVE_WIDTH = width;
         HALFSIZE = (NATIVE_WIDTH*0.5f)-PADDING;
         
@@ -49,7 +50,7 @@ public class HSlider extends Panel {
         label.setTextColor(ColorRGBA.LightGray);
         label.centerTop(0, -16);
         
-        buttonImage = new Image(this, "Resources/button-slider.png", 24, 54, true);
+        buttonImage = new Image(this, "Resources/button-slider.png", 24*scaling, 54*scaling, true);
         buttonImage.center();
 
         touchButton = new ControlButton(this, "slider-button", NATIVE_WIDTH, 54, true);

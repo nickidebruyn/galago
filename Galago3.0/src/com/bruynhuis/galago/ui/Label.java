@@ -19,6 +19,7 @@ import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
 import com.jme3.font.LineWrapMode;
 import com.jme3.font.Rectangle;
+import com.jme3.material.MatParam;
 import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Spatial;
 
@@ -340,9 +341,11 @@ public class Label extends Widget {
 
         } else if (stringContainer != null) {
             //TODO: NEED TO find a way to handle this
-            
-//            this.trueTypeContainer.getMaterial().setColor("Color", colorRGBA);
-//            this.trueTypeContainer.updateGeometry();
+            MatParam matParam = this.trueTypeContainer.getMaterial().getParam("Color");
+            ColorRGBA col = (ColorRGBA) matParam.getValue();
+            col.a = alpha;
+            this.trueTypeContainer.getMaterial().setColor("Color", col);
+            this.trueTypeContainer.updateGeometry();
 
         }
         
