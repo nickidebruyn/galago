@@ -136,7 +136,7 @@ public abstract class AbstractGameActivity extends AndroidHarness
         eglDepthBits = 16;
         eglSamples = 0;
         eglStencilBits = 0;
-        frameRate = 30;
+        frameRate = 60;       
 
         // Exit Dialog title & message
         exitDialogTitle = "Exit?";
