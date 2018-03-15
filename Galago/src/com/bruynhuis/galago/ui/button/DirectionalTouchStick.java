@@ -4,11 +4,12 @@
  */
 package com.bruynhuis.galago.ui.button;
 
-import com.bruynhuis.galago.ui.Image;
+import com.bruynhuis.galago.ui.effect.TouchEffect;
 import com.bruynhuis.galago.ui.listener.TouchStickListener;
 import com.bruynhuis.galago.ui.panel.Panel;
 import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
 import com.jme3.math.FastMath;
+import com.jme3.math.Vector3f;
 
 /**
  * A DirectionalTouchStick is a screen control widget this is has 9 directional
@@ -22,7 +23,10 @@ public class DirectionalTouchStick extends Panel {
     private float touchDownX, touchDownY = 0;
     private float spacing = 10f;
     private ControlButton bottomControl;
-    private Image topCircle;
+
+    public DirectionalTouchStick(Panel panel, String uid, float width, float height) {
+        this(panel, uid, width, height, "Resources/stick.png");
+    }
 
     /**
      *
@@ -31,18 +35,26 @@ public class DirectionalTouchStick extends Panel {
      * @param width
      * @param height
      */
-    public DirectionalTouchStick(Panel panel, String uid, float width, float height) {
+    public DirectionalTouchStick(Panel panel, String uid, float width, float height, String imageFile) {
         super(panel, null, width, height, true);
 
-        bottomControl = new ControlButton(this, uid + "_buttom", "Resources/stick.png", width, height, true);
-        bottomControl.setTransparency(0.5f);
+        bottomControl = new ControlButton(this, uid + "_buttom", imageFile, width, height, true);
+        bottomControl.addEffect(new TouchEffect(bottomControl));
+//        bottomControl.setTransparency(0.5f);
         bottomControl.addTouchButtonListener(new TouchButtonAdapter() {
+
             @Override
             public void doTouchDown(float touchX, float touchY, float tpf, String uid) {
                 if (bottomControl.isEnabled() && isVisible()) {
                     
-                    touchDownX = getWidth()/2f;
-                    touchDownY = getHeight()/2f;
+                    Vector3f screenpos = getScreenPosition();
+                                        
+                    //First we set to the center of the image
+                    touchDownX = screenpos.x;
+                    touchDownY = screenpos.y;
+                    
+//                    Debug.log("touchdownx: " + touchDownX);
+//                    Debug.log("touchx: " + touchX);
 
                     fireTouchPress(touchX, touchY);
 
@@ -50,34 +62,32 @@ public class DirectionalTouchStick extends Panel {
                     double dy = (touchDownY - touchY) / window.getScaleFactorHeight();
 
                     float distance = FastMath.sqrt((float) (dx * dx + dy * dy));
-                    float maxDistance = getWidth() * 0.5f;
-                    float minDistance = getWidth() * 0.2f;
 
-                    if (distance < maxDistance) {
-                        topCircle.centerAt(-(float) dx, -(float) dy);
-                    }
-
-//                System.out.println("posdown = " + touchDownX +", " + touchDownY);
-                System.out.println("pos = " + touchX +", " + touchY);
+                    fireTouchMove(touchX, touchY, distance);
 
                     //Check if the stick is moving left
-                    if (touchX < touchDownX && (touchDownX-touchX) > minDistance) {
+                    if (touchX < touchDownX) {
                         fireTouchMoveLeft(touchX, touchY, FastMath.sqrt((float) (dx * dx + 0)));
-                        
                     } else //Check if the stick is moving right
-                    if (touchX > touchDownX && (touchX-touchDownX) > minDistance) {
-                        fireTouchMoveRight(touchX, touchY, FastMath.sqrt((float) (dx * dx + 0)));
+                    {
+                        if (touchX > touchDownX) {
+                            fireTouchMoveRight(touchX, touchY, FastMath.sqrt((float) (dx * dx + 0)));
+                        }
                     }
 
                     //Check if the stick is moving up
-                    if (touchY > touchDownY && (touchY-touchDownY) > minDistance) {
+                    if (touchY > touchDownY) {
                         fireTouchMoveUp(touchX, touchY, FastMath.sqrt((float) (0 + dy * dy)));
 
                     } else //Check if the stick is moving down
-                    if (touchY < touchDownY && (touchDownY-touchY) > minDistance) {
-                        fireTouchMoveDown(touchX, touchY, FastMath.sqrt((float) (0 + dy * dy)));
+                    {
+                        if (touchY < touchDownY) {
+                            fireTouchMoveDown(touchX, touchY, FastMath.sqrt((float) (0 + dy * dy)));
+                        }
                     }
-
+//
+//                    touchDownX = touchX;
+//                    touchDownY = touchY;
                 }
             }
 
@@ -86,11 +96,38 @@ public class DirectionalTouchStick extends Panel {
                 touchDownX = 0;
                 touchDownY = 0;
                 fireTouchRelease(touchX, touchY);
-                topCircle.center();
             }
 
             @Override
             public void doTouchMove(float touchX, float touchY, float tpf, String name) {
+                double dx = (touchDownX - touchX) / window.getScaleFactorWidth();
+                double dy = (touchDownY - touchY) / window.getScaleFactorHeight();
+
+                float distance = FastMath.sqrt((float) (dx * dx + dy * dy));
+
+                fireTouchMove(touchX, touchY, distance);
+
+                //Check if the stick is moving left
+                if (touchX < touchDownX) {
+                    fireTouchMoveLeft(touchX, touchY, FastMath.sqrt((float) (dx * dx + 0)));
+                } else //Check if the stick is moving right
+                {
+                    if (touchX > touchDownX) {
+                        fireTouchMoveRight(touchX, touchY, FastMath.sqrt((float) (dx * dx + 0)));
+                    }
+                }
+
+                //Check if the stick is moving up
+                if (touchY > touchDownY) {
+                    fireTouchMoveUp(touchX, touchY, FastMath.sqrt((float) (0 + dy * dy)));
+
+                } else //Check if the stick is moving down
+                {
+                    if (touchY < touchDownY) {
+                        fireTouchMoveDown(touchX, touchY, FastMath.sqrt((float) (0 + dy * dy)));
+                    }
+                }
+
             }
 
             @Override
@@ -98,12 +135,9 @@ public class DirectionalTouchStick extends Panel {
                 touchDownX = 0;
                 touchDownY = 0;
                 fireTouchRelease(touchX, touchY);
-                topCircle.center();
             }
-        });
 
-        topCircle = new Image(this, "Resources/button_circle.png", width * 0.25f, height * 0.25f, true);
-        topCircle.center();
+        });
 
         panel.add(this);
     }

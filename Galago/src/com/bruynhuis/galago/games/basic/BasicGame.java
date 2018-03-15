@@ -110,6 +110,12 @@ public abstract class BasicGame {
         paused = true;
         fireGameOverListener();
     }
+    
+    public void doGameCompleted() {
+        started = false;
+        paused = true;
+        fireGameCompletedListener();
+    }
 
     public void addGameListener(BasicGameListener gameListener) {
         this.gameListener = gameListener;

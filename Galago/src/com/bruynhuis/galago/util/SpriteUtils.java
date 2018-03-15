@@ -16,6 +16,8 @@ import com.bruynhuis.galago.sprite.physics.RigidBodyControl;
 import com.bruynhuis.galago.sprite.physics.shape.BoxCollisionShape;
 import com.bruynhuis.galago.sprite.physics.shape.CircleCollisionShape;
 import com.bruynhuis.galago.sprite.physics.shape.CollisionShape;
+import com.jme3.font.BitmapFont;
+import com.jme3.font.BitmapText;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
@@ -73,7 +75,6 @@ public class SpriteUtils {
 
         }
 
-
         sprite.setMaterial(material);
 
     }
@@ -96,7 +97,6 @@ public class SpriteUtils {
             Base2DApplication base2DApplication = (Base2DApplication) SharedSystem.getInstance().getBaseApplication();
 
             RigidBodyControl rigidBodyControl = sprite.getControl(RigidBodyControl.class);
-
 
             if (rigidBodyControl == null) {
                 CollisionShape collisionShape = new BoxCollisionShape(width, height);
@@ -128,7 +128,6 @@ public class SpriteUtils {
             Base2DApplication base2DApplication = (Base2DApplication) SharedSystem.getInstance().getBaseApplication();
 
             RigidBodyControl rigidBodyControl = sprite.getControl(RigidBodyControl.class);
-
 
             if (rigidBodyControl == null) {
                 CollisionShape collisionShape = new CircleCollisionShape(radius);
@@ -334,7 +333,7 @@ public class SpriteUtils {
                 .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
 
     }
-    
+
     public static void scaleBounce(Spatial sprite, float scaleX, float scaleY, float time, float delay, TweenCallback callback) {
         Tween.to(sprite, SpatialAccessor.SCALE_XYZ, time)
                 .target(scaleX, scaleY, 1)
@@ -344,7 +343,7 @@ public class SpriteUtils {
                 .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
 
     }
-    
+
     public static void scaleDown(Spatial sprite, float scaleX, float scaleY, float time, float delay, boolean loop) {
         int repeat = 0;
         if (loop) {
@@ -357,5 +356,25 @@ public class SpriteUtils {
                 .repeatYoyo(repeat, delay)
                 .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
 
+    }
+
+    /**
+     * Add text to the scene
+     * @param parent
+     * @param font
+     * @param text
+     * @param size
+     * @param color
+     * @return 
+     */
+    public static BitmapText addText(Node parent, BitmapFont font, String text, float size, ColorRGBA color) {
+        //Add text
+        BitmapText bText = new BitmapText(font);
+        bText.setText(text);
+        bText.setSize(size);
+        bText.setColor(color);
+        bText.setLocalTranslation(0, 0, 0);
+        parent.attachChild(bText);
+        return bText;
     }
 }

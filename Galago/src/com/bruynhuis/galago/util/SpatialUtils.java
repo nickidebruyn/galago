@@ -17,7 +17,6 @@ import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
-import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
@@ -37,6 +36,7 @@ import com.jme3.scene.SceneGraphVisitor;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Dome;
+import com.jme3.scene.shape.Quad;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.texture.Texture;
@@ -348,9 +348,9 @@ public class SpatialUtils {
         /**
          * A white ambient light source.
          */
-        AmbientLight ambient = new AmbientLight();
-        ambient.setColor(ColorRGBA.LightGray);
-        parent.addLight(ambient);
+//        AmbientLight ambient = new AmbientLight();
+//        ambient.setColor(ColorRGBA.LightGray);
+//        parent.addLight(ambient);
 
         return sun;
     }
@@ -410,6 +410,26 @@ public class SpatialUtils {
 
         Sphere sphere = new Sphere(zSamples, radialSamples, radius);
         Geometry geometry = new Geometry("sphere", sphere);
+        parent.attachChild(geometry);
+        geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+
+        return geometry;
+    }
+    
+    /**
+     * Add a simple plane to the node.
+     *
+     * @param parent
+     * @param xExtend
+     * @param zExtend
+     * @return
+     */
+    public static Spatial addPlane(Node parent, float xExtend, float zExtend) {
+
+        Quad quad = new Quad(xExtend*2, zExtend*2);
+        Geometry geometry = new Geometry("quad", quad);
+        geometry.rotate(-FastMath.DEG_TO_RAD*90, 0, 0);
+        geometry.move(-xExtend, 0, zExtend);
         parent.attachChild(geometry);
         geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
 

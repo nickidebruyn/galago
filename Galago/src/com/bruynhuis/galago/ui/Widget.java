@@ -87,6 +87,10 @@ public abstract class Widget implements Savable {
     public void setName(String name) {
         widgetNode.setName(name);
     }
+    
+    public String getName() {
+        return widgetNode.getName();
+    }
 
     public Widget getParent() {
         return parent;

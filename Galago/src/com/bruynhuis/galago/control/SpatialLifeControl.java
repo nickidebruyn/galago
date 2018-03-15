@@ -22,6 +22,7 @@ public class SpatialLifeControl extends AbstractControl {
 
     public SpatialLifeControl(float lifetime) {
         timer = new Timer(lifetime);
+        timer.start();
     }
 
     @Override
