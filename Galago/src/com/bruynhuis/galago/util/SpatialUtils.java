@@ -17,7 +17,9 @@ import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
+import com.jme3.material.MatParamTexture;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
@@ -35,6 +37,7 @@ import com.jme3.scene.Node;
 import com.jme3.scene.SceneGraphVisitor;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
+import com.jme3.scene.shape.Cylinder;
 import com.jme3.scene.shape.Dome;
 import com.jme3.scene.shape.Quad;
 import com.jme3.scene.shape.Sphere;
@@ -77,8 +80,6 @@ public class SpatialUtils {
             texture = "Resources/sky/flame.jpg";
 
         }
-
-
 
         return addSkySphere(parent, texture, camera);
 
@@ -133,7 +134,6 @@ public class SpatialUtils {
         m.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Back);
 
 //        rotate(sky, -90, 0, 0);
-
         parent.attachChild(sky);
 
         return sky;
@@ -187,7 +187,6 @@ public class SpatialUtils {
         water.setMaterial(waterProcessor.getMaterial());
 //        water.setShadowMode(RenderQueue.ShadowMode.Receive);
         parent.attachChild(water);
-
 
         return waterProcessor;
 
@@ -335,6 +334,35 @@ public class SpatialUtils {
     }
 
     /**
+     * Helper method which converts all materials to pixelated
+     *
+     * @param node
+     */
+    public static void makePixelated(Node node) {
+
+        SceneGraphVisitor sgv = new SceneGraphVisitor() {
+            public void visit(Spatial spatial) {
+
+                if (spatial instanceof Geometry) {
+
+                    Geometry geom = (Geometry) spatial;
+                    if (geom.getMaterial().getTextureParam("ColorMap") != null) {
+//                        System.out.println("Found colormap");
+                        MatParamTexture mpt = geom.getMaterial().getTextureParam("ColorMap");
+                        mpt.getTextureValue().setMinFilter(Texture.MinFilter.NearestNoMipMaps);
+
+                    }
+
+                }
+
+            }
+        };
+
+        node.depthFirstTraversal(sgv);
+
+    }
+
+    /**
      * Adds sunlight to the scene.
      *
      * @param parent
@@ -342,15 +370,16 @@ public class SpatialUtils {
      */
     public static DirectionalLight addSunLight(Node parent, ColorRGBA colorRGBA) {
         DirectionalLight sun = new DirectionalLight();
-        sun.setDirection((new Vector3f(-0.5f, -0.85f, -0.5f)).normalizeLocal());
+        sun.setDirection((new Vector3f(0.25f, -0.85f, -0.5f)).normalizeLocal());
         sun.setColor(colorRGBA);
         parent.addLight(sun);
         /**
          * A white ambient light source.
          */
-//        AmbientLight ambient = new AmbientLight();
-//        ambient.setColor(ColorRGBA.LightGray);
-//        parent.addLight(ambient);
+        AmbientLight ambient = new AmbientLight();
+        ambient.setColor(ColorRGBA.White);
+        ambient.setFrustumCheckNeeded(false);
+        parent.addLight(ambient);
 
         return sun;
     }
@@ -417,6 +446,27 @@ public class SpatialUtils {
     }
     
     /**
+     * Add a cyclinder to the scene.
+     *
+     * @param parent
+     * @param axisSamples
+     * @param radialSamples
+     * @param radius
+     * @param height
+     * @param closed
+     * @return
+     */
+    public static Spatial addCylinder(Node parent, int axisSamples, int radialSamples, float radius, float height, boolean closed) {
+
+        Cylinder cylinder = new Cylinder(axisSamples, radialSamples, radius, height, closed);
+        Geometry geometry = new Geometry("cylinder", cylinder);
+        parent.attachChild(geometry);
+        geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+
+        return geometry;
+    }
+
+    /**
      * Add a simple plane to the node.
      *
      * @param parent
@@ -426,9 +476,9 @@ public class SpatialUtils {
      */
     public static Spatial addPlane(Node parent, float xExtend, float zExtend) {
 
-        Quad quad = new Quad(xExtend*2, zExtend*2);
+        Quad quad = new Quad(xExtend * 2, zExtend * 2);
         Geometry geometry = new Geometry("quad", quad);
-        geometry.rotate(-FastMath.DEG_TO_RAD*90, 0, 0);
+        geometry.rotate(-FastMath.DEG_TO_RAD * 90, 0, 0);
         geometry.move(-xExtend, 0, zExtend);
         parent.attachChild(geometry);
         geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
@@ -473,7 +523,6 @@ public class SpatialUtils {
 
         }
 
-
         spatial.setMaterial(material);
 
     }
@@ -502,7 +551,6 @@ public class SpatialUtils {
 
         }
 
-
         spatial.setMaterial(material);
 
         return material;
@@ -527,7 +575,6 @@ public class SpatialUtils {
 
             RigidBodyControl rigidBodyControl = spatial.getControl(RigidBodyControl.class);
 
-
             if (rigidBodyControl == null) {
                 CollisionShape collisionShape = null;
                 if (spatial instanceof Geometry) {
@@ -542,16 +589,14 @@ public class SpatialUtils {
                     }
 
                     //TODO: Need to check for other mesh types
-
                 }
-                
+
                 if (collisionShape != null) {
                     rigidBodyControl = new RigidBodyControl(collisionShape, mass);
                 } else {
                     rigidBodyControl = new RigidBodyControl(mass);
                 }
 
-                
                 spatial.addControl(rigidBodyControl);
                 base3DApplication.getBulletAppState().getPhysicsSpace().add(spatial);
             }

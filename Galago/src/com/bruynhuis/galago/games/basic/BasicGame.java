@@ -79,9 +79,9 @@ public abstract class BasicGame {
      * @param sunDirection
      */
     protected void initLight(ColorRGBA ambientColor, Vector3f sunDirection) {
-        ambientLight = new AmbientLight();
-        ambientLight.setColor(ambientColor);
-        levelNode.addLight(ambientLight);
+//        ambientLight = new AmbientLight();
+//        ambientLight.setColor(ambientColor);
+//        levelNode.addLight(ambientLight);
 
         sunLight = new DirectionalLight();
         sunLight.setColor(ColorRGBA.White);

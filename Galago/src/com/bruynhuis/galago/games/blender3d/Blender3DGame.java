@@ -90,7 +90,7 @@ public abstract class Blender3DGame implements PhysicsCollisionListener {
         baseApplication.getBulletAppState().setEnabled(false);
 
         if (testLevel) {
-            
+
             File folder = JmeSystem.getStorageFolder();
 
             if (folder != null && folder.exists()) {
@@ -100,7 +100,7 @@ public abstract class Blender3DGame implements PhysicsCollisionListener {
                     bi.setAssetManager(baseApplication.getAssetManager());
                     try {
                         levelNode = (Node) bi.load(file);
-                        
+
                     } catch (IOException ex) {
                         Logger.getLogger(Blender3DGame.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -108,14 +108,20 @@ public abstract class Blender3DGame implements PhysicsCollisionListener {
 
                 }
             }
-            
+
             if (levelNode == null) {
                 levelNode = new Node("level-root");
                 rootNode.attachChild(levelNode);
             }
-            
+
         } else {
             levelNode = (Node) baseApplication.getAssetManager().loadModel(sceneFile);
+            //This part we do to remove the top node if we have lights in the scene
+            log("Node name: " + levelNode.getName());
+            if (levelNode.getQuantity() == 1) {
+                log("Only one parent found");
+                levelNode = (Node) levelNode.getChild(0);
+            }
             rootNode.attachChild(levelNode);
         }
 
@@ -166,7 +172,6 @@ public abstract class Blender3DGame implements PhysicsCollisionListener {
                     endPosition = spatial.getWorldTranslation().clone();
                     log("\t World position: " + endPosition);
                     add3DRigidbody(spatial);
-
 
                 } else if (spatial.getUserData(TYPE) != null
                         && spatial.getUserData(TYPE).equals(TYPE_PICKUP)) {
@@ -220,7 +225,7 @@ public abstract class Blender3DGame implements PhysicsCollisionListener {
 
         baseApplication.getBulletAppState().getPhysicsSpace().destroy();
         baseApplication.getBulletAppState().getPhysicsSpace().create();
-        
+
         player = null;
         System.gc(); //Force memory to be released;
 
@@ -257,7 +262,6 @@ public abstract class Blender3DGame implements PhysicsCollisionListener {
         if (player != null && event.getNodeA() != null && event.getNodeB() != null) {
 
 //            log("Collision: " + event.getNodeA().getName() + " with " + event.getNodeB().getName());
-
             if (checkCollisionWithType(event.getNodeA(), event.getNodeB(), TYPE_PLAYER, TYPE_STATIC)) {
                 fireCollisionPlayerWithStaticListener(lastCollidedSpatial, lastColliderSpatial);
 
@@ -290,7 +294,6 @@ public abstract class Blender3DGame implements PhysicsCollisionListener {
 
             }
 
-
         }
     }
 
@@ -307,12 +310,10 @@ public abstract class Blender3DGame implements PhysicsCollisionListener {
                 && ((sA.getName().startsWith(collider) && sB.getName().startsWith(type))
                 || (sA.getName().startsWith(type) && sB.getName().startsWith(collider)));
 
-
         if (collision && sB.getName().startsWith(type)) {
             lastCollidedSpatial = sB;
             lastColliderSpatial = sA;
             return true;
-
 
         } else if (collision && sA.getName().startsWith(type)) {
             lastCollidedSpatial = sA;

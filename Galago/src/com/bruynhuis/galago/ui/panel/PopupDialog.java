@@ -66,7 +66,7 @@ public abstract class PopupDialog extends Panel {
      */
     public void setTitleSize(float size) {
         //TODO: NEED TO FIX
-//        title.setFontSize(size);
+        title.setFontSize(size);
     }
 
     /**
