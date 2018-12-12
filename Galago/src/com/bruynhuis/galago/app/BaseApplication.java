@@ -229,6 +229,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         settings.setUseJoysticks(true);
         settings.setSettingsDialogImage(null);
         settings.setGammaCorrection(true);
+        settings.setSettingsDialogImage("Resources/jme-logo.png");
 
 //        settings.setSettingsDialogImage(splashImage);
         setSettings(settings);

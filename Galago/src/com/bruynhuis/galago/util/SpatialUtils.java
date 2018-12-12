@@ -370,15 +370,16 @@ public class SpatialUtils {
      */
     public static DirectionalLight addSunLight(Node parent, ColorRGBA colorRGBA) {
         DirectionalLight sun = new DirectionalLight();
-        sun.setDirection((new Vector3f(0.25f, -0.85f, -0.5f)).normalizeLocal());
+        sun.setDirection((new Vector3f(-0.5f, -0.85f, -0.5f)).normalizeLocal());
         sun.setColor(colorRGBA);
+        sun.setFrustumCheckNeeded(true);
         parent.addLight(sun);
         /**
          * A white ambient light source.
          */
         AmbientLight ambient = new AmbientLight();
-        ambient.setColor(ColorRGBA.White);
-        ambient.setFrustumCheckNeeded(false);
+        ambient.setColor(ColorRGBA.LightGray);
+        ambient.setFrustumCheckNeeded(true);
         parent.addLight(ambient);
 
         return sun;
