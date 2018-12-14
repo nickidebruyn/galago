@@ -49,6 +49,7 @@ public abstract class PhysicsGame implements PhysicsCollisionListener, PhysicsTi
     protected AmbientLight ambientLight;
     protected DirectionalLight sunLight;
     protected boolean started = false;
+    protected boolean gameover = false;
     protected boolean paused = false;
     protected boolean loading = false;
     protected PhysicsPlayer player;
@@ -67,6 +68,7 @@ public abstract class PhysicsGame implements PhysicsCollisionListener, PhysicsTi
     public void close() {
         loading = false;
         started = false;
+        gameover = false;
         paused = false;
 
         if (sunLight != null) {
@@ -131,6 +133,7 @@ public abstract class PhysicsGame implements PhysicsCollisionListener, PhysicsTi
         this.player = physicsPlayer;
         loading = false;
         started = true;
+        gameover = false;
         paused = false;
         this.player.start();
         baseApplication.getBulletAppState().setEnabled(true);
@@ -142,7 +145,7 @@ public abstract class PhysicsGame implements PhysicsCollisionListener, PhysicsTi
         
         if (player != null && event.getNodeA() != null && event.getNodeB() != null) {
             
-            log("Collision: " + event.getNodeA().getName() + " with " + event.getNodeB().getName());
+//            log("Collision: " + event.getNodeA().getName() + " with " + event.getNodeB().getName());
 
             if (checkCollisionWithType(event.getNodeA(), event.getNodeB(), TYPE_PLAYER, TYPE_STATIC)) {
                 fireCollisionPlayerWithStaticListener(lastCollidedSpatial, lastColliderSpatial);
@@ -220,7 +223,12 @@ public abstract class PhysicsGame implements PhysicsCollisionListener, PhysicsTi
 
     public void doGameOver() {
         started = false;
+        this.gameover = true;
         fireGameOverListener();
+    }
+
+    public boolean isGameover() {
+        return gameover;
     }
 
     public void addGameListener(PhysicsGameListener gameListener) {
