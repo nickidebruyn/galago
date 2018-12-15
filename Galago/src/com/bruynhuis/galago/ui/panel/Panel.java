@@ -69,6 +69,19 @@ public class Panel extends ImageWidget {
         super(window, parent, pictureFile, width, height, false);
 
     }
+    
+    /**
+     * 
+     * @param window
+     * @param parent
+     * @param pictureFile
+     * @param width
+     * @param height 
+     */
+    public Panel(Window window, Widget parent, String pictureFile, float width, float height, boolean lockScale) {
+        super(window, parent, pictureFile, width, height, lockScale);
+
+    }
 
     /**
      * 

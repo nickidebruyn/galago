@@ -42,6 +42,7 @@ public class TextureManager {
         Texture texture = application.getAssetManager().loadTexture(texturePath);
         if (isPixelated()) {
             texture.setMinFilter(Texture.MinFilter.NearestNoMipMaps);
+            texture.setMagFilter(Texture.MagFilter.Nearest);
         } else {
             texture.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         }

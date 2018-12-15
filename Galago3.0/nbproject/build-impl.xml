@@ -201,12 +201,12 @@ is divided into following sections:
         <property name="jar.index.metainf" value="${jar.index}"/>
         <property name="copylibs.rebase" value="true"/>
         <available file="${meta.inf.dir}/persistence.xml" property="has.persistence.xml"/>
-        <condition property="junit.available">
+<!--        <condition property="junit.available">
             <or>
                 <available classname="org.junit.Test" classpath="${run.test.classpath}"/>
                 <available classname="junit.framework.Test" classpath="${run.test.classpath}"/>
             </or>
-        </condition>
+        </condition>-->
         <condition property="testng.available">
             <available classname="org.testng.annotations.Test" classpath="${run.test.classpath}"/>
         </condition>

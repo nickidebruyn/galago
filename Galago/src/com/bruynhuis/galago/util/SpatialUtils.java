@@ -446,6 +446,15 @@ public class SpatialUtils {
         return geometry;
     }
     
+    public static Spatial addDebugPoint(Node parent, float size, ColorRGBA color, Vector3f position) {
+        Spatial marker = addBox(parent, size*0.05f, size, size*0.05f);
+//        Spatial marker = addSphere(parent, 10, 10, size);
+        addColor(marker, color, true);
+        marker.setLocalTranslation(position.x, position.y, position.z);
+        marker.move(0, size, 0);
+        return marker;
+    }
+    
     /**
      * Add a cyclinder to the scene.
      *

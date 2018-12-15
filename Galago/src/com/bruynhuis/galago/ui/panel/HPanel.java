@@ -44,6 +44,10 @@ public class HPanel extends Panel {
         super(parent.getWindow(), parent, null, width, height);
     }
     
+    public HPanel(Widget parent, float width, float height, boolean lockScale) {
+        super(parent.getWindow(), parent, null, width, height, lockScale);
+    }
+    
     @Override
     protected boolean isBatched() {
         return true;
