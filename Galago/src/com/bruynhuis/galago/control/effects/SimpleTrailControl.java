@@ -11,7 +11,6 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue;
-import com.jme3.scene.BatchNode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.LineBatchNode;
 import com.jme3.scene.Node;
@@ -28,6 +27,7 @@ public class SimpleTrailControl extends AbstractControl {
     private Spatial target;
     private float segmentLength;
     private float lifeSpan;
+    private float lineWidth = 6f;
     private LineBatchNode lineBatchNode;
     private Vector3f lastSpawnPos;
     private Material material;
@@ -55,6 +55,7 @@ public class SimpleTrailControl extends AbstractControl {
                 //Initialize the line for the first time
                 if (lineBatchNode == null) {
                     lineBatchNode = new LineBatchNode("linetrail");
+                    lineBatchNode.setLineWidth(lineWidth);
                     ((Node) spatial).attachChild(lineBatchNode);
 
                 }
@@ -87,10 +88,12 @@ public class SimpleTrailControl extends AbstractControl {
     }
     
     public void setLineWidth(float width) {
-        
+        this.lineWidth = width;
         if (material != null) {
             material.getAdditionalRenderState().setLineWidth(width);
         }
         
     }
+    
+    
 }

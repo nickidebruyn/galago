@@ -2,6 +2,7 @@ package com.example.spaceshooter;
 
 import com.bruynhuis.galago.app.Base2DApplication;
 import com.bruynhuis.galago.resource.EffectManager;
+import com.bruynhuis.galago.resource.FontManager;
 import com.bruynhuis.galago.resource.ModelManager;
 import com.bruynhuis.galago.resource.ScreenManager;
 import com.bruynhuis.galago.resource.SoundManager;
@@ -121,6 +122,11 @@ public class MainApplication extends Base2DApplication {
 
     public void setLevelSpeed(float levelSpeed) {
         this.levelSpeed = levelSpeed;
+    }
+
+    @Override
+    protected void initFonts(FontManager fontManager) {
+        
     }
     
     

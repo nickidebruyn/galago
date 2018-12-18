@@ -8,6 +8,7 @@ import aurelienribon.tweenengine.Tween;
 import com.bruynhuis.galago.control.tween.RigidbodyAccessor;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.math.Vector3f;
 
 /**
  * If you wish to make a full 3D game then this call must be extended.
@@ -19,6 +20,7 @@ import com.jme3.bullet.control.RigidBodyControl;
 public abstract class Base3DApplication extends BaseApplication {
     
     protected BulletAppState bulletAppState;
+    protected float frustumSize = 10;
 
     public Base3DApplication(String title, float width, float height, String gameSaveFileName, String gameFont, String splashImage, boolean resizable) {
         super(title, width, height, gameSaveFileName, gameFont, splashImage, resizable);
@@ -63,4 +65,11 @@ public abstract class Base3DApplication extends BaseApplication {
         }
     }
 
+    public void setOrthographicProjection(float frustumSize) {
+        this.frustumSize = frustumSize;
+        cam.setParallelProjection(true);
+        float aspect = (float) cam.getWidth() / cam.getHeight();
+        cam.setFrustum(-500, 500, -aspect * frustumSize, aspect * frustumSize, frustumSize, -frustumSize);
+        cam.setLocation(new Vector3f(0, 0, 0));
+    }
 }

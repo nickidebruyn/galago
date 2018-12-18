@@ -14,6 +14,7 @@ import com.bruynhuis.galago.sprite.Sprite;
 import com.bruynhuis.galago.sprite.physics.RigidBodyControl;
 import com.bruynhuis.galago.sprite.physics.shape.BoxCollisionShape;
 import com.bruynhuis.galago.ui.Label;
+import com.bruynhuis.galago.ui.TextAlign;
 import com.bruynhuis.galago.ui.button.TouchStick;
 import com.bruynhuis.galago.ui.listener.TouchStickAdapter;
 import com.bruynhuis.galago.ui.tween.WidgetAccessor;
@@ -24,7 +25,6 @@ import com.example.spaceshooter.enemies.EnemySpawnControl;
 import com.example.spaceshooter.player.PlayerCollisionControl;
 import com.example.spaceshooter.player.PlayerMovementControl;
 import com.example.spaceshooter.player.PlayerShootControl;
-import com.jme3.font.BitmapFont;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.material.Material;
@@ -62,15 +62,15 @@ public class PlayScreen extends AbstractScreen implements MessageListener {
         mainApplication = (MainApplication)baseApplication;
         
         livesLabel = new Label(hudPanel, "Lives: 3", 24, 180, 40);
-        livesLabel.setAlignment(BitmapFont.Align.Left);
+        livesLabel.setAlignment(TextAlign.LEFT);
         livesLabel.leftTop(5, 5);
         
         killsLabel = new Label(hudPanel, "Kills: 0", 24, 180, 40);
-        killsLabel.setAlignment(BitmapFont.Align.Right);
+        killsLabel.setAlignment(TextAlign.RIGHT);
         killsLabel.rightTop(5, 5);
         
         readyLabel = new Label(hudPanel, "Get Ready", 44, 350, 60);
-        readyLabel.setAlignment(BitmapFont.Align.Center);
+        readyLabel.setAlignment(TextAlign.CENTER);
         readyLabel.centerAt(0, 0);
         
         //Initialize the         

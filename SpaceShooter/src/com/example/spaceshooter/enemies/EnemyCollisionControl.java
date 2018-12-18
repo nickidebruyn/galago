@@ -9,6 +9,7 @@ import com.bruynhuis.galago.sprite.physics.PhysicsCollisionListener;
 import com.bruynhuis.galago.sprite.physics.RigidBodyControl;
 import com.bruynhuis.galago.sprite.physics.shape.CollisionShape;
 import com.example.spaceshooter.MainApplication;
+import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Spatial;
@@ -58,7 +59,7 @@ public class EnemyCollisionControl extends AbstractControl implements PhysicsCol
     protected void controlRender(RenderManager rm, ViewPort vp) {
     }
 
-    public void collision(Spatial spatialA, CollisionShape collisionShapeA, Spatial spatialB, CollisionShape collisionShapeB) {
+    public void collision(Spatial spatialA, CollisionShape collisionShapeA, Spatial spatialB, CollisionShape collisionShapeB, Vector3f collisionPoint) {
         if ((spatialA.getName().startsWith("enemy") && spatialB.getName().startsWith("player")) ||
                 (spatialA.getName().startsWith("player") && spatialB.getName().startsWith("enemy"))) {
             //Fire the game over event

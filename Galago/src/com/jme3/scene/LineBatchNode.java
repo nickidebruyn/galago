@@ -10,6 +10,8 @@ package com.jme3.scene;
  * @author nicki
  */
 public class LineBatchNode extends BatchNode {
+    
+    private float lineWidth = 5f;
 
     public LineBatchNode() {
     }
@@ -24,7 +26,7 @@ public class LineBatchNode extends BatchNode {
 
         for (int i = 0; i < batches.size(); i++) {
             BatchNode.Batch batch = batches.get(i);
-            batch.geometry.getMesh().setLineWidth(16);
+            batch.geometry.getMesh().setLineWidth(lineWidth);
 //            log("Batches = " + batch.geometry.getMesh());
 
         }
@@ -38,4 +40,10 @@ public class LineBatchNode extends BatchNode {
     protected void log(String text) {
         System.out.println(text);
     }
+
+    public void setLineWidth(float lineWidth) {
+        this.lineWidth = lineWidth;
+    }
+    
+    
 }
