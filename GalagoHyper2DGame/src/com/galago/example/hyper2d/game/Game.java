@@ -12,12 +12,13 @@ import com.bruynhuis.galago.games.simplephysics2d.SimplePhysics2DPlayer;
 import com.bruynhuis.galago.sprite.Sprite;
 import com.bruynhuis.galago.sprite.physics.RigidBodyControl;
 import com.bruynhuis.galago.sprite.physics.shape.CircleCollisionShape;
-import com.bruynhuis.galago.util.ColorUtils;
+import com.bruynhuis.galago.sprite.physics.shape.CollisionShape;
 import com.bruynhuis.galago.util.SpatialUtils;
 import com.bruynhuis.galago.util.Timer;
+import com.jme3.font.BitmapFont;
+import com.jme3.font.BitmapText;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
-import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue;
@@ -29,37 +30,39 @@ import com.jme3.scene.control.AbstractControl;
  * @author nicki
  */
 public class Game extends SimplePhysics2DGame {
-    
+
+    public static int MAX_HEALTH = 100;
     private float BACKGROUND_SCALE = 0.025f;
     private Timer waveTimer = new Timer(200);
+    private BitmapFont bitmapFont;
 
     public Game(Base2DApplication baseApplication, Node rootNode) {
         super(baseApplication, rootNode);
     }
 
     @Override
-    public void init() {        
-        
-        loadStars("Textures/stars-close.png", 10, 0.1f);
-        loadStars("Textures/stars-middle.png", 11, 0.07f);
-        loadStars("Textures/stars-far.png", 12, 0.05f);
+    public void init() {
+        bitmapFont = baseApplication.getAssetManager().loadFont("Interface/Fonts/Roboto-Bold.fnt");
 
-        loadBackground("Textures/background.png", 15);
-        
-        
+        loadStars("Textures/stars-close.png", -10, 0.1f);
+        loadStars("Textures/stars-middle.png", -11, 0.07f);
+        loadStars("Textures/stars-far.png", -12, 0.05f);
+
+        loadBackground("Textures/background.png", -15);
+
         levelNode.addControl(new AbstractControl() {
             @Override
             protected void controlUpdate(float tpf) {
-                
+
                 if (isStarted() && !isPaused() && !isGameOver()) {
-                    
+
                     waveTimer.update(tpf);
-                    
+
                     if (waveTimer.finished()) {
-                        loadRock("Textures/rock1.png", FastMath.nextRandomInt(2, 4), new Vector3f(FastMath.nextRandomInt(-3, 3), 12, 0), ColorUtils.rgb(68, 189, 50), 1);                        
+                        loadRock(FastMath.nextRandomInt(-4, 4), FastMath.nextRandomInt(1, 100));
                         waveTimer.reset();
                     }
-                    
+
                 }
 
             }
@@ -69,62 +72,84 @@ public class Game extends SimplePhysics2DGame {
 
             }
         });
-        
-        
+
     }
 
     private void loadStars(String texture, float zPos, float flowSpeed) {
         Sprite starsSprite = new Sprite("stars", 480 * BACKGROUND_SCALE, 800 * BACKGROUND_SCALE);
         starsSprite.setImage(texture);
         starsSprite.setQueueBucket(RenderQueue.Bucket.Transparent);
-        
+
         FlowControl groundFlowControl = new FlowControl(texture, 0f, flowSpeed);
         starsSprite.addControl(groundFlowControl);
         starsSprite.flipCoords(true);
         starsSprite.flipHorizontal(false);
         SpatialUtils.move(starsSprite, 0, 0.1f, zPos);
-        
+
         addVegetation(starsSprite);
-        groundFlowControl.getMaterial().setFloat("AlphaDiscardThreshold", 0.0f);        
+        groundFlowControl.getMaterial().setFloat("AlphaDiscardThreshold", 0.0f);
 
     }
-    
+
     private void loadBackground(String texture, float zPos) {
         Sprite starsSprite = new Sprite("background", 480 * BACKGROUND_SCALE, 800 * BACKGROUND_SCALE);
         starsSprite.setImage(texture);
-        starsSprite.setQueueBucket(RenderQueue.Bucket.Transparent);       
-        SpatialUtils.move(starsSprite, 0, 0.1f, zPos);                
+//        starsSprite.setQueueBucket(RenderQueue.Bucket.Transparent);
+        SpatialUtils.move(starsSprite, 0, 0.1f, zPos);
         addVegetation(starsSprite);
 
     }
-    
-    private void loadRock(String texture, float size, Vector3f position, ColorRGBA color, int health) {
-        
+
+    private void loadRock(float xPos, int health) {
+
+        float size = 2f;
         Sprite rock = new Sprite("rock", size, size);
-        rock.setImage(texture);
-        rock.setQueueBucket(RenderQueue.Bucket.Transparent);       
-        rock.getMaterial().setFloat("AlphaDiscardThreshold", 0.55f);
-        rock.getMaterial().setColor("Color", color);
-        rock.setLocalTranslation(position.x, position.y, position.z);
-        
-        RigidBodyControl rbc = new RigidBodyControl(new CircleCollisionShape(size*0.5f), 1);
+        rock.setImage(getRandomRockTexture());
+//        rock.setQueueBucket(RenderQueue.Bucket.Transparent);
+        rock.getMaterial().setFloat("AlphaDiscardThreshold", 0.55f);        
+        rock.setLocalTranslation(xPos, 14, 0);
+
+        CollisionShape collisionShape = new CircleCollisionShape(size * 0.5f);
+        RigidBodyControl rbc = new RigidBodyControl(collisionShape, 1);
         rbc.setGravityScale(0);
         rock.addControl(rbc);
-        
+
         addObstacle(rock);
+
+        rbc.setLinearVelocity(0.1f, -(6f-(5f*((float)health/(float)MAX_HEALTH))));
+        rbc.setAngularVelocity(FastMath.nextRandomFloat() * FastMath.nextRandomInt(-2, 2));
+        rbc.setPhysicLocation(xPos, 14);
         
-        rbc.setLinearVelocity(0.1f, -6f);
-        rbc.setAngularVelocity(FastMath.nextRandomFloat()*FastMath.nextRandomInt(-1, 1));
-        rbc.setPhysicLocation(position.x, position.y);
-        
+        //Add text
+        BitmapText text = new BitmapText(bitmapFont);
+        text.setText(health + "");
+        text.setSize(0.4f);
+        text.setColor(ColorRGBA.White);
+        text.setLocalTranslation(-0.2f, 0.3f, 0.2f);
+        text.setQueueBucket(RenderQueue.Bucket.Transparent);
+        levelNode.attachChild(text);
+
+        rock.addControl(new ObstacleControl(this, text, health));
+
+    }
+
+    protected String getRandomRockTexture() {
+        int index = FastMath.nextRandomInt(0, 1);
+        String img = null;
+        if (index == 0) {
+            img = "Textures/rock1.png";
+        } else {
+            img = "Textures/rock2.png";
+
+        }
+        return img;
     }
 
     @Override
     public void start(SimplePhysics2DPlayer physicsPlayer) {
         super.start(physicsPlayer); //To change body of generated methods, choose Tools | Templates.
-        
+
         waveTimer.start();
     }
-    
-    
+
 }

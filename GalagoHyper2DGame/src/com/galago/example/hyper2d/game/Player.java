@@ -41,6 +41,7 @@ public class Player extends SimplePhysics2DPlayer implements PhysicsTickListener
         rbc = new RigidBodyControl(new PyramidCollisionShape(1, 1), 1);
         playerNode.addControl(rbc);
         game.getBaseApplication().getDyn4jAppState().getPhysicsSpace().add(playerNode);
+        game.getBaseApplication().getDyn4jAppState().getPhysicsSpace().addPhysicsTickListener(this);
 
         playerShootControl = new PlayerShootControl(this);
         playerNode.addControl(playerShootControl);
@@ -54,6 +55,7 @@ public class Player extends SimplePhysics2DPlayer implements PhysicsTickListener
     @Override
     public void doDie() {
         //TODO
+        game.getBaseApplication().getDyn4jAppState().getPhysicsSpace().removePhysicsTickListener(this);
     }
 
     @Override
@@ -71,11 +73,15 @@ public class Player extends SimplePhysics2DPlayer implements PhysicsTickListener
 
     @Override
     public void prePhysicsTick(PhysicsSpace space, float tpf) {
+        
 
     }
 
     @Override
     public void physicsTick(PhysicsSpace space, float tpf) {
+//        Debug.log("Update: " + tpf);
+        rbc.setPhysicRotation(0);
+        rbc.setAngularVelocity(0);
 
     }
 

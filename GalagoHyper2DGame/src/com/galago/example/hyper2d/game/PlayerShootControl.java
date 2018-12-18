@@ -64,6 +64,7 @@ public class PlayerShootControl extends AbstractControl {
         player.getGame().addBullet(rbc);
         
         sprite.addControl(new RigidBodyLifeControl(100));
+        sprite.addControl(new BulletControl((Game)player.getGame()));
         
         rbc.setLinearVelocity(0f, 10f);
     }

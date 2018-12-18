@@ -11,7 +11,9 @@ import com.bruynhuis.galago.ui.Label;
 import com.bruynhuis.galago.ui.button.ControlButton;
 import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
 import com.galago.example.hyper2d.MainApplication;
+import com.galago.example.hyper2d.game.BulletControl;
 import com.galago.example.hyper2d.game.Game;
+import com.galago.example.hyper2d.game.ObstacleControl;
 import com.galago.example.hyper2d.game.Player;
 import com.galago.example.hyper2d.ui.PlayButton;
 import com.galago.example.hyper2d.ui.RetryButton;
@@ -122,7 +124,7 @@ public class PlayScreen extends AbstractScreen implements SimplePhysics2DGameLis
 
         game.addGameListener(this);
 
-        camera.setLocation(new Vector3f(0, 0, 0));
+        camera.setLocation(new Vector3f(0, 0, 10));
         camera.lookAt(new Vector3f(0, 0, 0), Vector3f.UNIT_Y);
 
     }
@@ -237,21 +239,31 @@ public class PlayScreen extends AbstractScreen implements SimplePhysics2DGameLis
 
     @Override
     public void doCollisionPlayerWithPickup(Spatial collided, Spatial collider) {
-        
+
     }
 
     @Override
     public void doCollisionPlayerWithEnemy(Spatial collided, Spatial collider) {
-        
+
     }
 
     @Override
     public void doCollisionPlayerWithBullet(Spatial collided, Spatial collider) {
-        
+
     }
 
     @Override
     public void doCollisionObstacleWithBullet(Spatial collided, Spatial collider) {
+//        log("collided = " + collided.getName());
+//        log("collider = " + collider.getName());
+
+        if (collider.getControl(ObstacleControl.class) != null && collider.getControl(ObstacleControl.class).isAlive()) {
+            collider.getControl(ObstacleControl.class).doDamage(5);
+
+            if (collided.getControl(BulletControl.class) != null && collided.getControl(BulletControl.class).isAlive()) {
+                collided.getControl(BulletControl.class).doDamage();
+            }
+        }
 
     }
 

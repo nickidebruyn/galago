@@ -1,0 +1,64 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.galago.example.hyper2d.game;
+
+import com.bruynhuis.galago.sprite.Sprite;
+import com.bruynhuis.galago.sprite.physics.RigidBodyControl;
+import com.jme3.renderer.RenderManager;
+import com.jme3.renderer.ViewPort;
+import com.jme3.scene.control.AbstractControl;
+
+/**
+ *
+ * @author Nidebruyn
+ */
+public class BulletControl extends AbstractControl {
+
+    private Game game;
+    private RigidBodyControl rbc;
+    private Sprite sprite;
+    private boolean destroy = false;
+
+    public BulletControl(Game game) {
+        this.game = game;
+
+    }
+
+    @Override
+    protected void controlUpdate(float tpf) {
+
+        if (game.isStarted() && !game.isPaused() && !game.isGameOver()) {
+
+            if (rbc == null) {
+                rbc = spatial.getControl(RigidBodyControl.class);
+                sprite = (Sprite) spatial;
+
+            } else if (destroy) {
+                destroyObstacle();
+            }
+
+        }
+
+    }
+
+    @Override
+    protected void controlRender(RenderManager rm, ViewPort vp) {
+    }
+
+    protected void destroyObstacle() {
+        game.getBaseApplication().getDyn4jAppState().getPhysicsSpace().remove(rbc);
+        spatial.removeFromParent();
+
+    }
+
+    public void doDamage() {
+        destroy = true;
+
+    }
+
+    public boolean isAlive() {
+        return !destroy;
+    }
+}
