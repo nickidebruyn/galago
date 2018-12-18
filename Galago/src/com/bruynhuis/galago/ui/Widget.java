@@ -4,10 +4,14 @@
  */
 package com.bruynhuis.galago.ui;
 
+import aurelienribon.tweenengine.Tween;
+import aurelienribon.tweenengine.TweenEquation;
 import com.bruynhuis.galago.ui.window.Window;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.bruynhuis.galago.ui.effect.Effect;
+import com.bruynhuis.galago.ui.tween.WidgetAccessor;
+import com.bruynhuis.galago.util.SharedSystem;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.Savable;
@@ -544,4 +548,70 @@ public abstract class Widget implements Savable {
     public void read(JmeImporter im) throws IOException {
 //        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+    
+    
+    public void fadeFromTo(float from, float to, float duration, float delay) {
+        setTransparency(from);
+        Tween.to(this, WidgetAccessor.OPACITY, duration)
+                .target(to)
+                .delay(delay)
+                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+        
+    }
+    
+    public void fadeFromTo(float from, float to, float duration, float delay, TweenEquation tweenEquation) {
+        setTransparency(from);
+        Tween.to(this, WidgetAccessor.OPACITY, duration)
+                .target(to)
+                .delay(delay)
+                .ease(tweenEquation)
+                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+        
+    }
+    
+    public void moveFromToCenter(float fromX, float fromY, float toX, float toY, float duration, float delay) {
+        centerAt(toX, toY);
+        Vector3f target = getPosition().clone();
+        centerAt(fromX, fromY);
+        
+        Tween.to(this, WidgetAccessor.POS_XY, duration)
+                .target(target.x, target.y)
+                .delay(delay)
+                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+        
+    }
+    
+    public void moveFromToCenter(float fromX, float fromY, float toX, float toY, float duration, float delay, TweenEquation tweenEquation) {
+        centerAt(toX, toY);
+        Vector3f target = getPosition().clone();
+        centerAt(fromX, fromY);
+        
+        Tween.to(this, WidgetAccessor.POS_XY, duration)
+                .target(target.x, target.y)
+                .delay(delay)
+                .ease(tweenEquation)
+                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+        
+    }        
+    
+    
+    public void scaleFromTo(float fromX, float fromY, float toX, float toY, float duration, float delay) {
+        setScales(fromX, fromY);
+        
+        Tween.to(this, WidgetAccessor.SCALE_XY, duration)
+                .target(toX, toY)
+                .delay(delay)
+                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+        
+    }
+    
+    public void scaleFromTo(float fromX, float fromY, float toX, float toY, float duration, float delay, TweenEquation tweenEquation) {
+        setScales(fromX, fromY);
+        
+        Tween.to(this, WidgetAccessor.SCALE_XY, duration)
+                .target(toX, toY)
+                .delay(delay)
+                .ease(tweenEquation)
+                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());        
+    }   
 }
