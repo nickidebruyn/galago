@@ -13,6 +13,7 @@ import java.util.Map;
 import com.bruynhuis.galago.app.BaseApplication;
 import com.bruynhuis.galago.control.SpatialLifeControl;
 import com.bruynhuis.galago.sprite.AnimatedSprite;
+import com.jme3.math.ColorRGBA;
 
 /**
  * Is used for handling particle effects.
@@ -23,6 +24,8 @@ public class EffectManager {
     
     private BaseApplication application;
     private Map<String, Spatial> effects = new HashMap<String, Spatial>();
+    private ColorRGBA startColor;
+    private ColorRGBA endColor;
     
     public EffectManager(BaseApplication baseApplication) {
         this.application = baseApplication;
@@ -30,6 +33,17 @@ public class EffectManager {
     
     public void destroy() {
         effects.clear();
+    }
+    
+    /**
+     * This method can be called when you need to override the particle effects colors.
+     * This will only be applied once.
+     * @param startColor
+     * @param endColor 
+     */
+    public void prepareColor(ColorRGBA startColor, ColorRGBA endColor) {
+        this.startColor = startColor;
+        this.endColor = endColor;
     }
     
     /**
@@ -68,7 +82,7 @@ public class EffectManager {
      */
     public void doEffect(String effect, Vector3f position, float timeInMiliSec) {
         Spatial effectSpatial = (Spatial) effects.get(effect);
-        doEffect(effectSpatial, position, timeInMiliSec);        
+        doEffect(effectSpatial, position, timeInMiliSec);
     }
     
     /**
@@ -93,7 +107,7 @@ public class EffectManager {
      *
      * @param spatial
      */
-    protected static void doParticleRespawn(Spatial spatial) {
+    protected void doParticleRespawn(Spatial spatial) {
         if (spatial != null && spatial instanceof AnimatedSprite) {
             AnimatedSprite sprite = (AnimatedSprite) spatial;
             sprite.play();
@@ -103,7 +117,15 @@ public class EffectManager {
                 Spatial s = ((Node) spatial).getChild(i);
                 if (s instanceof ParticleEmitter) {
                     ParticleEmitter emitter = (ParticleEmitter) s;
+                    if (startColor != null) {
+                        emitter.setStartColor(startColor);
+                    }
+                    if (endColor != null) {
+                        emitter.setStartColor(endColor);
+                    }
                     emitter.emitAllParticles();
+                    startColor = null;
+                    endColor = null;
                 }
             }
         }

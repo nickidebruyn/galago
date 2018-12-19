@@ -63,6 +63,9 @@ public class MainApplication extends Base2DApplication {
 
     @Override
     protected void initEffect(EffectManager effectManager) {
+        effectManager.loadEffect("obstacle-hit", "Models/effects/obstacle-hit.j3o");
+        effectManager.loadEffect("obstacle-kill", "Models/effects/obstacle-kill.j3o");
+        effectManager.loadEffect("player-kill", "Models/effects/player-kill.j3o");
     }
 
     @Override

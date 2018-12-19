@@ -6,6 +6,7 @@ package com.galago.example.hyper2d.game;
 
 import com.bruynhuis.galago.sprite.Sprite;
 import com.bruynhuis.galago.sprite.physics.RigidBodyControl;
+import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.control.AbstractControl;
@@ -20,6 +21,7 @@ public class BulletControl extends AbstractControl {
     private RigidBodyControl rbc;
     private Sprite sprite;
     private boolean destroy = false;
+    private ColorRGBA targetColor;
 
     public BulletControl(Game game) {
         this.game = game;
@@ -36,7 +38,12 @@ public class BulletControl extends AbstractControl {
                 sprite = (Sprite) spatial;
 
             } else if (destroy) {
-                destroyObstacle();
+                destroyBullet();
+                
+            } else {
+                if (rbc.getPhysicLocation().y >= Game.OUTOFSCREENHEIGHT) {
+                    doDamage(ColorRGBA.Black);
+                }
             }
 
         }
@@ -47,14 +54,18 @@ public class BulletControl extends AbstractControl {
     protected void controlRender(RenderManager rm, ViewPort vp) {
     }
 
-    protected void destroyObstacle() {
+    protected void destroyBullet() {
+        game.getBaseApplication().getEffectManager().prepareColor(new ColorRGBA(targetColor.r, targetColor.g, targetColor.b, 1f), 
+                new ColorRGBA(targetColor.r, targetColor.g, targetColor.b, 0.1f));
+        game.getBaseApplication().getEffectManager().doEffect("obstacle-hit", rbc.getPhysicLocation().clone());
         game.getBaseApplication().getDyn4jAppState().getPhysicsSpace().remove(rbc);
         spatial.removeFromParent();
 
     }
 
-    public void doDamage() {
+    public void doDamage(ColorRGBA targetColor) {
         destroy = true;
+        this.targetColor = targetColor;
 
     }
 

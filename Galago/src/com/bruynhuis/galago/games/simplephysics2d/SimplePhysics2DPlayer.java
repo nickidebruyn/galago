@@ -62,9 +62,10 @@ public abstract class SimplePhysics2DPlayer {
     public abstract Vector3f getPosition();
     
     public void doDamage(int hits) {
-        if (lives > 0) {
-            lives -= hits;
-        } else {
+        lives -= hits;
+        
+        if (lives <= 0) {
+            lives = 0;
             game.doGameOver();
             doDie();
         }

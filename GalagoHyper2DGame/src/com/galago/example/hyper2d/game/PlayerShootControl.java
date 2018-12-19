@@ -6,8 +6,8 @@ package com.galago.example.hyper2d.game;
 
 import com.bruynhuis.galago.sprite.Sprite;
 import com.bruynhuis.galago.sprite.physics.RigidBodyControl;
-import com.bruynhuis.galago.sprite.physics.RigidBodyLifeControl;
 import com.bruynhuis.galago.sprite.physics.shape.BoxCollisionShape;
+import com.bruynhuis.galago.util.ColorUtils;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
@@ -20,9 +20,10 @@ import com.jme3.scene.control.AbstractControl;
 public class PlayerShootControl extends AbstractControl {
 
     private Player player;
-    private float fireDelay = 0.25f;
+    private float fireDelay = 0.2f;
     private float cooldownTimer = 0f;
     private boolean shoot;
+    private float bulletSpeed = 10f;
 
     public PlayerShootControl(Player player) {
         this.player = player;
@@ -52,9 +53,10 @@ public class PlayerShootControl extends AbstractControl {
      * @param position
      */
     private void fireBullet(Vector3f position) {
-        Sprite sprite = new Sprite("bullet-player", 0.1f, 0.4f);
+        Sprite sprite = new Sprite("bullet-player", 0.6f, 0.6f);
         sprite.setImage("Textures/bullet.png");
         sprite.setLocalTranslation(position);
+        sprite.getMaterial().setColor("Color", ColorUtils.rgb(245, 246, 250));
 
         RigidBodyControl rbc = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth(), sprite.getHeight()), 1);
         rbc.setSensor(true);
@@ -63,10 +65,9 @@ public class PlayerShootControl extends AbstractControl {
         sprite.addControl(rbc);
         player.getGame().addBullet(rbc);
         
-        sprite.addControl(new RigidBodyLifeControl(100));
         sprite.addControl(new BulletControl((Game)player.getGame()));
         
-        rbc.setLinearVelocity(0f, 10f);
+        rbc.setLinearVelocity(0f, bulletSpeed);
     }
 
     public void setShoot(boolean shoot) {

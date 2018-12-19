@@ -43,6 +43,7 @@ public class PlayScreen extends AbstractScreen implements SimplePhysics2DGameLis
     private ControlButton controlButton;
 
     private boolean playerTakeDamage = false;
+    private int playerDamageAmount = 0;
 
     @Override
     protected void init() {
@@ -113,6 +114,7 @@ public class PlayScreen extends AbstractScreen implements SimplePhysics2DGameLis
     protected void load() {
 
         playerTakeDamage = false;
+        playerDamageAmount = 0;        
         movePlayer = false;
         shoot = false;
 
@@ -168,7 +170,7 @@ public class PlayScreen extends AbstractScreen implements SimplePhysics2DGameLis
         retryButton.hide();
         titleLabel.hide();
 //        instructionsLabel.hide();
-        scoreLabel.setText("");
+        scoreLabel.setText("0");
         scoreLabel.show();
         bestLabel.hide();
         controlButton.show();
@@ -258,10 +260,11 @@ public class PlayScreen extends AbstractScreen implements SimplePhysics2DGameLis
 //        log("collider = " + collider.getName());
 
         if (collider.getControl(ObstacleControl.class) != null && collider.getControl(ObstacleControl.class).isAlive()) {
-            collider.getControl(ObstacleControl.class).doDamage(5);
+            collider.getControl(ObstacleControl.class).doDamage(1);
+            player.addScore(1);
 
             if (collided.getControl(BulletControl.class) != null && collided.getControl(BulletControl.class).isAlive()) {
-                collided.getControl(BulletControl.class).doDamage();
+                collided.getControl(BulletControl.class).doDamage(collider.getControl(ObstacleControl.class).getColor());
             }
         }
 
@@ -279,6 +282,18 @@ public class PlayScreen extends AbstractScreen implements SimplePhysics2DGameLis
 
     @Override
     public void doCollisionPlayerWithObstacle(Spatial collided, Spatial collider) {
+//        log("collided = " + collided.getName());
+//        log("collider = " + collider.getName());
+        
+        if (collided.getControl(ObstacleControl.class) != null && collided.getControl(ObstacleControl.class).isAlive()) {
+            int health = collided.getControl(ObstacleControl.class).getHealth();
+            collided.getControl(ObstacleControl.class).doDamage(health);
+
+            log("Player Damage: " + health);
+            playerDamageAmount = health;
+            playerTakeDamage = true;
+            
+        }
 
     }
 
@@ -319,7 +334,8 @@ public class PlayScreen extends AbstractScreen implements SimplePhysics2DGameLis
             if (game.isStarted() && !game.isPaused() && !game.isGameOver()) {
 
                 if (playerTakeDamage) {
-                    player.doDamage(1);
+                    player.doDamage(playerDamageAmount);
+                    playerDamageAmount = 0;
                     playerTakeDamage = false;
                 }
 

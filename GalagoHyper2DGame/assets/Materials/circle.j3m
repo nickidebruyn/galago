@@ -1,0 +1,8 @@
+Material My Material : Common/MatDefs/Misc/Particle.j3md {
+     MaterialParameters {
+        Texture : Flip Textures/circle.png
+     }
+    AdditionalRenderState {
+      Blend AlphaAdditive
+    }
+}

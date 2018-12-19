@@ -31,6 +31,7 @@ import com.jme3.scene.control.AbstractControl;
  */
 public class Game extends SimplePhysics2DGame {
 
+    public static float OUTOFSCREENHEIGHT = 14f;
     public static int MAX_HEALTH = 100;
     private float BACKGROUND_SCALE = 0.025f;
     private Timer waveTimer = new Timer(200);
@@ -59,7 +60,7 @@ public class Game extends SimplePhysics2DGame {
                     waveTimer.update(tpf);
 
                     if (waveTimer.finished()) {
-                        loadRock(FastMath.nextRandomInt(-4, 4), FastMath.nextRandomInt(1, 100));
+                        loadRock(FastMath.nextRandomInt(-4, 4), FastMath.nextRandomInt(1, 10));
                         waveTimer.reset();
                     }
 
@@ -107,7 +108,7 @@ public class Game extends SimplePhysics2DGame {
         rock.setImage(getRandomRockTexture());
 //        rock.setQueueBucket(RenderQueue.Bucket.Transparent);
         rock.getMaterial().setFloat("AlphaDiscardThreshold", 0.55f);        
-        rock.setLocalTranslation(xPos, 14, 0);
+        rock.setLocalTranslation(xPos, OUTOFSCREENHEIGHT, 0);
 
         CollisionShape collisionShape = new CircleCollisionShape(size * 0.5f);
         RigidBodyControl rbc = new RigidBodyControl(collisionShape, 1);
@@ -118,7 +119,7 @@ public class Game extends SimplePhysics2DGame {
 
         rbc.setLinearVelocity(0.1f, -(6f-(5f*((float)health/(float)MAX_HEALTH))));
         rbc.setAngularVelocity(FastMath.nextRandomFloat() * FastMath.nextRandomInt(-2, 2));
-        rbc.setPhysicLocation(xPos, 14);
+        rbc.setPhysicLocation(xPos, OUTOFSCREENHEIGHT);
         
         //Add text
         BitmapText text = new BitmapText(bitmapFont);
@@ -131,6 +132,10 @@ public class Game extends SimplePhysics2DGame {
 
         rock.addControl(new ObstacleControl(this, text, health));
 
+    }
+
+    public BitmapFont getBitmapFont() {
+        return bitmapFont;
     }
 
     protected String getRandomRockTexture() {
