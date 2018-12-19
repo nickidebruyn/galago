@@ -69,6 +69,7 @@ public class Player extends PhysicsPlayer implements PhysicsTickListener {
 
         model = SpatialUtils.addSphere(playerNode, 28, 28, playerRadius);
         SpatialUtils.addMaterial(model, game.getBaseApplication().getModelManager().getMaterial("Materials/ball.j3m"));
+        
 
         rbc = new RigidBodyControl(new SphereCollisionShape(playerRadius), 10);
         game.getBaseApplication().getBulletAppState().getPhysicsSpace().add(rbc);

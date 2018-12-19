@@ -5,6 +5,7 @@
  */
 package com.galago.example.hyper3d.screens;
 
+import com.bruynhuis.galago.filters.CartoonEdgeProcessor;
 import com.bruynhuis.galago.filters.FXAAFilter;
 import com.bruynhuis.galago.games.physics.PhysicsGameListener;
 import com.bruynhuis.galago.screen.AbstractScreen;
@@ -18,6 +19,7 @@ import com.galago.example.hyper3d.ui.PlayButton;
 import com.galago.example.hyper3d.ui.RetryButton;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
+import com.jme3.renderer.Caps;
 import com.jme3.scene.Spatial;
 
 /**
@@ -38,6 +40,7 @@ public class PlayScreen extends AbstractScreen implements PhysicsGameListener {
     private Vector3f cameraLookat;
 
     private FilterPostProcessor fpp;
+    private CartoonEdgeProcessor cartoonEdgeProcess;
 
     private Label titleLabel;
 //    private Label instructionsLabel;
@@ -46,7 +49,7 @@ public class PlayScreen extends AbstractScreen implements PhysicsGameListener {
     private PlayButton playButton;
     private RetryButton retryButton;
     private ControlButton jumpButton;
-    
+
     private boolean playerTakeDamage = false;
 
     @Override
@@ -58,7 +61,7 @@ public class PlayScreen extends AbstractScreen implements PhysicsGameListener {
 
         scoreLabel = new Label(hudPanel, "0", 52);
         scoreLabel.centerAt(0, 300);
-        
+
         bestLabel = new Label(hudPanel, "BEST: 0", 32);
         bestLabel.centerTop(0, 150);
 
@@ -70,13 +73,13 @@ public class PlayScreen extends AbstractScreen implements PhysicsGameListener {
                 if (isActive()) {
                     firstGame = false;
                     game.start(player);
-                    showInGameUI();                    
+                    showInGameUI();
 
                 }
             }
 
         });
-        
+
         retryButton = new RetryButton(hudPanel);
         retryButton.centerAt(0, -250);
         retryButton.addTouchButtonListener(new TouchButtonAdapter() {
@@ -99,6 +102,7 @@ public class PlayScreen extends AbstractScreen implements PhysicsGameListener {
                     player.prepareJump();
                 }
             }
+
             @Override
             public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
                 if (isActive() && game.isStarted() && !game.isPaused() && !game.isGameover()) {
@@ -111,9 +115,9 @@ public class PlayScreen extends AbstractScreen implements PhysicsGameListener {
 
     @Override
     protected void load() {
-        
+
         playerTakeDamage = false;
-        
+
         game = new Game(mainApplication, rootNode);
         game.load();
 
@@ -123,17 +127,24 @@ public class PlayScreen extends AbstractScreen implements PhysicsGameListener {
         game.addGameListener(this);
 
         if (fpp == null) {
+            if (baseApplication.getRenderer().getCaps().contains(Caps.GLSL100)) {
+                cartoonEdgeProcess = new CartoonEdgeProcessor();
+                baseApplication.getViewPort().addProcessor(cartoonEdgeProcess);
+            }
+            
             fpp = new FilterPostProcessor(baseApplication.getAssetManager());
             baseApplication.getViewPort().addProcessor(fpp);
 
             FXAAFilter fXAAFilter = new FXAAFilter();
             fpp.addFilter(fXAAFilter);
+
+
         }
 
-        cameraPosition = new Vector3f(-cameraDistance*0.8f+cameraForward, cameraHeight, cameraDistance);
+        cameraPosition = new Vector3f(-cameraDistance * 0.8f + cameraForward, cameraHeight, cameraDistance);
         camera.setLocation(cameraPosition);
-        
-        cameraLookat = new Vector3f(0+cameraForward, cameraHeight * 0.2f, 0);
+
+        cameraLookat = new Vector3f(0 + cameraForward, cameraHeight * 0.2f, 0);
         camera.lookAt(cameraLookat, Vector3f.UNIT_Y);
     }
 
@@ -154,19 +165,19 @@ public class PlayScreen extends AbstractScreen implements PhysicsGameListener {
         titleLabel.show();
         titleLabel.fadeFromTo(0f, 1f, 2f, 0.2f);
         titleLabel.moveFromToCenter(0, 500, 0, 320, 1f, 0.2f);
-        
+
         playButton.show();
         playButton.fadeFromTo(0, 1, 2f, 0);
         playButton.moveFromToCenter(0, -500, 0, -250, 1f, 0f);
-        
+
         retryButton.hide();
         scoreLabel.hide();
-        
+
         bestLabel.setText("BEST: " + baseApplication.getGameSaves().getGameData().getScore());
         bestLabel.show();
         bestLabel.fadeFromTo(0f, 1f, 2f, 0f);
         bestLabel.moveFromToCenter(0, 500, 0, 240, 1f, 0f);
-        
+
         jumpButton.hide();
 
     }
@@ -179,25 +190,25 @@ public class PlayScreen extends AbstractScreen implements PhysicsGameListener {
         scoreLabel.setText("");
         scoreLabel.show();
         bestLabel.hide();
-        jumpButton.show();        
+        jumpButton.show();
 
     }
 
     private void showGameOverUI() {
         titleLabel.hide();
         playButton.hide();
-        
+
         retryButton.show();
         retryButton.fadeFromTo(0, 1, 2f, 0);
         retryButton.moveFromToCenter(0, -500, 0, -250, 1f, 0f);
-        
+
         scoreLabel.show();
         bestLabel.setText("BEST: " + baseApplication.getGameSaves().getGameData().getScore());
         bestLabel.show();
         bestLabel.fadeFromTo(0f, 1f, 2f, 0f);
         bestLabel.moveFromToCenter(0, 500, 0, 240, 1f, 0f);
-        
-        jumpButton.hide();        
+
+        jumpButton.hide();
 
     }
 
@@ -225,9 +236,9 @@ public class PlayScreen extends AbstractScreen implements PhysicsGameListener {
 
         //Finally save the data
         baseApplication.getGameSaves().save();
-        
+
         showGameOverUI();
-        
+
     }
 
     @Override
@@ -241,19 +252,19 @@ public class PlayScreen extends AbstractScreen implements PhysicsGameListener {
     }
 
     @Override
-    public void doCollisionPlayerWithStatic(Spatial collided, Spatial collider) {        
+    public void doCollisionPlayerWithStatic(Spatial collided, Spatial collider) {
         player.setOnGround(true);
-        
+
 //        log("collision: " + collided.getName());
         //Detect if the collided object is infront of the player
-        if (collided.getWorldTranslation().x > (player.getPosition().x + 0.35f) && 
-                player.getPosition().y < collided.getWorldTranslation().y + 0.4f &&
-                player.getPosition().y > collided.getWorldTranslation().y - 0.4f) {
+        if (collided.getWorldTranslation().x > (player.getPosition().x + 0.35f)
+                && player.getPosition().y < collided.getWorldTranslation().y + 0.4f
+                && player.getPosition().y > collided.getWorldTranslation().y - 0.4f) {
 //            log("hit wall: " + collided.getWorldTranslation());
             playerTakeDamage = true;
-            
+
         }
-        
+
     }
 
     @Override
@@ -302,9 +313,9 @@ public class PlayScreen extends AbstractScreen implements PhysicsGameListener {
 
             if (game.isStarted() && !game.isPaused() && !game.isGameover()) {
 
-                cameraPosition.set(player.getPosition().x - (cameraDistance*0.8f) + cameraForward, cameraHeight, cameraDistance);
+                cameraPosition.set(player.getPosition().x - (cameraDistance * 0.8f) + cameraForward, cameraHeight, cameraDistance);
                 camera.setLocation(cameraPosition);
-                
+
                 cameraLookat.set(player.getPosition().x + cameraForward, cameraHeight * 0.2f, 0);
                 camera.lookAt(cameraLookat, Vector3f.UNIT_Y);
 
