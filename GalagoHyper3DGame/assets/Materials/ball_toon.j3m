@@ -1,0 +1,15 @@
+Material My Material : Resources/MatDefs/UnshadedToon.j3md {
+     MaterialParameters {
+
+        Toon : true
+        EdgesColor : 0.0 0.0 0.0 1.0
+        EdgeSize : 1.9999999
+        Fog_Edges : true
+
+        AlphaDiscardThreshold : 0.0
+        Color : 1.0 1.0 1.0 1.0
+        ColorMap : Flip Repeat Textures/red.jpg
+     }
+    AdditionalRenderState {
+    }
+}

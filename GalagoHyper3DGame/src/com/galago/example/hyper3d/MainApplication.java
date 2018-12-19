@@ -60,6 +60,7 @@ public class MainApplication extends Base3DApplication {
     public void initModelManager(ModelManager modelManager) {
         modelManager.loadMaterial("Materials/sky.j3m");
         modelManager.loadMaterial("Materials/ball.j3m");
+        modelManager.loadMaterial("Materials/ball_toon.j3m");
     }
 
     @Override

@@ -1,0 +1,273 @@
+MaterialDef MatCap {
+ 
+    MaterialParameters {
+
+        // Fog
+        Color FogColor
+        TextureCubeMap FogSkyBox
+
+        // Multiply Color system
+        Color Multiply_Color
+
+        // Toon System
+        Boolean Toon
+        Color EdgesColor 
+        Float EdgeSize
+        Boolean Fog_Edges
+
+
+        Texture2D DiffuseMap
+        Texture2D NormalMap
+        
+        Float NormalMapPower : 0.6
+
+        // Switch Normal Map xyz(rgb) channels
+        Boolean Nor_Inv_X
+        Boolean Nor_Inv_Y
+        Boolean Nor_Inv_Z
+
+        // For hardware skinning
+        Int NumberOfBones
+        Matrix4Array BoneMatrices
+
+        // Refraction Filter
+        Boolean DoRefract : False
+        Float Distance : 200.0
+        Texture2D Mask_Texture  
+
+
+        //Shadows
+        Int FilterMode
+        Boolean HardwareShadows
+
+        Texture2D ShadowMap0
+        Texture2D ShadowMap1
+        Texture2D ShadowMap2
+        Texture2D ShadowMap3
+        //pointLights
+        Texture2D ShadowMap4
+        Texture2D ShadowMap5
+        
+        Float ShadowIntensity
+        Vector4 Splits
+        Vector2 FadeInfo
+
+        Matrix4 LightViewProjectionMatrix0
+        Matrix4 LightViewProjectionMatrix1
+        Matrix4 LightViewProjectionMatrix2
+        Matrix4 LightViewProjectionMatrix3
+        //pointLight
+        Matrix4 LightViewProjectionMatrix4
+        Matrix4 LightViewProjectionMatrix5
+        Vector3 LightPos
+        Vector3 LightDir
+
+        Float PCFEdge
+
+        Float ShadowMapSize        
+     
+    }
+ 
+    Technique {
+          VertexShader GLSL100:   Resources/Shaders/MatCap.vert
+          FragmentShader GLSL100: Resources/Shaders/MatCap.frag
+ 
+        WorldParameters {
+            WorldViewProjectionMatrix
+            NormalMatrix
+            WorldViewMatrix
+        }
+ 
+        Defines {
+        
+            NORMALMAP : NormalMap
+            NOR_INV_X : Nor_Inv_X
+            NOR_INV_Y : Nor_Inv_Y
+            NOR_INV_Z : Nor_Inv_Z
+            MULTIPLY_COLOR : Multiply_Color
+            FOG : FogColor
+            FOG_SKY : FogSkyBox
+            TOON_EDGES : EdgesColor
+            NUM_BONES : NumberOfBones
+        }
+    }
+ 
+    Technique CartoonEdge {
+
+        LightMode MultiPass
+
+        VertexShader GLSL100:   Resources/Shaders/ToonBlow_Edges.vert
+        FragmentShader GLSL100: Resources/Shaders/ToonBlow_Edges.frag
+
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            NormalMatrix
+            WorldViewMatrix
+            ViewMatrix
+            CameraPosition
+            WorldMatrix
+            NUM_BONES : NumberOfBones
+        }
+
+        Defines {
+
+            SPHERE_MAP : SphereMap
+            FOG : FogColor
+            FOG_SKY : FogSkyBox
+            TOON_EDGES : EdgesColor
+            FOG_EDGES : Fog_Edges
+            NUM_BONES : NumberOfBones 
+        }
+
+        RenderState {
+            FaceCull Front
+            DepthTest On
+            DepthWrite On
+        }
+    }
+
+
+    Technique {
+    }
+
+    Technique PreNormalPass {
+
+          VertexShader GLSL100 :   Common/MatDefs/SSAO/normal.vert
+          FragmentShader GLSL100 : Common/MatDefs/SSAO/normal.frag
+
+          WorldParameters {
+              WorldViewProjectionMatrix
+              WorldViewMatrix
+              NormalMatrix
+          }
+
+          Defines {
+              NUM_BONES : NumberOfBones
+          }
+   }
+
+    Technique PreShadow {
+
+        VertexShader GLSL100 :   Common/MatDefs/Shadow/PreShadow.vert
+        FragmentShader GLSL100 : Common/MatDefs/Shadow/PreShadow.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldViewMatrix
+        }
+
+        Defines {
+            COLOR_MAP : ColorMap
+            DISCARD_ALPHA : AlphaDiscardThreshold
+            NUM_BONES : NumberOfBones
+        }
+
+        ForcedRenderState {
+            FaceCull Off
+            DepthTest On
+            DepthWrite On
+            PolyOffset 5 3
+            ColorWrite Off
+        }
+
+    }
+
+
+    Technique PostShadow15{
+        VertexShader GLSL150:   Common/MatDefs/Shadow/PostShadow.vert
+        FragmentShader GLSL150: Common/MatDefs/Shadow/PostShadow15.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldMatrix
+        }
+
+        Defines {
+            HARDWARE_SHADOWS : HardwareShadows
+            FILTER_MODE : FilterMode
+            PCFEDGE : PCFEdge
+            DISCARD_ALPHA : AlphaDiscardThreshold           
+            COLOR_MAP : ColorMap
+            SHADOWMAP_SIZE : ShadowMapSize
+            FADE : FadeInfo
+            PSSM : Splits
+            POINTLIGHT : LightViewProjectionMatrix5
+            NUM_BONES : NumberOfBones
+        }
+
+        ForcedRenderState {
+            Blend Modulate
+            DepthWrite Off                 
+            PolyOffset -0.1 0
+        }
+    }
+
+    Technique PostShadow{
+        VertexShader GLSL100:   Common/MatDefs/Shadow/PostShadow.vert
+        FragmentShader GLSL100: Common/MatDefs/Shadow/PostShadow.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldMatrix
+        }
+
+        Defines {
+            HARDWARE_SHADOWS : HardwareShadows
+            FILTER_MODE : FilterMode
+            PCFEDGE : PCFEdge
+            DISCARD_ALPHA : AlphaDiscardThreshold           
+            COLOR_MAP : ColorMap
+            SHADOWMAP_SIZE : ShadowMapSize
+            FADE : FadeInfo
+            PSSM : Splits
+            POINTLIGHT : LightViewProjectionMatrix5
+            NUM_BONES : NumberOfBones
+        }
+
+        ForcedRenderState {
+            Blend Modulate
+            DepthWrite Off   
+            PolyOffset -0.1 0  
+        }
+    }
+
+    Technique Glow {
+
+        VertexShader GLSL100:   Common/MatDefs/Misc/Unshaded.vert
+        FragmentShader GLSL100: Common/MatDefs/Light/Glow.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+        }
+
+        Defines {
+            NEED_TEXCOORD1
+            HAS_GLOWMAP : GlowMap
+            HAS_GLOWCOLOR : GlowColor
+            NUM_BONES : NumberOfBones
+        }
+    }
+
+
+
+
+
+Technique Refract {
+
+    VertexShader GLSL100:   Resources/Shaders/Refract.vert
+    FragmentShader GLSL100: Resources/Shaders/Refract.frag
+
+    WorldParameters {
+      WorldViewProjectionMatrix
+    }
+
+    Defines {
+       DO_REFRACT : DoRefract
+       MASK_TEXTURE : Mask_Texture
+       NUM_BONES : NumberOfBones
+  }
+ }
+
+
+}

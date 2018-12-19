@@ -1,14 +1,9 @@
 Material My Material : Resources/MatDefs/MatCap.j3md {
      MaterialParameters {
-        DiffuseMap : Flip Textures/blue-mat.jpg
+        DiffuseMap : Flip Textures/gold-mat.jpg
         Nor_Inv_X : true
         Nor_Inv_Y : true
         Nor_Inv_Z : true
-
-        Toon : true
-        Fog_Edges : true
-        EdgeSize : 0.2
-        EdgesColor : 0.4 0.4 0.4 1.0
      }
     AdditionalRenderState {
     }
