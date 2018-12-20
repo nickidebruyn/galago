@@ -1,0 +1,10 @@
+Material My Material : Common/MatDefs/Misc/Unshaded.j3md {
+     MaterialParameters {
+        Color : 1.0 1.0 1.0 1.0
+        ColorMap : Textures/other/start.png
+        AlphaDiscardThreshold : 0.6
+     }
+    AdditionalRenderState {
+      Blend Alpha
+    }
+}

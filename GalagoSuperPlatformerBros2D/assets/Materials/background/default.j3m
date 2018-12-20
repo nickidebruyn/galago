@@ -1,0 +1,8 @@
+Material My Material : Resources/MatDefs/lineargradient.j3md {
+     MaterialParameters {
+        EndColor : 0.15294118 0.22745098 0.2509804 1.0
+        StartColor : 0.22352941 0.30588236 0.33333334 1.0
+     }
+    AdditionalRenderState {
+    }
+}

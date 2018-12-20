@@ -1,0 +1,9 @@
+Material My Material : Common/MatDefs/Gui/Gui.j3md {
+     MaterialParameters {
+        Color : 1.0 1.0 1.0 1.0
+        Texture : Textures/terrain/terrain.png
+     }
+    AdditionalRenderState {
+      Blend Alpha
+    }
+}

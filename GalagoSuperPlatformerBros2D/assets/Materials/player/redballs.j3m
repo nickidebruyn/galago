@@ -1,0 +1,11 @@
+Material My Material : Common/MatDefs/Misc/Unshaded.j3md {
+     MaterialParameters {
+        Color : 1.0 1.0 1.0 1.0
+        ColorMap : Textures/player/redballs.png
+        AlphaDiscardThreshold : 0.5
+     }
+    AdditionalRenderState {
+      Blend Alpha
+      FaceCull Off
+    }
+}
