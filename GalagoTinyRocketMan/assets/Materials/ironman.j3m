@@ -1,0 +1,10 @@
+Material My Material : Common/MatDefs/Misc/Unshaded.j3md {
+     MaterialParameters {
+        ColorMap : Repeat Textures/ironman.png
+        AlphaDiscardThreshold : 0.0
+     }
+    AdditionalRenderState {
+      Blend PremultAlpha
+        FaceCull Off
+    }
+}

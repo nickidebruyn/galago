@@ -10,6 +10,7 @@ import com.jme3.renderer.ViewPort;
 import com.jme3.scene.control.AbstractControl;
 import com.galago.example.platformer2d.game.Game;
 import com.galago.example.platformer2d.game.Player;
+import com.galago.example.platformer2d.game.SuperBrosPlayer;
 
 /**
  *
@@ -44,7 +45,7 @@ public class PortalControl extends AbstractControl {
                 Tile tile = (Tile) game.getTileMap().getTiles().get(i);
                 if (tile.getSpatial().getUserData("type") != null && 
                         tile.getSpatial().getUserData("type").equals(targetName)) {
-                    ((Player) game.getPlayer()).transportToPosition(tile.getSpatial().getWorldTranslation());
+                    ((SuperBrosPlayer) game.getPlayer()).transportToPosition(tile.getSpatial().getWorldTranslation());
                     break;
                 }
             }

@@ -214,9 +214,9 @@ public class PlayScreen extends AbstractScreen implements Platform2DGameListener
         camera.setLocation(new Vector3f(0, 0.9f, 10));
 
         if (mainApplication.isMobileApp()) {
-            mainApplication.setCameraDistanceFrustrum(8.5f);
+            mainApplication.setCameraDistanceFrustrum(7.5f);
         } else {
-            mainApplication.setCameraDistanceFrustrum(9f);
+            mainApplication.setCameraDistanceFrustrum(8.5f);
         }
 
         joystickInputListener = new JoystickInputListener();
@@ -231,6 +231,7 @@ public class PlayScreen extends AbstractScreen implements Platform2DGameListener
     @Override
     protected void show() {
         setWaitExit(30f);
+        mainApplication.showStats();
         setPreviousScreen("edit");
         bodiesLabel.setText("Bodies: " + mainApplication.getDyn4jAppState().getPhysicsSpace().getBodyCount());
 

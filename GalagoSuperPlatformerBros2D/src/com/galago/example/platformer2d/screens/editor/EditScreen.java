@@ -27,6 +27,20 @@ import com.galago.example.platformer2d.screens.PlayScreen;
  * @author Nidebruyn
  */
 public class EditScreen extends AbstractScreen implements PickListener {
+    
+//    private static int TILE_TOP_LEFT = 0;
+//    private static int TILE_TOP = 1;
+//    private static int TILE_TOP_RIGHT = 2;
+//    private static int TILE_LEFT = 8;
+//    private static int TILE_LEFT_SINGLE = 11;
+//    private static int TILE_CENTER = 9;
+//    private static int TILE_RIGHT = 10;
+//    private static int TILE_RIGHT_SINGLE = 13;
+//    private static int TILE_DOWN_LEFT = 16;
+//    private static int TILE_DOWN = 17;
+//    private static int TILE_DOWN_RIGHT = 18;
+//    private static int TILE_TOP_SINGLE = 4;
+//    private static int TILE_DOWN_SINGLE = 12;
 
     public static final String FILE_EXT = ".p2lv";
     private MainApplication mainApplication;
@@ -35,15 +49,15 @@ public class EditScreen extends AbstractScreen implements PickListener {
     private FileNameDialog fileNameDialog;
     private ConfirmDialog trashConfirmDialog;
     private ConfirmDialog saveConfirmDialog;
-    private int columns = 26;
-    private int rows = 16;
+    private int columns = 32;
+    private int rows = 18;
     private Toolbar toolbar;
     private Menubar menubar;
     private String fileName = "default-level" + FILE_EXT;
     private boolean floodFill = false;
     private ArrayList<Sprite> worksheetTiles = new ArrayList<Sprite>();
     private Label levelNameLabel;
-    
+
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
@@ -74,7 +88,7 @@ public class EditScreen extends AbstractScreen implements PickListener {
                         game.save();
                         saveConfirmDialog.setText("Level " + fileName.replaceAll(FILE_EXT, "") + " saved successfully!");
                         saveConfirmDialog.show();
-                        
+
                     } else if (Menubar.ACTION_TRASH.equals(uid)) {
                         trashConfirmDialog.show();
 
@@ -93,7 +107,7 @@ public class EditScreen extends AbstractScreen implements PickListener {
 
         toolbar = new Toolbar(hudPanel);
         toolbar.leftTop(0, 0);
-        
+
         levelNameLabel = new Label(hudPanel, fileName, 24);
         levelNameLabel.setAlignment(TextAlign.RIGHT);
         levelNameLabel.rightBottom(10, 0);
@@ -113,7 +127,7 @@ public class EditScreen extends AbstractScreen implements PickListener {
                 }
             }
         });
-        
+
         trashConfirmDialog = new ConfirmDialog(window, "Are you sure you want to start the level over?");
         trashConfirmDialog.addOkButtonListener(new TouchButtonAdapter() {
             @Override
@@ -125,7 +139,7 @@ public class EditScreen extends AbstractScreen implements PickListener {
                 }
             }
         });
-        
+
         saveConfirmDialog = new ConfirmDialog(window, "Level saved successfully!");
         saveConfirmDialog.addOkButtonListener(new TouchButtonAdapter() {
             @Override
@@ -147,7 +161,7 @@ public class EditScreen extends AbstractScreen implements PickListener {
         game = new Game(mainApplication, rootNode);
         game.edit(fileName);
         game.load();
-        
+
         levelNameLabel.setText(fileName.replace(FILE_EXT, ""));
 
         loadWorksheet();
@@ -157,9 +171,8 @@ public class EditScreen extends AbstractScreen implements PickListener {
         if (mainApplication.isMobileApp()) {
             mainApplication.setCameraDistanceFrustrum(9.4f);
         } else {
-            mainApplication.setCameraDistanceFrustrum(9.8f);
+            mainApplication.setCameraDistanceFrustrum(10f);
         }
-
 
     }
 
@@ -227,7 +240,6 @@ public class EditScreen extends AbstractScreen implements PickListener {
             } else if (selectedTile == null && (tile == null || tile.getUid().startsWith("sky-"))) {
                 doPaintAction(sprite.getWorldTranslation().x, sprite.getWorldTranslation().y);
 
-
             }
         }
     }
@@ -245,7 +257,6 @@ public class EditScreen extends AbstractScreen implements PickListener {
 
                 Sprite sprite = (Sprite) pickEvent.getContactObject().getParent();
                 Tile selectedTile = game.getTileAtPosition(sprite.getWorldTranslation());
-
 
                 if (floodFill) {
                     log("Flood fill: " + selectedTile);
@@ -282,7 +293,7 @@ public class EditScreen extends AbstractScreen implements PickListener {
                 Tile selectedTile = game.getTileAtPosition(sprite.getWorldTranslation());
 
                 if (!floodFill) {
-                    log("Picked: " + selectedTile);
+//                    log("Picked: " + selectedTile);
 
                     if (selectedTile == null) {
                         doPaintAction(sprite.getWorldTranslation().x, sprite.getWorldTranslation().y);
@@ -297,12 +308,380 @@ public class EditScreen extends AbstractScreen implements PickListener {
                     }
                 }
 
-
             }
 
         }
 
     }
+
+    private void updateTileAtPosition(String newItem, Tile tile) {
+        if (tile != null) {
+            game.removeTile(tile);
+
+            //Now we add the new item
+            log("Update tile:" + tile.getUid() + " to newtile:" + newItem);
+            Sprite sprite = game.getItem(newItem);
+            if (sprite != null) {
+                Tile newtile = new Tile(tile.getxPos(), tile.getyPos(), sprite.getWorldTranslation().z, newItem);
+                newtile.setSpatial(sprite);
+                game.addTile(newtile);
+            }
+
+        }
+    }
+    
+    private String getTileByNumber(String selectedItem, int tileNum) {
+        return selectedItem + "," + tileNum;
+    }
+
+//    private String calculateRealTerrainTileItem(String selectedItem, Vector3f pos) {
+//        String item = getTileByNumber(selectedItem, TILE_CENTER);
+//        
+//        Tile tileUp = game.getTileAtPosition(pos.add(0, 1, 0));
+//        Tile tileUp2 = game.getTileAtPosition(pos.add(0, 2, 0));
+//        Tile tileUpLeft = game.getTileAtPosition(pos.add(-1, 1, 0));
+//        Tile tileUpRight = game.getTileAtPosition(pos.add(1, 1, 0));
+//
+//        Tile tileDown = game.getTileAtPosition(pos.add(0, -1, 0));
+//        Tile tileDown2 = game.getTileAtPosition(pos.add(0, -2, 0));
+//        Tile tileDownLeft = game.getTileAtPosition(pos.add(-1, -1, 0));
+//        Tile tileDownRight = game.getTileAtPosition(pos.add(1, -1, 0));
+//
+//        Tile tileLeft = game.getTileAtPosition(pos.add(-1, 0, 0));
+//        Tile tileLeft2 = game.getTileAtPosition(pos.add(-2, 0, 0));
+//        Tile tileRight = game.getTileAtPosition(pos.add(1, 0, 0));
+//        Tile tileRight2 = game.getTileAtPosition(pos.add(2, 0, 0));
+//
+//        log("==============================");
+//        log("|Tile-Up\t:" + tileUp);
+//        log("|Tile-Up2\t:" + tileUp2);
+//        log("|Tile-Up-L\t:" + tileUpLeft);
+//        log("|Tile-Up-R\t:" + tileUpRight);
+//        log("|Tile-Down\t:" + tileDown);
+//        log("|Tile-Down2\t:" + tileDown2);
+//        log("|Tile-Down-L\t:" + tileDownLeft);
+//        log("|Tile-Down-R\t:" + tileDownRight);
+//        log("|Tile-Left\t:" + tileLeft);
+//        log("|Tile-Left2\t:" + tileLeft2);
+//        log("|Tile-Right\t:" + tileRight);
+//        log("==============================");
+//        
+//                
+//        //SINGLE TILE
+//        if (tileDown == null && tileUp == null && tileLeft == null && tileRight == null) {
+//            item = getTileByNumber(selectedItem, TILE_TOP_SINGLE);
+//            
+//        }
+//        //TILES HORIZONTAL ALONE
+//        else if (tileDown == null && tileUp == null && tileLeft != null && tileRight == null && tileLeft2 == null) {
+//            item = getTileByNumber(selectedItem, TILE_RIGHT_SINGLE);
+//            
+//            if (tileUpLeft == null) {
+//                updateTileAtPosition(getTileByNumber(selectedItem, TILE_LEFT_SINGLE), tileLeft);
+//            }
+//            
+//        }        
+//        else if (tileDown == null && tileUp == null && tileLeft != null && tileRight == null && tileLeft2 != null) {
+//            item = getTileByNumber(selectedItem, TILE_RIGHT_SINGLE);
+//            
+//            if (tileUpLeft == null) {
+//                updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP), tileLeft);
+//            }
+//            
+//            
+//        }
+//        else if (tileDown == null && tileUp == null && tileLeft == null && tileRight != null && tileRight2 == null) {
+//            item = getTileByNumber(selectedItem, TILE_LEFT_SINGLE);
+//            
+//            if (tileUpRight == null) {
+//                updateTileAtPosition(getTileByNumber(selectedItem, TILE_RIGHT_SINGLE), tileRight);
+//            }
+//            
+//        }        
+//        else if (tileDown == null && tileUp == null && tileLeft == null && tileRight != null && tileRight2 != null) {
+//            item = getTileByNumber(selectedItem, TILE_LEFT_SINGLE);
+//            
+//            if (tileUpRight == null) {
+//                updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP), tileRight);
+//            }
+//            
+//        }   
+//        else if (tileDown == null && tileUp == null && tileLeft != null && tileRight != null) {
+//            item = getTileByNumber(selectedItem, TILE_TOP);
+//            updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP), tileRight);
+//            updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP), tileLeft);
+//        }   
+//        //TILES BELOW
+//        else if (tileDown != null && tileUp == null && tileLeft == null && tileRight == null) {
+//            item = getTileByNumber(selectedItem, TILE_TOP_SINGLE);
+//            updateTileAtPosition(getTileByNumber(selectedItem, TILE_CENTER), tileDown);
+//        }  
+//        else if (tileDown != null && tileUp == null && tileLeft != null && tileRight == null) {
+//            item = getTileByNumber(selectedItem, TILE_TOP);
+//            updateTileAtPosition(getTileByNumber(selectedItem, TILE_CENTER), tileDown);
+//            
+//            if (tileUpLeft == null) {
+//                updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP), tileLeft);
+//            }
+//        }  
+//        else if (tileDown != null && tileUp == null && tileLeft == null && tileRight != null) {
+//            item = getTileByNumber(selectedItem, TILE_TOP);
+//            updateTileAtPosition(getTileByNumber(selectedItem, TILE_CENTER), tileDown);
+//            
+//            if (tileUpRight == null) {
+//                updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP), tileRight);
+//            } 
+//        }  
+//        else if (tileDown != null && tileUp == null && tileLeft != null && tileRight != null) {
+//            item = getTileByNumber(selectedItem, TILE_TOP);
+//            updateTileAtPosition(getTileByNumber(selectedItem, TILE_CENTER), tileDown);
+//        }  
+//        //TILES ABOVE
+//        else if (tileDown == null && tileUp != null && tileLeft == null && tileRight == null && tileUpLeft == null && tileUpRight != null) {
+//            item = getTileByNumber(selectedItem, TILE_CENTER);
+//            updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP), tileUp);
+//            
+//        }  
+////        else if (tileDown == null && tileUp != null && tileLeft == null && tileRight == null && tileUpLeft != null && tileUpRight == null) {
+////            item = getTileByNumber(selectedItem, TILE_CENTER);
+////            updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP), tileUp);
+////            
+////        }  
+////        else if (tileDown == null && tileUp != null && tileLeft != null && tileRight == null) {
+////            item = getTileByNumber(selectedItem, TILE_RIGHT);
+////            
+////            if (tileUp2 == null) {
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP_RIGHT), tileUp);
+////            }
+////            
+////        }  
+////        else if (tileDown == null && tileUp != null && tileLeft == null && tileRight != null) {
+////            item = getTileByNumber(selectedItem, TILE_LEFT);
+////            
+////            if (tileUp2 == null) {
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP_LEFT), tileUp);
+////            }
+////            
+////        }  
+//
+////        // Vertical no left or right
+////        if (tileLeft == null && tileRight == null) {
+////
+////            if (tileUp == null && tileDown == null) {
+////                item = getTileByNumber(selectedItem, TILE_TOP_SINGLE);
+////                
+////            } else if (tileUp != null && tileDown != null) {
+////                item = getTileByNumber(selectedItem, TILE_CENTER);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_CENTER), tileDown);
+////
+////            } else if (tileUp != null && tileDown == null) {
+////                item = getTileByNumber(selectedItem, TILE_CENTER);
+////                
+////                if (tileUp2 == null) {
+////                    updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP), tileUp);
+////                }                
+////
+////            } else if (tileUp == null && tileDown != null) {
+////                item = getTileByNumber(selectedItem, TILE_TOP_SINGLE);                
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_CENTER), tileDown);
+////            }
+////
+////        }         
+////        //Vertical left single
+////        else if (tileLeft != null && tileRight == null) {
+////            
+////            if (tileUp == null && tileDown == null) {
+////                item = getTileByNumber(selectedItem, TILE_RIGHT_SINGLE);
+////                
+////                if (tileLeft2 == null) {
+////                    updateTileAtPosition(getTileByNumber(selectedItem, TILE_LEFT_SINGLE), tileLeft);
+////                } else {
+////                    updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP), tileLeft);
+////                }
+////                
+////                
+////            } else if (tileUp != null && tileDown == null) {
+////                item = getTileByNumber(selectedItem, TILE_CENTER);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_LEFT_SINGLE), tileLeft);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP_SINGLE), tileUp);
+////                
+////            } else if (tileUp == null && tileDown != null) {
+////                item = getTileByNumber(selectedItem, TILE_TOP_RIGHT);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_LEFT_SINGLE), tileLeft);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_RIGHT), tileDown);
+////                
+////            } else if (tileUp != null && tileDown != null) {
+////                item = getTileByNumber(selectedItem, TILE_CENTER);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_LEFT_SINGLE), tileLeft);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_CENTER), tileDown);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP_SINGLE), tileUp);
+////                
+////            }
+////            
+////        }
+////        //Vertical right single
+////        else if (tileLeft == null && tileRight != null) {
+////            
+////            if (tileUp == null && tileDown == null) {
+////                item = getTileByNumber(selectedItem, TILE_LEFT_SINGLE);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_RIGHT_SINGLE), tileRight);
+////                
+////            } else if (tileUp != null && tileDown == null) {
+////                item = getTileByNumber(selectedItem, TILE_CENTER);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_RIGHT_SINGLE), tileRight);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP_SINGLE), tileUp);
+////                
+////            } else if (tileUp == null && tileDown != null) {
+////                item = getTileByNumber(selectedItem, TILE_TOP_LEFT);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_RIGHT_SINGLE), tileRight);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_LEFT), tileDown);
+////                
+////            } else if (tileUp != null && tileDown != null) {
+////                item = getTileByNumber(selectedItem, TILE_CENTER);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_RIGHT_SINGLE), tileRight);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_CENTER), tileDown);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP_SINGLE), tileUp);
+////                
+////            }
+////            
+////        }
+////        //Vertical left and right single
+////        else if (tileLeft != null && tileRight != null) {
+////            
+////            if (tileUp == null && tileDown == null) {
+////                item = getTileByNumber(selectedItem, TILE_TOP);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_LEFT_SINGLE), tileLeft);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_RIGHT_SINGLE), tileRight);
+////                
+////            } else if (tileUp != null && tileDown == null) {
+////                item = getTileByNumber(selectedItem, TILE_TOP_SINGLE);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_RIGHT_SINGLE), tileRight);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_LEFT_SINGLE), tileLeft);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP_SINGLE), tileUp);
+////                
+////            } else if (tileUp == null && tileDown != null) {
+////                item = getTileByNumber(selectedItem, TILE_TOP);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_LEFT_SINGLE), tileLeft);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_RIGHT_SINGLE), tileRight);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_CENTER), tileDown);
+////                
+////            } else if (tileUp != null && tileDown != null) {
+////                item = getTileByNumber(selectedItem, TILE_CENTER);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_LEFT_SINGLE), tileLeft);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_RIGHT_SINGLE), tileRight);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_CENTER), tileDown);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP_SINGLE), tileUp);
+////                
+////            }
+////            
+////        }
+//        
+//        
+//        
+//        
+//        
+//        
+//        
+//        
+//        
+//        
+//        
+//        
+//        
+//        
+//        
+//        
+//        
+//        
+//        
+////        else if (tileLeft == null && tileRight != null && tileRight2 == null) {
+////
+////            if (tileUp == null && tileDown == null) {
+////                item = getTileByNumber(selectedItem, TILE_TOP_LEFT);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP_RIGHT), tileRight);
+////
+////            } else if (tileUp != null && tileDown == null) {
+////                item = getTileByNumber(selectedItem, TILE_CENTER);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP_RIGHT), tileRight);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP_SINGLE), tileUp);
+////
+////            } else if (tileUp == null && tileDown != null) {
+////                item = getTileByNumber(selectedItem, TILE_TOP_LEFT);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP), tileRight);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_LEFT), tileDown);
+////
+////            }
+////
+////        } else if (tileLeft == null && tileRight != null && tileRight2 != null) {
+////
+////            if (tileUp == null && tileDown == null) {
+////                item = getTileByNumber(selectedItem, TILE_TOP_LEFT);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP), tileRight);
+////
+////                //If tile is a middle tile skip update
+////                if (!tileRight2.getUid().equalsIgnoreCase(getTileByNumber(selectedItem, TILE_TOP))) {
+////                    updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP_RIGHT), tileRight2);
+////                }
+////
+////            } else if (tileUp != null && tileDown == null) {
+////                //TODO
+////
+////            } else if (tileUp == null && tileDown != null) {
+////                //TODO
+////
+////            }
+////
+////        } else if (tileLeft != null && tileRight == null && tileLeft2 == null) {
+////
+////            if (tileUp == null && tileDown == null) {
+////                item = getTileByNumber(selectedItem, TILE_TOP_RIGHT);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP_LEFT), tileLeft);
+////
+////            } else if (tileUp != null && tileDown == null) {
+////                item = getTileByNumber(selectedItem, TILE_CENTER);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP_LEFT), tileLeft);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP_SINGLE), tileUp);
+////
+////            } else if (tileUp == null && tileDown != null) {
+////                item = getTileByNumber(selectedItem, TILE_TOP_RIGHT);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP_LEFT), tileLeft);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_RIGHT), tileDown);
+////            }
+////
+////        } else if (tileLeft != null && tileRight == null && tileLeft2 != null) {
+////
+////            if (tileUp == null && tileDown == null) {
+////                item = getTileByNumber(selectedItem, TILE_TOP_RIGHT);
+////                updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP), tileLeft);
+////
+////                //If tile is a middle tile skip update
+////                if (!tileLeft2.getUid().equalsIgnoreCase(getTileByNumber(selectedItem, TILE_TOP))) {
+////                    updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP_LEFT), tileLeft2);
+////                }
+////
+////            } else if (tileUp != null && tileDown == null) {
+////                //TODO
+////
+////            } else if (tileUp == null && tileDown != null) {
+////                //TODO
+////
+////            }
+////        } else if (tileLeft != null && tileRight != null) {
+////            if (tileUp == null && tileDown == null) {
+////                if (tileLeft.getUid().equalsIgnoreCase(getTileByNumber(selectedItem, TILE_TOP_LEFT))) {
+////                    updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP), tileLeft);
+////                }
+////                if (tileRight.getUid().equalsIgnoreCase(getTileByNumber(selectedItem, TILE_TOP_RIGHT))) {
+////                    updateTileAtPosition(getTileByNumber(selectedItem, TILE_TOP), tileRight);
+////                }
+////                item = getTileByNumber(selectedItem, TILE_TOP);
+////                
+////            }
+////            
+////        }
+//
+//        return item;
+//    }
 
     private void doPaintAction(float x, float y) {
 //        log("doPaintAction: " + x + ", " + y);
@@ -310,7 +689,13 @@ public class EditScreen extends AbstractScreen implements PickListener {
 
         String selectedItem = toolbar.getSelectedItem();
         log("doPaintAction: " + selectedItem + ", " + x + ", " + y);
+
         if (selectedItem != null && !selectedItem.equals("erase")) {
+
+//            if (selectedItem.startsWith("terrain-")) {
+//                selectedItem = calculateRealTerrainTileItem(selectedItem, pos);
+//            }
+
             Sprite sprite = game.getItem(selectedItem);
 
             //First let's check for an existing sky
@@ -334,7 +719,6 @@ public class EditScreen extends AbstractScreen implements PickListener {
             tile.setSpatial(sprite);
             game.addTile(tile);
         }
-
 
     }
 }

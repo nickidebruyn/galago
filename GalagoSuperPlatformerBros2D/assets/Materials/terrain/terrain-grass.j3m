@@ -1,0 +1,10 @@
+Material My Material : Common/MatDefs/Misc/Unshaded.j3md {
+     MaterialParameters {
+        ColorMap : Textures/terrain/terrain-grass.png
+        AlphaDiscardThreshold : 0.5
+     }
+    AdditionalRenderState {
+      Blend PremultAlpha
+      FaceCull Off
+    }
+}

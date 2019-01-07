@@ -29,7 +29,7 @@ public class MainApplication extends Base2DApplication {
     private LevelManager levelManager;
     
     public MainApplication() {
-        super("Super Platformer Bros", 1280, 800, "platformer2d.save", "Interface/Fonts/Roofrunnersactive.fnt", null, false);
+        super("Super Platformer Bros", 1600, 900, "platformer2d.save", "Interface/Fonts/Roofrunnersactive.fnt", null, false);
     }    
 
     public static void main(String[] args) {
@@ -42,7 +42,7 @@ public class MainApplication extends Base2DApplication {
         
         splashInfoMessage = "Loading Game";
         
-        BACKGROUND_COLOR = ColorUtils.rgb(60, 70, 80);
+        BACKGROUND_COLOR = ColorUtils.rgb(0, 0, 0);
 
         levelManager = new LevelManager(this);
 
@@ -91,6 +91,8 @@ public class MainApplication extends Base2DApplication {
 
     @Override
     public void initModelManager(ModelManager modelManager) {
+        
+        modelManager.loadMaterial("Materials/terrain/terrain-grass.j3m");
 
     }
 

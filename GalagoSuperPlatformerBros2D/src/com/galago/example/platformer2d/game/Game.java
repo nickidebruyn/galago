@@ -7,6 +7,7 @@ package com.galago.example.platformer2d.game;
 import com.bruynhuis.galago.app.Base2DApplication;
 import com.bruynhuis.galago.control.RotationControl;
 import com.bruynhuis.galago.control.effects.FlowControl;
+import com.bruynhuis.galago.games.platform.PlatformGame;
 import com.bruynhuis.galago.games.platform2d.Platform2DGame;
 import com.bruynhuis.galago.sprite.Sprite;
 import com.bruynhuis.galago.sprite.physics.RigidBodyControl;
@@ -31,6 +32,11 @@ import com.galago.example.platformer2d.game.controls.PlatformVerticalControl;
 import com.galago.example.platformer2d.game.controls.PortalControl;
 import com.galago.example.platformer2d.game.terrain.CrateControl;
 import com.galago.example.platformer2d.game.terrain.GlassControl;
+import com.jme3.system.JmeSystem;
+import com.jme3.system.Platform;
+import java.io.File;
+import java.net.URL;
+import java.util.logging.Logger;
 
 /**
  *
@@ -42,7 +48,7 @@ public class Game extends Platform2DGame {
     private RigidBodyControl terrainRigidBodyControl;
     private float backgroundScale = 0.026f;
     private FilterPostProcessor fpp;
-    
+
     public Game(Base2DApplication baseApplication, Node rootNode) {
         super(baseApplication, rootNode);
 
@@ -62,14 +68,60 @@ public class Game extends Platform2DGame {
 
     @Override
     protected void initTerrainList(ArrayList<String> list) {
-        list.add("terrain-ground");
-        list.add("terrain-plate");
-        list.add("terrain-metal");
-        list.add("terrain-stone");
-        list.add("terrain-brick");
-        list.add("terrain-grass");
-        list.add("terrain-snow");
-        list.add("terrain-snow-ground");
+//        list.add("terrain/grass/top");
+//        list.add("terrain/grass/top-left");
+//        list.add("terrain/grass/top-right");
+//        list.add("terrain/grass/center");
+
+        URL url = null;
+
+        try {
+            Platform platform = JmeSystem.getPlatform();
+
+            if (platform.compareTo(Platform.Android_ARM5) == 0 || platform.compareTo(Platform.Android_ARM6) == 0 || platform.compareTo(Platform.Android_ARM7) == 0) {
+                url = JmeSystem.getResource("/assets/Textures/terrain/");
+
+            } else {
+                url = JmeSystem.getResource("/Textures/terrain/");
+            }
+        } catch (UnsupportedOperationException e) {
+            Logger.getLogger(PlatformGame.class.getName()).log(java.util.logging.Level.INFO, null, e);
+            //Load the default
+            url = JmeSystem.getResource("/assets/Textures/terrain/");
+
+        }
+
+        if (url != null) {
+//            Debug.log("Found terrain assets: " + url.getFile());
+            File file = new File(url.getFile());
+
+            if (file.isDirectory()) {
+                File[] terrainTypes = file.listFiles();
+                for (int i = 0; i < terrainTypes.length; i++) {
+                    File terrainTypeFile = terrainTypes[i];
+                    if (terrainTypeFile.isDirectory()) {
+                        String terrainType = terrainTypeFile.getName();
+//                        Debug.log("Terrain type: " + terrainType);
+                        File[] tileTypes = terrainTypeFile.listFiles();
+
+                        for (int j = 0; j < tileTypes.length; j++) {
+                            File tileTypeFile = tileTypes[j];
+                            if (tileTypeFile.isFile() && tileTypeFile.getName().endsWith(".png")) {
+                                String tileType = tileTypeFile.getName().replaceAll(".png", "");
+//                                Debug.log("Tile type: " + tileType);
+                                list.add("terrain/" + terrainType + "/" + tileType);
+
+//                                addToolButton("terrain/" + terrainType + "/" + tileType, "Textures/terrain/" + terrainType + "/" + tileType + ".png", 0);
+                            }
+
+                        }
+
+                    }
+                }
+
+            }
+
+        }
 
     }
 
@@ -103,12 +155,12 @@ public class Game extends Platform2DGame {
         list.add("static-portal-yellow-out");
         list.add("static-portal-purple-in");
         list.add("static-portal-purple-out");
-        
+
         list.add("static-mover-up");
         list.add("static-mover-down");
         list.add("static-mover-left");
         list.add("static-mover-right");
-        
+
     }
 
     @Override
@@ -229,7 +281,7 @@ public class Game extends Platform2DGame {
         float size = TILE_SIZE;
 
         sprite = new Sprite(item, size, size);
-        sprite.setImage("Textures/terrain/" + item + ".png");
+        sprite.setImage("Textures/" + item + ".png");
         sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
 
         BoxCollisionShape collisionShape = new BoxCollisionShape(sprite.getWidth(), sprite.getHeight());
@@ -253,7 +305,7 @@ public class Game extends Platform2DGame {
     }
 
     private Sprite getEnemy(String item) {
-       
+
         return null;
     }
 
@@ -273,7 +325,7 @@ public class Game extends Platform2DGame {
             sprite.addControl(new GlassControl(this));
 
         }
-        
+
         if (item.endsWith("ice")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/terrain/terrain-ice.png");
@@ -286,7 +338,7 @@ public class Game extends Platform2DGame {
             sprite.addControl(new GlassControl(this));
 
         }
-        
+
         if (item.endsWith("crate")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/terrain/terrain-crate2.png");
@@ -298,25 +350,25 @@ public class Game extends Platform2DGame {
             sprite.addControl(new CrateControl(this));
 
         }
-        
+
         if (item.endsWith("platform-horizontal")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/static/metal-platform.png");
             sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
-            RigidBodyControl body = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth()*0.95f, sprite.getHeight()*0.95f), 0);
+            RigidBodyControl body = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth() * 0.95f, sprite.getHeight() * 0.95f), 0);
             body.setRestitution(0);
             body.setFriction(1f);
             body.setPhysicLocation(new Vector3f(0, 0, 0));
             sprite.addControl(body);
-            sprite.addControl(new PlatformHorizontalControl(this));            
+            sprite.addControl(new PlatformHorizontalControl(this));
 
         }
-        
+
         if (item.endsWith("platform-vertical")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/static/metal-platform.png");
             sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
-            RigidBodyControl body = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth()*0.95f, sprite.getHeight()*0.95f), 0);
+            RigidBodyControl body = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth() * 0.95f, sprite.getHeight() * 0.95f), 0);
             body.setRestitution(0);
             body.setFriction(1f);
             body.setPhysicLocation(new Vector3f(0, 0, 0));
@@ -324,12 +376,12 @@ public class Game extends Platform2DGame {
             sprite.addControl(new PlatformVerticalControl(this));
 
         }
-        
+
         if (item.endsWith("mushroom")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/static/mushroom.png");
             sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
-            RigidBodyControl body = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth(), sprite.getHeight()*0.4f), 0);
+            RigidBodyControl body = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth(), sprite.getHeight() * 0.4f), 0);
             body.setRestitution(0);
             body.setFriction(1f);
             body.setPhysicLocation(new Vector3f(0, 0, 0));
@@ -337,13 +389,13 @@ public class Game extends Platform2DGame {
             sprite.addControl(new MushroomControl(this));
 
         }
-        
+
         if (item.endsWith("portal-blue-in")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setUserData("target", "blue-out");
             sprite.setImage("Textures/static/portal-blue.png");
             sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
-            RigidBodyControl body = new RigidBodyControl(new CircleCollisionShape(TILE_SIZE*0.4f), 0);
+            RigidBodyControl body = new RigidBodyControl(new CircleCollisionShape(TILE_SIZE * 0.4f), 0);
             body.setRestitution(0);
             body.setFriction(1f);
             body.setSensor(true);
@@ -356,14 +408,14 @@ public class Game extends Platform2DGame {
             sprite.attachChild(sonar);
 
         }
-        
+
         if (item.endsWith("portal-blue-out")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setUserData("type", "blue-out");
             sprite.setImage("Textures/static/portal-blue.png");
             sprite.setLocalTranslation(0, 0, 0.01f);
             sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
-            RigidBodyControl body = new RigidBodyControl(new CircleCollisionShape(TILE_SIZE*0.4f), 0);
+            RigidBodyControl body = new RigidBodyControl(new CircleCollisionShape(TILE_SIZE * 0.4f), 0);
             body.setRestitution(0);
             body.setFriction(1f);
             body.setSensor(true);
@@ -375,13 +427,13 @@ public class Game extends Platform2DGame {
             sprite.attachChild(sonar);
 
         }
-        
+
         if (item.endsWith("portal-yellow-in")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setUserData("target", "yellow-out");
             sprite.setImage("Textures/static/portal-yellow.png");
             sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
-            RigidBodyControl body = new RigidBodyControl(new CircleCollisionShape(TILE_SIZE*0.4f), 0);
+            RigidBodyControl body = new RigidBodyControl(new CircleCollisionShape(TILE_SIZE * 0.4f), 0);
             body.setRestitution(0);
             body.setFriction(1f);
             body.setSensor(true);
@@ -394,14 +446,14 @@ public class Game extends Platform2DGame {
             sprite.attachChild(sonar);
 
         }
-        
+
         if (item.endsWith("portal-yellow-out")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setUserData("type", "yellow-out");
             sprite.setImage("Textures/static/portal-yellow.png");
             sprite.setLocalTranslation(0, 0, 0.01f);
             sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
-            RigidBodyControl body = new RigidBodyControl(new CircleCollisionShape(TILE_SIZE*0.4f), 0);
+            RigidBodyControl body = new RigidBodyControl(new CircleCollisionShape(TILE_SIZE * 0.4f), 0);
             body.setRestitution(0);
             body.setFriction(1f);
             body.setSensor(true);
@@ -413,13 +465,13 @@ public class Game extends Platform2DGame {
             sprite.attachChild(sonar);
 
         }
-        
+
         if (item.endsWith("portal-purple-in")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setUserData("target", "purple-out");
             sprite.setImage("Textures/static/portal-purple.png");
             sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
-            RigidBodyControl body = new RigidBodyControl(new CircleCollisionShape(TILE_SIZE*0.4f), 0);
+            RigidBodyControl body = new RigidBodyControl(new CircleCollisionShape(TILE_SIZE * 0.4f), 0);
             body.setRestitution(0);
             body.setFriction(1f);
             body.setSensor(true);
@@ -432,14 +484,14 @@ public class Game extends Platform2DGame {
             sprite.attachChild(sonar);
 
         }
-        
+
         if (item.endsWith("portal-purple-out")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setUserData("type", "purple-out");
             sprite.setImage("Textures/static/portal-purple.png");
             sprite.setLocalTranslation(0, 0, 0.01f);
             sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
-            RigidBodyControl body = new RigidBodyControl(new CircleCollisionShape(TILE_SIZE*0.4f), 0);
+            RigidBodyControl body = new RigidBodyControl(new CircleCollisionShape(TILE_SIZE * 0.4f), 0);
             body.setRestitution(0);
             body.setFriction(1f);
             body.setSensor(true);
@@ -451,15 +503,15 @@ public class Game extends Platform2DGame {
             sprite.attachChild(sonar);
 
         }
-        
+
         if (item.endsWith("mover-right")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/static/mover.png");
             sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
-            
+
             sprite.addControl(new MoverControl(this, new Vector3f(1, 0, 0)));
-            
-            Sprite flower = new Sprite("mover-right", TILE_SIZE*0.8f, TILE_SIZE*0.8f);
+
+            Sprite flower = new Sprite("mover-right", TILE_SIZE * 0.8f, TILE_SIZE * 0.8f);
             flower.setImage("Textures/static/arrow.png");
             FlowControl flowControl = new FlowControl("Textures/static/arrow.png", -2, 0);
             flower.addControl(flowControl);
@@ -467,15 +519,15 @@ public class Game extends Platform2DGame {
             flower.move(0, 0, -0.01f);
 
         }
-        
+
         if (item.endsWith("mover-left")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/static/mover.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);            
+            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             sprite.addControl(new MoverControl(this, new Vector3f(-1, 0, 0)));
-            sprite.rotate(0, 0, 180*FastMath.DEG_TO_RAD);
-            
-            Sprite flower = new Sprite("mover-left", TILE_SIZE*0.8f, TILE_SIZE*0.8f);
+            sprite.rotate(0, 0, 180 * FastMath.DEG_TO_RAD);
+
+            Sprite flower = new Sprite("mover-left", TILE_SIZE * 0.8f, TILE_SIZE * 0.8f);
             flower.setImage("Textures/static/arrow.png");
             FlowControl flowControl = new FlowControl("Textures/static/arrow.png", -2, 0);
             flower.addControl(flowControl);
@@ -483,15 +535,15 @@ public class Game extends Platform2DGame {
             flower.move(0, 0, -0.01f);
 
         }
-        
+
         if (item.endsWith("mover-up")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/static/mover.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);            
+            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             sprite.addControl(new MoverControl(this, new Vector3f(0, 1, 0)));
-            sprite.rotate(0, 0, 90*FastMath.DEG_TO_RAD);
-            
-            Sprite flower = new Sprite("mover-up", TILE_SIZE*0.8f, TILE_SIZE*0.8f);
+            sprite.rotate(0, 0, 90 * FastMath.DEG_TO_RAD);
+
+            Sprite flower = new Sprite("mover-up", TILE_SIZE * 0.8f, TILE_SIZE * 0.8f);
             flower.setImage("Textures/static/arrow.png");
             FlowControl flowControl = new FlowControl("Textures/static/arrow.png", -2, 0);
             flower.addControl(flowControl);
@@ -499,15 +551,15 @@ public class Game extends Platform2DGame {
             flower.move(0, 0, -0.01f);
 
         }
-        
+
         if (item.endsWith("mover-down")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/static/mover.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);            
+            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             sprite.addControl(new MoverControl(this, new Vector3f(0, -1, 0)));
-            sprite.rotate(0, 0, 270*FastMath.DEG_TO_RAD);
-            
-            Sprite flower = new Sprite("mover-down", TILE_SIZE*0.8f, TILE_SIZE*0.8f);
+            sprite.rotate(0, 0, 270 * FastMath.DEG_TO_RAD);
+
+            Sprite flower = new Sprite("mover-down", TILE_SIZE * 0.8f, TILE_SIZE * 0.8f);
             flower.setImage("Textures/static/arrow.png");
             FlowControl flowControl = new FlowControl("Textures/static/arrow.png", -2, 0);
             flower.addControl(flowControl);
@@ -532,7 +584,7 @@ public class Game extends Platform2DGame {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/obstacle/spikes.png");
             sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
-            RigidBodyControl terrainBody = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth(), TILE_SIZE*0.15f), 0);
+            RigidBodyControl terrainBody = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth(), TILE_SIZE * 0.15f), 0);
             terrainBody.setRestitution(0);
             terrainBody.setFriction(1f);
             terrainBody.setPhysicLocation(new Vector3f(0, 0, 0));
@@ -544,7 +596,7 @@ public class Game extends Platform2DGame {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/obstacle/spikes.png");
             sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
-            RigidBodyControl terrainBody = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth(), TILE_SIZE*0.15f), 0);
+            RigidBodyControl terrainBody = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth(), TILE_SIZE * 0.15f), 0);
             terrainBody.setRestitution(0);
             terrainBody.setFriction(1f);
             terrainBody.setPhysicLocation(new Vector3f(0, 0, 0));
@@ -558,7 +610,7 @@ public class Game extends Platform2DGame {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/obstacle/spikes.png");
             sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
-            RigidBodyControl terrainBody = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth(), TILE_SIZE*0.15f), 0);
+            RigidBodyControl terrainBody = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth(), TILE_SIZE * 0.15f), 0);
             terrainBody.setRestitution(0);
             terrainBody.setFriction(1f);
             terrainBody.setPhysicLocation(new Vector3f(0, 0, 0));
@@ -572,7 +624,7 @@ public class Game extends Platform2DGame {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/obstacle/spikes.png");
             sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
-            RigidBodyControl terrainBody = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth(), TILE_SIZE*0.15f), 0);
+            RigidBodyControl terrainBody = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth(), TILE_SIZE * 0.15f), 0);
             terrainBody.setRestitution(0);
             terrainBody.setFriction(1f);
             terrainBody.setPhysicLocation(new Vector3f(0, 0, 0));
@@ -595,7 +647,7 @@ public class Game extends Platform2DGame {
             sprite.addControl(new BladeControl(this));
 
         }
-        
+
         if (item.endsWith("blade-horizontal")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/obstacle/blade.png");
@@ -611,7 +663,7 @@ public class Game extends Platform2DGame {
             sprite.addControl(new BladeHorizontalControl(this));
 
         }
-        
+
         if (item.endsWith("spike-ball")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/obstacle/spike-ball.png");
@@ -627,12 +679,12 @@ public class Game extends Platform2DGame {
                 @Override
                 protected void controlUpdate(float tpf) {
                     if (isStarted() && !isGameOver() && !isPaused()) {
-                        
-                        if (FastMath.abs(player.getPosition().x - spatial.getControl(RigidBodyControl.class).getPhysicLocation().x) < 2 &&
-                                FastMath.abs(spatial.getControl(RigidBodyControl.class).getPhysicLocation().y - player.getPosition().y) < 2) {
+
+                        if (FastMath.abs(player.getPosition().x - spatial.getControl(RigidBodyControl.class).getPhysicLocation().x) < 2
+                                && FastMath.abs(spatial.getControl(RigidBodyControl.class).getPhysicLocation().y - player.getPosition().y) < 2) {
                             spatial.getControl(RigidBodyControl.class).setGravityScale(1.2f);
                         }
-                        
+
                     }
                 }
 
@@ -674,7 +726,7 @@ public class Game extends Platform2DGame {
         sprite.setMaterial(baseApplication.getAssetManager().loadMaterial("Materials/other/end.j3m"));
         sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
         sprite.setLocalTranslation(0, 0, 0.01f);
-        RigidBodyControl rigidBodyControl = new RigidBodyControl(new CircleCollisionShape(TILE_SIZE*0.4f), 0);
+        RigidBodyControl rigidBodyControl = new RigidBodyControl(new CircleCollisionShape(TILE_SIZE * 0.4f), 0);
         rigidBodyControl.setRestitution(0);
         rigidBodyControl.setFriction(0f);
         rigidBodyControl.setGravityScale(0);
@@ -699,14 +751,12 @@ public class Game extends Platform2DGame {
      */
     private Sprite getVegetation(String item) {
         Sprite sprite = null;
-        
-
 
         return sprite;
     }
 
     private Sprite getPickup(String item) {
-        Sprite sprite = new Sprite(item, TILE_SIZE*0.8f, TILE_SIZE*0.8f);
+        Sprite sprite = new Sprite(item, TILE_SIZE * 0.8f, TILE_SIZE * 0.8f);
         sprite.setMaterial(baseApplication.getAssetManager().loadMaterial("Materials/pickup/star.j3m"));
         sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
         sprite.setLocalTranslation(0, 0, 0.01f);
@@ -747,14 +797,12 @@ public class Game extends Platform2DGame {
     private Sprite getLayer1(String item) {
 
         Sprite sprite = null;
-       
 
         return sprite;
     }
 
     private Sprite getLayer2(String item) {
         Sprite sprite = null;
-        
 
         return sprite;
     }
