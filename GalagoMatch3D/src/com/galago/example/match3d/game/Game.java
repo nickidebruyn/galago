@@ -16,11 +16,16 @@ import com.bruynhuis.galago.sprite.Sprite;
 import com.bruynhuis.galago.util.ColorUtils;
 import com.bruynhuis.galago.util.SharedSystem;
 import com.bruynhuis.galago.util.SpatialUtils;
+import com.bruynhuis.galago.util.Timer;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.RenderManager;
+import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.control.AbstractControl;
 import com.jme3.scene.control.BillboardControl;
 
 /**
@@ -31,6 +36,7 @@ public class Game extends BasicGame {
 
     public static final String PLATFORM = "platform";
     public static final String CUBE = "cube";
+    public static final String MATCHED = "matched";
 
     public static final String CUBE_TYPE = "cube_type";
     public static final String CUBE_TYPE_1 = "cube_type_1";
@@ -40,7 +46,7 @@ public class Game extends BasicGame {
     public static final String CUBE_TYPE_5 = "cube_type_5";
     public static final String CUBE_TYPE_6 = "cube_type_6";
 
-    private float blocksize = 0.94f;
+    private float blocksize = 0.96f;
     private float floorsize = 0.98f;
     private float spacing = 1f;
     private Vector3f sunDirection = new Vector3f(0.2f, -0.3f, -0.4f);
@@ -50,6 +56,10 @@ public class Game extends BasicGame {
     private float BACKGROUND_SCALE = 0.02f;
     private Node cubesNode;
     private boolean playing = false;
+    private boolean matchesFound = false;
+
+    private Timer matchedCubeDisposeTimer = new Timer(120);
+    private Timer gravityTimer = new Timer(120);
 
     private ColorRGBA PLATFORM_COLOR = ColorUtils.rgb(149, 175, 192);
     private ColorRGBA CUBE_COLOR1 = ColorUtils.rgb(249, 202, 36);
@@ -78,6 +88,48 @@ public class Game extends BasicGame {
 
         initLight(ColorRGBA.DarkGray, ColorRGBA.LightGray, sunDirection);
 
+        SpatialUtils.addSkySphere(levelNode, 6, baseApplication.getCamera());
+
+        levelNode.addControl(new AbstractControl() {
+            @Override
+            protected void controlUpdate(float tpf) {
+
+                if (isStarted() && !isPaused()) {
+
+                    //Matched cube dispose timer will determine if the matched cubes was disposed.
+                    matchedCubeDisposeTimer.update(tpf);
+                    if (matchedCubeDisposeTimer.finished()) {
+
+                        //When dispose timer is done remove from parent
+                        for (int i = 0; i < cubesNode.getQuantity(); i++) {
+                            final Spatial cube = cubesNode.getChild(i);
+                            if (cube.getUserData(MATCHED) != null) {
+                                cube.removeFromParent();
+                            }
+                        }
+
+                        matchesFound = false;
+                        applyGravity();
+                        matchedCubeDisposeTimer.stop();
+                    }
+
+                    //Gravity timer will determine if we can matched cubes again.
+                    gravityTimer.update(tpf);
+                    if (gravityTimer.finished()) {
+                        matchCubes();
+                        gravityTimer.stop();
+                    }
+
+                }
+
+            }
+
+            @Override
+            protected void controlRender(RenderManager rm, ViewPort vp) {
+
+            }
+        });
+
     }
 
     private void loadBackground(String texture, float zPos) {
@@ -93,16 +145,17 @@ public class Game extends BasicGame {
     }
 
     private void addPlatform(float x, float z) {
-        Spatial platform = SpatialUtils.addBox(levelNode, floorsize / 2f, floorsize / 20f, floorsize / 2f);
+        Spatial platform = SpatialUtils.addBox(levelNode, floorsize / 2f, floorsize / 30f, floorsize / 2f);
         platform.setName(PLATFORM);
         SpatialUtils.addColor(platform, PLATFORM_COLOR, false);
-        SpatialUtils.move(platform, x, -(blocksize / 2) - (floorsize / 20f), z);
+        SpatialUtils.move(platform, x, -(blocksize / 2) - (floorsize / 30f), z);
 
     }
 
-    public void addCube(String type, float x, float z) {
-        
+    public boolean addCube(String type, float x, float z) {
+
         Vector3f targetPos = getTargetYPosition(x, z);
+        matchesFound = false;
 
         if (targetPos != null) {
             playing = true;
@@ -118,12 +171,171 @@ public class Game extends BasicGame {
                     .setCallback(new TweenCallback() {
                         @Override
                         public void onEvent(int i, BaseTween<?> bt) {
-                            playing = false;
+                            matchCubes();
                         }
                     })
                     .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private Spatial getCubeOfSameTypeRelativeTo(Spatial origin, float x, float y, float z) {
+        Spatial found = null;
+
+        for (int i = 0; i < cubesNode.getQuantity(); i++) {
+            Spatial cube = cubesNode.getChild(i);
+            if (!cube.equals(origin) && cube.getUserData(CUBE_TYPE).equals(origin.getUserData(CUBE_TYPE))) {
+
+                if (cube.getWorldTranslation().x == (origin.getWorldTranslation().x + x)
+                        && cube.getWorldTranslation().y == (origin.getWorldTranslation().y + y)
+                        && cube.getWorldTranslation().z == (origin.getWorldTranslation().z + z)) {
+                    found = cube;
+//                    log("Cube found: " + cube.getUserData(CUBE_TYPE));
+                    break;
+                }
+
+            }
+
         }
 
+        return found;
+    }
+    
+    private Spatial getCubeRelativeTo(Spatial origin, float x, float y, float z) {
+        Spatial found = null;
+
+        for (int i = 0; i < cubesNode.getQuantity(); i++) {
+            Spatial cube = cubesNode.getChild(i);
+            if (!cube.equals(origin)) {
+
+                if (cube.getWorldTranslation().x == (origin.getWorldTranslation().x + x)
+                        && cube.getWorldTranslation().y == (origin.getWorldTranslation().y + y)
+                        && cube.getWorldTranslation().z == (origin.getWorldTranslation().z + z)) {
+                    found = cube;
+                    break;
+                }
+
+            }
+
+        }
+
+        return found;
+    }
+
+    /**
+     * This method will calculate if any 3 matches was found
+     */
+    private void matchCubes() {
+        //TODO: Loop over all the cubes and check for possible matches
+        //If a match occurred then mark the cubes as matched
+        for (int i = 0; i < cubesNode.getQuantity(); i++) {
+            Spatial cube = cubesNode.getChild(i);
+            Spatial cubeLeft = getCubeOfSameTypeRelativeTo(cube, -spacing, 0, 0);
+            Spatial cubeRight = getCubeOfSameTypeRelativeTo(cube, spacing, 0, 0);
+            Spatial cubeFront = getCubeOfSameTypeRelativeTo(cube, 0, 0, -spacing);
+            Spatial cubeBack = getCubeOfSameTypeRelativeTo(cube, 0, 0, spacing);
+            Spatial cubeUp = getCubeOfSameTypeRelativeTo(cube, 0, spacing, 0);
+            Spatial cubeDown = getCubeOfSameTypeRelativeTo(cube, 0, -spacing, 0);
+
+            if (cubeUp != null && cubeDown != null) {
+                matchesFound = true;
+                cube.setUserData(MATCHED, true);
+                cubeUp.setUserData(MATCHED, true);
+                cubeDown.setUserData(MATCHED, true);
+
+            } else if (cubeLeft != null && cubeRight != null) {
+                matchesFound = true;
+                cube.setUserData(MATCHED, true);
+                cubeLeft.setUserData(MATCHED, true);
+                cubeRight.setUserData(MATCHED, true);
+
+            } else if (cubeFront != null && cubeBack != null) {
+                matchesFound = true;
+                cube.setUserData(MATCHED, true);
+                cubeFront.setUserData(MATCHED, true);
+                cubeBack.setUserData(MATCHED, true);
+
+            }
+        }
+
+        if (matchesFound) {
+            animateMatchedCubesDisposal();
+            matchedCubeDisposeTimer.reset();
+
+        } else {
+            playing = false;
+        }
+
+    }
+
+    /**
+     * This method will go over all the cubes and dispose the ones that has been
+     * marked as matched
+     */
+    private void animateMatchedCubesDisposal() {
+        for (int i = 0; i < cubesNode.getQuantity(); i++) {
+            final Spatial cube = cubesNode.getChild(i);
+            if (cube.getUserData(MATCHED) != null) {
+
+                Tween.to(cube, SpatialAccessor.SCALE_XYZ, 0.8f)
+                        .target(0, 0, 0)
+                        .ease(Bounce.OUT)
+                        .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+
+            }
+        }
+
+    }
+
+    /**
+     * This method will apply gravity to all cubes on the bord.
+     */
+    private void applyGravity() {
+        
+        boolean gravityApplied = false;
+
+        for (int i = 0; i < cubesNode.getQuantity(); i++) {
+            final Spatial cube = cubesNode.getChild(i);
+            Vector3f targetPos = null;
+            Spatial cubeDown = getCubeRelativeTo(cube, 0, -spacing, 0);
+            Spatial cubeDown2 = getCubeRelativeTo(cube, 0, -spacing*2, 0);
+            
+            if (cubeDown == null && cubeDown2 == null) {
+                targetPos = new Vector3f(cube.getWorldTranslation().x, 0, cube.getWorldTranslation().z);
+                
+            } else if (cubeDown == null && cubeDown2 != null) {
+                targetPos = new Vector3f(cube.getWorldTranslation().x, 1, cube.getWorldTranslation().z);
+                
+            } else if (cubeDown != null && cubeDown2 == null) {
+                targetPos = new Vector3f(cube.getWorldTranslation().x, 1, cube.getWorldTranslation().z);
+                
+            }
+
+            if (targetPos != null) {
+                gravityApplied = true;
+                Tween.to(cube, SpatialAccessor.POS_XYZ, 1.0f)
+                    .target(targetPos.x, targetPos.y, targetPos.z)
+                    .ease(Bounce.OUT)
+                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+            
+            }
+        }
+        
+        if (gravityApplied) {
+            log("Apply gravity");
+            gravityTimer.reset();
+            
+        } else {
+            playing = false;
+        }
+    }
+
+    public String getRandomCubeType() {
+        int index = FastMath.nextRandomInt(1, 6);
+        return "cube_type_" + index;
     }
 
     public ColorRGBA getCubeColor(String type) {
@@ -167,11 +379,11 @@ public class Game extends BasicGame {
                     && cube.getWorldTranslation().y < cubeMaxHeight) {
 
 //                targetPos = new Vector3f(x, 0, z);
-                log("Found cube at: " + cube.getWorldTranslation());
+//                log("Found cube at: " + cube.getWorldTranslation());
 
                 if (cube.getWorldTranslation().y >= targetPos.y) {
                     targetPos = new Vector3f(x, cube.getWorldTranslation().y + spacing, z);
-                    log("Set new target pos: " + targetPos);
+//                    log("Set new target pos: " + targetPos);
 
                 }
             }
@@ -179,7 +391,7 @@ public class Game extends BasicGame {
 
         if (targetPos.y >= cubeMaxHeight) {
             targetPos = null;
-            log("Max height reached...");
+//            log("Max height reached...");
         }
 
         return targetPos;
