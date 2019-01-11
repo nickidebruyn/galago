@@ -28,7 +28,7 @@ public class MainApplication extends Base3DApplication {
     }
 
     public MainApplication() {
-        super("Color Cube", 480, 800, "match3d.save", "Interface/Fonts/Roboto.fnt", null, false);
+        super("Color Cube", 480, 800, "match3d.save", "Interface/Fonts/Roboto.fnt", "Interface/splash.jpg", false);
     }
 
     @Override

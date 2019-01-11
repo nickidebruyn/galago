@@ -47,12 +47,12 @@ public class Game extends BasicGame {
     public static final String CUBE_TYPE_4 = "cube_type_4";
     public static final String CUBE_TYPE_5 = "cube_type_5";
     public static final String CUBE_TYPE_6 = "cube_type_6";
-    
+
     public static final int PLAYER_LEVEL_2_RANGE = 20;
     public static final int PLAYER_LEVEL_3_RANGE = 100;
 
     private GameProgressListener gameProgressListener;
-    
+
     private float blocksize = 0.94f;
     private float floorsize = 0.98f;
     private float spacing = 1f;
@@ -67,6 +67,8 @@ public class Game extends BasicGame {
     private Material skyMaterial;
     private boolean playing = false;
     private boolean matchesFound = false;
+    private boolean rotating = false;
+    private float angle = 0;
     private int boosterCount = 0;
     private int playerLevel = 1;
 
@@ -93,22 +95,22 @@ public class Game extends BasicGame {
     public Game(BaseApplication baseApplication, Node rootNode) {
         super(baseApplication, rootNode);
     }
-    
+
     public void addGameProgressListener(GameProgressListener gameProgressListener) {
         this.gameProgressListener = gameProgressListener;
     }
-    
+
     private void fireGameProgressLevelUp(int level) {
         if (this.gameProgressListener != null) {
             this.gameProgressListener.doLevelUp(level);
-        }         
+        }
     }
+
     private void fireGameProgressScoreBooster(int score) {
         if (this.gameProgressListener != null) {
             this.gameProgressListener.doScoreBooster(score);
-        }         
+        }
     }
-    
 
     @Override
     public void init() {
@@ -127,6 +129,7 @@ public class Game extends BasicGame {
 //        borderMarker = SpatialUtils.addBox(rootNode, spacing*1.5f, spacing*1.5f, spacing*1.5f);
 //        borderMarker.setMaterial(baseApplication.getAssetManager().loadMaterial("Materials/marker.j3m"));
 //        borderMarker.move(0, spacing*1.5f-(spacing*0.5f), 0);
+        
         initLight(ColorRGBA.Gray, ColorRGBA.LightGray, sunDirection);
 
         ColorRGBA colorRGBA = ColorUtils.hsv(0.0f, 0.75f, .9f);
@@ -168,23 +171,23 @@ public class Game extends BasicGame {
                                 Spatial cube = cubestoRemove.get(i);
                                 cube.removeFromParent();
                             }
-                            
+
                             fireGameProgressScoreBooster(boosterCount);
 
                             //Calculate scores
                             if (cubestoRemove.size() == 3) {
-                                player.addScore(1*boosterCount);
+                                player.addScore(1 * boosterCount);
                                 refreshSkyColor();
 
                             } else if (cubestoRemove.size() == 6) {
-                                player.addScore(2*boosterCount);
+                                player.addScore(2 * boosterCount);
                                 refreshSkyColor();
 
                             } else if (cubestoRemove.size() == 9) {
-                                player.addScore(3*boosterCount);
+                                player.addScore(3 * boosterCount);
                                 refreshSkyColor();
                             }
-                            
+
                             updatePlayerLevel();
 
                         }
@@ -213,19 +216,19 @@ public class Game extends BasicGame {
         });
 
     }
-    
+
     private void updatePlayerLevel() {
         if (playerLevel == 1 && player.getScore() >= PLAYER_LEVEL_2_RANGE) {
-            playerLevel ++;
+            playerLevel++;
             fireGameProgressLevelUp(playerLevel);
-            
+
         } else if (playerLevel == 2 && player.getScore() >= PLAYER_LEVEL_3_RANGE) {
-            playerLevel ++;
+            playerLevel++;
             fireGameProgressLevelUp(playerLevel);
         }
     }
 
-    private void refreshSkyColor() {        
+    private void refreshSkyColor() {
         float val = 0;
         if (player != null) {
             val = (float) player.getScore();
@@ -281,7 +284,7 @@ public class Game extends BasicGame {
 
 //            SpatialUtils.addColor(cube, getCubeColor(type), false);
             SpatialUtils.move(cube, x, cubeStartHeight, z);
-            
+
             baseApplication.getSoundManager().playSound("drop");
 
             //Create wobble effect
@@ -292,11 +295,11 @@ public class Game extends BasicGame {
                     .setCallback(new TweenCallback() {
                         @Override
                         public void onEvent(int i, BaseTween<?> bt) {
-                            
+
                             //Do collide effect
                             //TODO: Sound
                             baseApplication.getSoundManager().playSoundRandomPitch("place");
-                            
+
                             baseApplication.getEffectManager().prepareColor(cubeColor, cubeColor);
                             baseApplication.getEffectManager().doEffect("cube-place", targetPos.subtract(0, spacing / 2, 0));
 
@@ -306,7 +309,7 @@ public class Game extends BasicGame {
                                     .setCallback(new TweenCallback() {
                                         @Override
                                         public void onEvent(int i, BaseTween<?> bt) {
-                                            
+
                                             //Reset to default
                                             Tween.to(cube, SpatialAccessor.SCALE_XYZ, fallTime * 0.2f)
                                                     .target(1f, 1f, 1f)
@@ -421,7 +424,7 @@ public class Game extends BasicGame {
         }
 
         if (matchesFound) {
-            boosterCount ++;
+            boosterCount++;
             animateMatchedCubesDisposal();
             matchedCubeDisposeTimer.reset();
 
@@ -446,7 +449,7 @@ public class Game extends BasicGame {
         for (int i = 0; i < cubesNode.getQuantity(); i++) {
             final Spatial cube = cubesNode.getChild(i);
             if (cube.getUserData(MATCHED) != null) {
-                
+
                 baseApplication.getSoundManager().playSoundRandomPitch("pop");
 
                 Tween.to(cube, SpatialAccessor.SCALE_XYZ, 0.4f)

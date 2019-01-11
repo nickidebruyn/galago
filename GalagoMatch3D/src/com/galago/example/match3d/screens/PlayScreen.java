@@ -22,6 +22,7 @@ import com.bruynhuis.galago.screen.AbstractScreen;
 import com.bruynhuis.galago.ui.FontStyle;
 import com.bruynhuis.galago.ui.Image;
 import com.bruynhuis.galago.ui.Label;
+import com.bruynhuis.galago.ui.button.SwipeStick;
 import com.bruynhuis.galago.ui.effect.WobbleEffect;
 import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
 import com.bruynhuis.galago.ui.panel.HPanel;
@@ -57,7 +58,7 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
     private boolean firstGame = true;
 
     private FilterPostProcessor fpp;
-    private float cameraDistance = 13f;
+    private float cameraDistance = 11f;
 
     private ChaseCamera chaseCamera;
     private CameraShaker cameraShaker;
@@ -79,6 +80,7 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
     private CubeButton cubeButton2;
     private CubeButton cubeButton3;
     private Image cubeButtonSelection;
+    private SwipeStick swipeStick;
 
     private HPanel iconsPanel;
     private IconButton likeButton;
@@ -285,6 +287,7 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
 
         messageLabel = new Label(hudPanel, "Message", 26);
         messageLabel.centerAt(0, 0);
+        
     }
     
     protected void updateSoundIcon() {
@@ -348,6 +351,20 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
         cubeButton3.setName(cubeButton3Type);
         cubeButton3.show();
 
+        if (placementCount == 0 && firstGame) {
+            String cubeButtonType = game.getRandomCubeType();
+            ColorRGBA cubeButtonColor = game.getCubeColor(cubeButtonType);
+            
+            cubeButton1.setBackgroundColor(cubeButtonColor);
+            cubeButton1.setName(cubeButtonType);
+            
+            cubeButton2.setBackgroundColor(cubeButtonColor);
+            cubeButton2.setName(cubeButtonType);
+            
+            cubeButton3.setBackgroundColor(cubeButtonColor);
+            cubeButton3.setName(cubeButtonType);
+            
+        }
     }
 
     private void checkForCubeButtonReload() {
@@ -389,18 +406,20 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
             fpp.addFilter(fXAAFilter);
 
         }
-//        camera.setLocation(new Vector3f(-cameraDistance, cameraDistance * 0.8f, cameraDistance));
-//        camera.lookAt(new Vector3f(0, cameraDistance * 0.3f, 0), Vector3f.UNIT_Y);
+        
+//        cameraDistance = 7;
+//        camera.setLocation(new Vector3f(-cameraDistance, cameraDistance*0.8f, cameraDistance));
+//        camera.lookAt(new Vector3f(0, cameraDistance * 0.02f, 0), Vector3f.UNIT_Y);
         if (chaseCamera == null) {
 
             chaseCamera = new ChaseCamera(camera, rootNode, inputManager);
             chaseCamera.setDefaultDistance(cameraDistance);
-            chaseCamera.setChasingSensitivity(100);
+            chaseCamera.setChasingSensitivity(30);
             chaseCamera.setSmoothMotion(true);
             chaseCamera.setTrailingEnabled(true);
 
             chaseCamera.setDefaultHorizontalRotation(135 * FastMath.DEG_TO_RAD);
-            chaseCamera.setDefaultVerticalRotation(28 * FastMath.DEG_TO_RAD);
+            chaseCamera.setDefaultVerticalRotation(30 * FastMath.DEG_TO_RAD);
 
             chaseCamera.setMinVerticalRotation(0);
             chaseCamera.setMaxVerticalRotation(0);
@@ -408,10 +427,12 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
             chaseCamera.setLookAtOffset(new Vector3f(0, 0.5f, 0));
 
             chaseCamera.setHideCursorOnRotate(false);
-            chaseCamera.setRotationSpeed(6);
+            chaseCamera.setRotationSpeed(5);
             chaseCamera.setMinDistance(cameraDistance);
             chaseCamera.setMaxDistance(cameraDistance);
 
+            chaseCamera.setDragToRotate(true);
+            chaseCamera.setRotationSensitivity(2);
         }
 
         cameraShaker = new CameraShaker(camera, rootNode);
@@ -554,6 +575,23 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
     @Override
     protected void pause() {
     }
+    
+    private void saveGameProgress() {
+        
+    }
+    
+    private void saveHighScore() {
+        int score = player.getScore();
+        int oldScore = baseApplication.getGameSaves().getGameData().getScore();
+        if (score > oldScore) {
+            baseApplication.getGameSaves().getGameData().setScore(score);
+            showMessage("New Highscore!");
+            baseApplication.getSoundManager().playSound("levelup");
+        }
+
+        //Finally save the data
+        baseApplication.getGameSaves().save();
+    }
 
     @Override
     public void doGameOver() {
@@ -587,6 +625,12 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
     @Override
     public void doScoreChanged(int score) {
         scoreLabel.setText(score + "");
+        
+        if (score == 1) {
+            showMessage("Nicely done!");
+        }
+        
+        saveHighScore();
 
     }
 
@@ -595,6 +639,11 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
         if (isActive()) {
 
             if (game.isStarted() && !game.isPaused()) {
+                
+//                if (camera.getLocation().y < 3f) {
+//                    log("Danger camera below");
+//                    camera.setLocation(new Vector3f(camera.getLocation().x, 3f, camera.getLocation().z));
+//                }
 
             }
 
@@ -641,14 +690,14 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
                                     handIcon.hide();
 
                                 } else if (placementCount == 2) {
-                                    infoLabel.setText("SWIPE LEFT OR RIGHT");
+                                    infoLabel.setText("DRAG LEFT OR RIGHT");
                                     infoLabel.fadeFromTo(0f, 1f, 0.5f, 0f);
                                     handIcon.show();
                                     handIcon.moveFromToCenter(-100, -220, 100, -220, 1.2f, 0, Linear.INOUT, 5, true);
 
                                 } else if (placementCount == 1) {
                                     handIcon.hide();
-                                    infoLabel.setText("MATCH 3 COLORS");
+                                    infoLabel.setText("MATCH SAME COLOR IN ROW");
                                     infoLabel.fadeFromTo(0f, 1f, 0.5f, 0f);
                                 }
 
@@ -722,8 +771,8 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
     private void showMessage(String message) {
         messageLabel.setText(message);
         messageLabel.show();
-        messageLabel.fadeFromTo(1f, 0, 0.8f, 0f);
-        messageLabel.moveFromToCenter(0, 0, 0, 200, 0.8f, 0f, new TweenCallback() {
+        messageLabel.fadeFromTo(1f, 0, 1.2f, 0f);
+        messageLabel.moveFromToCenter(0, 20, 0, 250, 1.2f, 0f, new TweenCallback() {
             @Override
             public void onEvent(int i, BaseTween<?> bt) {
                 messageLabel.hide();
@@ -731,4 +780,6 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
         });
 
     }
+    
+    
 }
