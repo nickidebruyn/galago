@@ -26,6 +26,7 @@ public class EffectManager {
     private Map<String, Spatial> effects = new HashMap<String, Spatial>();
     private ColorRGBA startColor;
     private ColorRGBA endColor;
+    private ColorRGBA materialColor;
     
     public EffectManager(BaseApplication baseApplication) {
         this.application = baseApplication;
@@ -44,6 +45,10 @@ public class EffectManager {
     public void prepareColor(ColorRGBA startColor, ColorRGBA endColor) {
         this.startColor = startColor;
         this.endColor = endColor;
+    }
+    
+    public void prepareMaterialColor(ColorRGBA matColor) {
+        this.materialColor = matColor;
     }
     
     /**
@@ -123,9 +128,16 @@ public class EffectManager {
                     if (endColor != null) {
                         emitter.setStartColor(endColor);
                     }
+                    
+                    if (materialColor != null) {
+                        emitter.getMaterial().setColor("Color", materialColor);
+                        
+                    }
+                    
                     emitter.emitAllParticles();
                     startColor = null;
                     endColor = null;
+                    materialColor = null;
                 }
             }
         }

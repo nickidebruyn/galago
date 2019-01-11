@@ -16,9 +16,9 @@ import com.bruynhuis.galago.ui.panel.Panel;
 public class RetryButton extends ControlButton {
 
     public RetryButton(Panel parent) {
-        super(parent, "restartbutton", 480, 300);
-        setText("TAP TO RESTART");
-        setFontSize(28);
+        super(parent, "restartbutton", 480, 100);
+        setText("TAP  TO  RESTART");
+        setFontSize(24);
         addEffect(new TouchEffect(this));
 
     }

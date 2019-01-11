@@ -13,6 +13,7 @@ import com.bruynhuis.galago.resource.ModelManager;
 import com.bruynhuis.galago.resource.ScreenManager;
 import com.bruynhuis.galago.resource.SoundManager;
 import com.bruynhuis.galago.resource.TextureManager;
+import com.bruynhuis.galago.ui.FontStyle;
 import com.bruynhuis.galago.util.ColorUtils;
 import com.galago.example.match3d.screens.PlayScreen;
 
@@ -27,12 +28,12 @@ public class MainApplication extends Base3DApplication {
     }
 
     public MainApplication() {
-        super("Match3 3D", 480, 800, "match3d.save", "Interface/Fonts/Roboto.fnt", null, false);
+        super("Color Cube", 480, 800, "match3d.save", "Interface/Fonts/Roboto.fnt", null, false);
     }
 
     @Override
     protected void preInitApp() {
-        BACKGROUND_COLOR = ColorUtils.rgb(25, 42, 86);
+        BACKGROUND_COLOR = ColorUtils.hsv(0.9f, 0.5f, .9f);
     }
 
     @Override
@@ -66,10 +67,20 @@ public class MainApplication extends Base3DApplication {
 
     @Override
     protected void initSound(SoundManager soundManager) {
+        soundManager.loadSoundFx("button", "Sounds/button.ogg");
+        soundManager.loadSoundFx("drop", "Sounds/drop3.ogg");
+        soundManager.loadSoundFx("place", "Sounds/place.ogg");
+        soundManager.loadSoundFx("pop", "Sounds/pop.ogg");
+        soundManager.loadSoundFx("booster", "Sounds/twinkle.ogg");
+        soundManager.loadSoundFx("levelup", "Sounds/levelup.ogg");
+        soundManager.loadSoundFx("gameover", "Sounds/gameover.ogg");
     }
 
     @Override
     protected void initEffect(EffectManager effectManager) {
+        effectManager.loadEffect("cube-destroy", "Models/Effects/cube-destroy.j3o");
+        effectManager.loadEffect("cube-place", "Models/Effects/cube-place.j3o");
+        effectManager.loadEffect("level-up", "Models/Effects/level-up.j3o");
 
     }
 
@@ -79,6 +90,9 @@ public class MainApplication extends Base3DApplication {
 
     @Override
     protected void initFonts(FontManager fontManager) {
+        fontManager.loadFont(new FontStyle(62, 4));
+        fontManager.loadFont(new FontStyle(30));
+        fontManager.loadFont(new FontStyle(54));
     }
 
 }

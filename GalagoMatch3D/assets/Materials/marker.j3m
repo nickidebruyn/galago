@@ -1,0 +1,11 @@
+Material My Material : Common/MatDefs/Misc/Unshaded.j3md {
+     MaterialParameters {
+        AlphaDiscardThreshold : 0.5
+        ColorMap : Textures/cube-marker.png
+        Color : 1.0 0.0 0.2 1.0
+     }
+    AdditionalRenderState {
+      Blend Color
+      FaceCull Off
+    }
+}

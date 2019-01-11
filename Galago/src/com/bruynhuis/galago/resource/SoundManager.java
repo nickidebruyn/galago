@@ -10,6 +10,7 @@ import com.jme3.scene.Node;
 import java.util.HashMap;
 import java.util.Map;
 import com.bruynhuis.galago.app.BaseApplication;
+import com.jme3.math.FastMath;
 import java.util.Iterator;
 
 /**
@@ -386,6 +387,13 @@ public class SoundManager {
         AudioNode audioNode = soundFx.get(name);
         audioNode.playInstance(); // play once!
 
+    }
+    
+    public void playSoundRandomPitch(String name) {
+        float pitch = 0.8f + ((float)FastMath.nextRandomInt(0, 40)/100f);
+//        Debug.log("play sound at pitch: " + pitch);
+        setSoundPitch(name, pitch);
+        playSound(name);
     }
 
     public boolean isPlaying(String name) {

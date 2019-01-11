@@ -16,9 +16,9 @@ import com.bruynhuis.galago.ui.panel.Panel;
 public class PlayButton extends ControlButton {
 
     public PlayButton(Panel parent) {
-        super(parent, "playbutton", 480, 300);
-        setText("TAP TO PLAY");
-        setFontSize(28);
+        super(parent, "playbutton", 480, 100);
+        setText("TAP  TO  PLAY");
+        setFontSize(24);
         addEffect(new TouchEffect(this));
 
     }

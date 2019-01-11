@@ -20,6 +20,7 @@ is divided into following sections:
 
         -->
 <project xmlns:j2seproject1="http://www.netbeans.org/ns/j2se-project/1" xmlns:j2seproject3="http://www.netbeans.org/ns/j2se-project/3" xmlns:jaxrpc="http://www.netbeans.org/ns/j2se-project/jax-rpc" basedir=".." default="default" name="GalagoMatch3D-impl">
+    <import file="mobile-impl.xml"/>
     <import file="assets-impl.xml"/>
     <fail message="Please build using Ant 1.8.0 or higher.">
         <condition>
@@ -1025,7 +1026,7 @@ is divided into following sections:
         <!-- You can override this target in the ../build.xml file. -->
     </target>
     <target depends="init,compile,-pre-jar,-do-jar-without-libraries,-do-jar-with-libraries,-post-jar" name="-do-jar"/>
-    <target depends="init,compile,-pre-jar,-do-jar,-post-jar" description="Build JAR." name="jar"/>
+    <target depends="init,compile,-pre-jar,-do-jar,-post-jar,-mobile-deployment" description="Build JAR." name="jar"/>
     <!--
                 =================
                 EXECUTION SECTION

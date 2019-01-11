@@ -55,6 +55,29 @@ import com.jme3.water.WaterFilter;
  */
 public class SpatialUtils {
 
+    public static Spatial addSkySphere(Node parent, ColorRGBA bottomColor, ColorRGBA topColor, Camera camera) {
+
+        Sphere sphere = new Sphere(20, 20, 100, false, true);
+        Geometry sky = new Geometry("sky", sphere);
+        sky.setQueueBucket(RenderQueue.Bucket.Sky);
+        sky.setCullHint(Spatial.CullHint.Never);
+        sky.setModelBound(new BoundingSphere(Float.POSITIVE_INFINITY, Vector3f.ZERO));
+        sky.addControl(new CameraStickControl(camera));
+
+        Material m = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Resources/MatDefs/lineargradient.j3md");
+        m.setColor("StartColor", topColor);
+        m.setColor("EndColor", bottomColor);
+        m.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Back);
+        sky.setMaterial(m);
+
+        rotate(sky, -90, 0, 0);
+
+        parent.attachChild(sky);
+
+        return sky;
+
+    }
+
     /**
      *
      * @param parent
@@ -445,16 +468,16 @@ public class SpatialUtils {
 
         return geometry;
     }
-    
+
     public static Spatial addDebugPoint(Node parent, float size, ColorRGBA color, Vector3f position) {
-        Spatial marker = addBox(parent, size*0.05f, size, size*0.05f);
+        Spatial marker = addBox(parent, size * 0.05f, size, size * 0.05f);
 //        Spatial marker = addSphere(parent, 10, 10, size);
         addColor(marker, color, true);
         marker.setLocalTranslation(position.x, position.y, position.z);
         marker.move(0, size, 0);
         return marker;
     }
-    
+
     /**
      * Add a cyclinder to the scene.
      *

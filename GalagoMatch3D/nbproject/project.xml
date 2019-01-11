@@ -6,6 +6,9 @@
             <extension file="assets-impl.xml" id="assets">
                 <dependency dependsOn="-init-assets" target="-do-init"/>
             </extension>
+            <extension file="mobile-impl.xml" id="mobile">
+                <dependency dependsOn="-mobile-deployment" target="jar"/>
+            </extension>
         </buildExtensions>
         <data xmlns="http://www.netbeans.org/ns/j2se-project/3">
             <name>GalagoMatch3D</name>

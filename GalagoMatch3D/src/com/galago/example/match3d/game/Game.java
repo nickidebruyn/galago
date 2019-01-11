@@ -9,24 +9,26 @@ import aurelienribon.tweenengine.BaseTween;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenCallback;
 import aurelienribon.tweenengine.equations.Bounce;
+import aurelienribon.tweenengine.equations.Elastic;
 import com.bruynhuis.galago.app.BaseApplication;
 import com.bruynhuis.galago.control.tween.SpatialAccessor;
 import com.bruynhuis.galago.games.basic.BasicGame;
-import com.bruynhuis.galago.sprite.Sprite;
+import com.bruynhuis.galago.games.basic.BasicPlayer;
 import com.bruynhuis.galago.util.ColorUtils;
 import com.bruynhuis.galago.util.SharedSystem;
 import com.bruynhuis.galago.util.SpatialUtils;
 import com.bruynhuis.galago.util.Timer;
+import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
-import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.control.AbstractControl;
-import com.jme3.scene.control.BillboardControl;
+import java.util.ArrayList;
 
 /**
  *
@@ -45,8 +47,13 @@ public class Game extends BasicGame {
     public static final String CUBE_TYPE_4 = "cube_type_4";
     public static final String CUBE_TYPE_5 = "cube_type_5";
     public static final String CUBE_TYPE_6 = "cube_type_6";
+    
+    public static final int PLAYER_LEVEL_2_RANGE = 20;
+    public static final int PLAYER_LEVEL_3_RANGE = 100;
 
-    private float blocksize = 0.96f;
+    private GameProgressListener gameProgressListener;
+    
+    private float blocksize = 0.94f;
     private float floorsize = 0.98f;
     private float spacing = 1f;
     private Vector3f sunDirection = new Vector3f(0.2f, -0.3f, -0.4f);
@@ -55,23 +62,53 @@ public class Game extends BasicGame {
 
     private float BACKGROUND_SCALE = 0.02f;
     private Node cubesNode;
+    private Spatial borderMarker;
+    private Spatial sky;
+    private Material skyMaterial;
     private boolean playing = false;
     private boolean matchesFound = false;
+    private int boosterCount = 0;
+    private int playerLevel = 1;
 
-    private Timer matchedCubeDisposeTimer = new Timer(120);
-    private Timer gravityTimer = new Timer(120);
+    private Timer matchedCubeDisposeTimer = new Timer(60);
+    private Timer gravityTimer = new Timer(100);
 
-    private ColorRGBA PLATFORM_COLOR = ColorUtils.rgb(149, 175, 192);
-    private ColorRGBA CUBE_COLOR1 = ColorUtils.rgb(249, 202, 36);
-    private ColorRGBA CUBE_COLOR2 = ColorUtils.rgb(235, 77, 75);
-    private ColorRGBA CUBE_COLOR3 = ColorUtils.rgb(106, 176, 76);
-    private ColorRGBA CUBE_COLOR4 = ColorUtils.rgb(190, 46, 221);
-    private ColorRGBA CUBE_COLOR5 = ColorUtils.rgb(72, 52, 212);
-    private ColorRGBA CUBE_COLOR6 = ColorUtils.rgb(19, 15, 64);
+    private ColorRGBA PLATFORM_COLOR = ColorUtils.rgb(100, 100, 100);
+//    private ColorRGBA CUBE_COLOR1 = ColorRGBA.Red;
+//    private ColorRGBA CUBE_COLOR2 = ColorRGBA.Green;
+//    private ColorRGBA CUBE_COLOR3 = ColorRGBA.Blue;
+//    private ColorRGBA CUBE_COLOR4 = ColorRGBA.White;
+//    private ColorRGBA CUBE_COLOR5 = ColorRGBA.Yellow;
+//    private ColorRGBA CUBE_COLOR6 = ColorRGBA.Magenta;
+
+    //American
+    private ColorRGBA CUBE_COLOR1 = ColorUtils.rgb(214, 48, 49); //ColorRGBA.Red;
+    private ColorRGBA CUBE_COLOR2 = ColorUtils.rgb(0, 184, 148);//ColorRGBA.Green;
+    private ColorRGBA CUBE_COLOR3 = ColorUtils.rgb(9, 132, 227);//ColorRGBA.Blue;
+    private ColorRGBA CUBE_COLOR4 = ColorUtils.rgb(253, 203, 110);//ColorRGBA.Yellow;
+    private ColorRGBA CUBE_COLOR5 = ColorUtils.rgb(155, 89, 182);//ColorRGBA.Purple;
+    private ColorRGBA CUBE_COLOR6 = ColorUtils.rgb(255, 255, 255);//ColorRGBA.white;
+    private Spatial skyParticles;
 
     public Game(BaseApplication baseApplication, Node rootNode) {
         super(baseApplication, rootNode);
     }
+    
+    public void addGameProgressListener(GameProgressListener gameProgressListener) {
+        this.gameProgressListener = gameProgressListener;
+    }
+    
+    private void fireGameProgressLevelUp(int level) {
+        if (this.gameProgressListener != null) {
+            this.gameProgressListener.doLevelUp(level);
+        }         
+    }
+    private void fireGameProgressScoreBooster(int score) {
+        if (this.gameProgressListener != null) {
+            this.gameProgressListener.doScoreBooster(score);
+        }         
+    }
+    
 
     @Override
     public void init() {
@@ -86,10 +123,23 @@ public class Game extends BasicGame {
             }
         }
 
-        initLight(ColorRGBA.DarkGray, ColorRGBA.LightGray, sunDirection);
+        //Load border marker
+//        borderMarker = SpatialUtils.addBox(rootNode, spacing*1.5f, spacing*1.5f, spacing*1.5f);
+//        borderMarker.setMaterial(baseApplication.getAssetManager().loadMaterial("Materials/marker.j3m"));
+//        borderMarker.move(0, spacing*1.5f-(spacing*0.5f), 0);
+        initLight(ColorRGBA.Gray, ColorRGBA.LightGray, sunDirection);
 
-        SpatialUtils.addSkySphere(levelNode, 6, baseApplication.getCamera());
+        ColorRGBA colorRGBA = ColorUtils.hsv(0.0f, 0.75f, .9f);
+        sky = SpatialUtils.addSkySphere(levelNode, colorRGBA, PLATFORM_COLOR, baseApplication.getCamera());
+        skyMaterial = ((Geometry) sky).getMaterial();
+        refreshSkyColor();
 
+        //Load the sky particles
+        skyParticles = baseApplication.getAssetManager().loadModel("Models/Effects/sky-particles.j3o");
+        skyParticles.move(0, -8, 0);
+        levelNode.attachChild(skyParticles);
+
+//        SpatialUtils.addSkySphere(levelNode, 6, baseApplication.getCamera());
         levelNode.addControl(new AbstractControl() {
             @Override
             protected void controlUpdate(float tpf) {
@@ -100,14 +150,46 @@ public class Game extends BasicGame {
                     matchedCubeDisposeTimer.update(tpf);
                     if (matchedCubeDisposeTimer.finished()) {
 
+//                        log("############  SEARCHING MATCHED CUBES ###########");
                         //When dispose timer is done remove from parent
+                        ArrayList<Spatial> cubestoRemove = new ArrayList<>();
                         for (int i = 0; i < cubesNode.getQuantity(); i++) {
                             final Spatial cube = cubesNode.getChild(i);
+//                            log("Cube matched indicator " + cube.getUserData(MATCHED));
                             if (cube.getUserData(MATCHED) != null) {
-                                cube.removeFromParent();
+//                                log("Remove cube " + cube.getUserData(CUBE_TYPE));
+                                cubestoRemove.add(cube);
                             }
                         }
 
+                        //Now we remove the cubes
+                        if (cubestoRemove.size() > 0) {
+                            for (int i = 0; i < cubestoRemove.size(); i++) {
+                                Spatial cube = cubestoRemove.get(i);
+                                cube.removeFromParent();
+                            }
+                            
+                            fireGameProgressScoreBooster(boosterCount);
+
+                            //Calculate scores
+                            if (cubestoRemove.size() == 3) {
+                                player.addScore(1*boosterCount);
+                                refreshSkyColor();
+
+                            } else if (cubestoRemove.size() == 6) {
+                                player.addScore(2*boosterCount);
+                                refreshSkyColor();
+
+                            } else if (cubestoRemove.size() == 9) {
+                                player.addScore(3*boosterCount);
+                                refreshSkyColor();
+                            }
+                            
+                            updatePlayerLevel();
+
+                        }
+
+//                        log("Cubes left on board: " + cubesNode.getQuantity());
                         matchesFound = false;
                         applyGravity();
                         matchedCubeDisposeTimer.stop();
@@ -131,17 +213,45 @@ public class Game extends BasicGame {
         });
 
     }
+    
+    private void updatePlayerLevel() {
+        if (playerLevel == 1 && player.getScore() >= PLAYER_LEVEL_2_RANGE) {
+            playerLevel ++;
+            fireGameProgressLevelUp(playerLevel);
+            
+        } else if (playerLevel == 2 && player.getScore() >= PLAYER_LEVEL_3_RANGE) {
+            playerLevel ++;
+            fireGameProgressLevelUp(playerLevel);
+        }
+    }
 
-    private void loadBackground(String texture, float zPos) {
-        Sprite backgroundSprite = new Sprite("background", 480 * BACKGROUND_SCALE, 800 * BACKGROUND_SCALE);
-        backgroundSprite.setImage(texture);
-//        SpatialUtils.rotate(backgroundSprite, 0, -45f, 0);
-        backgroundSprite.setQueueBucket(RenderQueue.Bucket.Sky);
-        SpatialUtils.move(backgroundSprite, 0f, backgroundSprite.getHeight() / 4f, 0f);
-        BillboardControl bc = new BillboardControl();
-        backgroundSprite.addControl(bc);
-        levelNode.attachChild(backgroundSprite);
+    private void refreshSkyColor() {        
+        float val = 0;
+        if (player != null) {
+            val = (float) player.getScore();
+        }
+        if (val >= 90f) {
+            val = 90f;
+        }
 
+        float scaler = 1f - (0.1f + (float) val / 100f);
+        ColorRGBA colorRGBA = ColorUtils.hsv(scaler, 0.5f, .9f);
+        skyMaterial.setColor("EndColor", colorRGBA);
+    }
+
+    public int getPlayerLevel() {
+//        int level = 1;
+//        if (player != null) {
+//            if (player.getScore() >= PLAYER_LEVEL_2_RANGE) {
+//                level = 2;
+//            }
+//
+//            if (player.getScore() >= PLAYER_LEVEL_3_RANGE) {
+//                level = 3;
+//            }
+//        }
+//        return level;
+        return playerLevel;
     }
 
     private void addPlatform(float x, float z) {
@@ -154,18 +264,62 @@ public class Game extends BasicGame {
 
     public boolean addCube(String type, float x, float z) {
 
-        Vector3f targetPos = getTargetYPosition(x, z);
+        final Vector3f targetPos = getTargetYPosition(x, z);
         matchesFound = false;
+        boosterCount = 0;
 
         if (targetPos != null) {
             playing = true;
-            Spatial cube = SpatialUtils.addBox(cubesNode, blocksize / 2f, blocksize / 2f, blocksize / 2f);
+            final Spatial cube = SpatialUtils.addBox(cubesNode, blocksize / 2f, blocksize / 2f, blocksize / 2f);
             cube.setName(CUBE);
             cube.setUserData(CUBE_TYPE, type);
-            SpatialUtils.addColor(cube, getCubeColor(type), false);
-            SpatialUtils.move(cube, x, cubeStartHeight, z);
+            final ColorRGBA cubeColor = getCubeColor(type);
+            Material m = baseApplication.getAssetManager().loadMaterial("Materials/cube.j3m");
+            m.setColor("Ambient", cubeColor);
+            m.setColor("Diffuse", cubeColor);
+            cube.setMaterial(m);
 
-            Tween.to(cube, SpatialAccessor.POS_XYZ, 1.2f)
+//            SpatialUtils.addColor(cube, getCubeColor(type), false);
+            SpatialUtils.move(cube, x, cubeStartHeight, z);
+            
+            baseApplication.getSoundManager().playSound("drop");
+
+            //Create wobble effect
+            final float wobbleAmount = 0.2f;
+            final float fallTime = 1f;
+            Tween.to(cube, SpatialAccessor.SCALE_XYZ, fallTime * 0.35f)
+                    .target(1f - wobbleAmount, 1.0f + wobbleAmount, 1f - wobbleAmount)
+                    .setCallback(new TweenCallback() {
+                        @Override
+                        public void onEvent(int i, BaseTween<?> bt) {
+                            
+                            //Do collide effect
+                            //TODO: Sound
+                            baseApplication.getSoundManager().playSoundRandomPitch("place");
+                            
+                            baseApplication.getEffectManager().prepareColor(cubeColor, cubeColor);
+                            baseApplication.getEffectManager().doEffect("cube-place", targetPos.subtract(0, spacing / 2, 0));
+
+                            //Do wobble wide
+                            Tween.to(cube, SpatialAccessor.SCALE_XYZ, fallTime * 0.2f)
+                                    .target(1f + wobbleAmount, 1.0f - wobbleAmount, 1f + wobbleAmount)
+                                    .setCallback(new TweenCallback() {
+                                        @Override
+                                        public void onEvent(int i, BaseTween<?> bt) {
+                                            
+                                            //Reset to default
+                                            Tween.to(cube, SpatialAccessor.SCALE_XYZ, fallTime * 0.2f)
+                                                    .target(1f, 1f, 1f)
+                                                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+                                        }
+                                    })
+                                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+
+                        }
+                    })
+                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+
+            Tween.to(cube, SpatialAccessor.POS_XYZ, fallTime)
                     .target(targetPos.x, targetPos.y, targetPos.z)
                     .ease(Bounce.OUT)
                     .setCallback(new TweenCallback() {
@@ -203,7 +357,7 @@ public class Game extends BasicGame {
 
         return found;
     }
-    
+
     private Spatial getCubeRelativeTo(Spatial origin, float x, float y, float z) {
         Spatial found = null;
 
@@ -229,46 +383,59 @@ public class Game extends BasicGame {
      * This method will calculate if any 3 matches was found
      */
     private void matchCubes() {
-        //TODO: Loop over all the cubes and check for possible matches
+
+        //Loop over all the cubes and check for possible matches
         //If a match occurred then mark the cubes as matched
         for (int i = 0; i < cubesNode.getQuantity(); i++) {
             Spatial cube = cubesNode.getChild(i);
-            Spatial cubeLeft = getCubeOfSameTypeRelativeTo(cube, -spacing, 0, 0);
-            Spatial cubeRight = getCubeOfSameTypeRelativeTo(cube, spacing, 0, 0);
-            Spatial cubeFront = getCubeOfSameTypeRelativeTo(cube, 0, 0, -spacing);
-            Spatial cubeBack = getCubeOfSameTypeRelativeTo(cube, 0, 0, spacing);
-            Spatial cubeUp = getCubeOfSameTypeRelativeTo(cube, 0, spacing, 0);
-            Spatial cubeDown = getCubeOfSameTypeRelativeTo(cube, 0, -spacing, 0);
+            if (cube.getUserData(MATCHED) == null) {
+                Spatial cubeLeft = getCubeOfSameTypeRelativeTo(cube, -spacing, 0, 0);
+                Spatial cubeRight = getCubeOfSameTypeRelativeTo(cube, spacing, 0, 0);
+                Spatial cubeFront = getCubeOfSameTypeRelativeTo(cube, 0, 0, -spacing);
+                Spatial cubeBack = getCubeOfSameTypeRelativeTo(cube, 0, 0, spacing);
+                Spatial cubeUp = getCubeOfSameTypeRelativeTo(cube, 0, spacing, 0);
+                Spatial cubeDown = getCubeOfSameTypeRelativeTo(cube, 0, -spacing, 0);
 
-            if (cubeUp != null && cubeDown != null) {
-                matchesFound = true;
-                cube.setUserData(MATCHED, true);
-                cubeUp.setUserData(MATCHED, true);
-                cubeDown.setUserData(MATCHED, true);
+//                if (cubeUp != null && cubeDown != null) {
+//                    matchesFound = true;
+//                    cube.setUserData(MATCHED, "true");
+//                    cubeUp.setUserData(MATCHED, "true");
+//                    cubeDown.setUserData(MATCHED, "true");
+//
+//                } else 
+                if (cubeLeft != null && cubeRight != null) {
+                    matchesFound = true;
+                    cube.setUserData(MATCHED, "true");
+                    cubeLeft.setUserData(MATCHED, "true");
+                    cubeRight.setUserData(MATCHED, "true");
 
-            } else if (cubeLeft != null && cubeRight != null) {
-                matchesFound = true;
-                cube.setUserData(MATCHED, true);
-                cubeLeft.setUserData(MATCHED, true);
-                cubeRight.setUserData(MATCHED, true);
+                } else if (cubeFront != null && cubeBack != null) {
+                    matchesFound = true;
+                    cube.setUserData(MATCHED, "true");
+                    cubeFront.setUserData(MATCHED, "true");
+                    cubeBack.setUserData(MATCHED, "true");
 
-            } else if (cubeFront != null && cubeBack != null) {
-                matchesFound = true;
-                cube.setUserData(MATCHED, true);
-                cubeFront.setUserData(MATCHED, true);
-                cubeBack.setUserData(MATCHED, true);
-
+                }
             }
+
         }
 
         if (matchesFound) {
+            boosterCount ++;
             animateMatchedCubesDisposal();
             matchedCubeDisposeTimer.reset();
 
         } else {
+            checkIfGameOver();
             playing = false;
         }
 
+    }
+
+    private void checkIfGameOver() {
+        if (cubesNode.getQuantity() >= 27) {
+            doGameOver();
+        }
     }
 
     /**
@@ -279,11 +446,18 @@ public class Game extends BasicGame {
         for (int i = 0; i < cubesNode.getQuantity(); i++) {
             final Spatial cube = cubesNode.getChild(i);
             if (cube.getUserData(MATCHED) != null) {
+                
+                baseApplication.getSoundManager().playSoundRandomPitch("pop");
 
-                Tween.to(cube, SpatialAccessor.SCALE_XYZ, 0.8f)
+                Tween.to(cube, SpatialAccessor.SCALE_XYZ, 0.4f)
                         .target(0, 0, 0)
-                        .ease(Bounce.OUT)
+                        .ease(Elastic.OUT)
                         .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+
+                ColorRGBA colorRGBA = getCubeColor((String) cube.getUserData(CUBE_TYPE));
+
+                baseApplication.getEffectManager().prepareMaterialColor(colorRGBA);
+                baseApplication.getEffectManager().doEffect("cube-destroy", cube.getWorldTranslation().clone());
 
             }
         }
@@ -294,47 +468,56 @@ public class Game extends BasicGame {
      * This method will apply gravity to all cubes on the bord.
      */
     private void applyGravity() {
-        
+
         boolean gravityApplied = false;
 
         for (int i = 0; i < cubesNode.getQuantity(); i++) {
             final Spatial cube = cubesNode.getChild(i);
             Vector3f targetPos = null;
             Spatial cubeDown = getCubeRelativeTo(cube, 0, -spacing, 0);
-            Spatial cubeDown2 = getCubeRelativeTo(cube, 0, -spacing*2, 0);
-            
+            Spatial cubeDown2 = getCubeRelativeTo(cube, 0, -spacing * 2, 0);
+
             if (cubeDown == null && cubeDown2 == null) {
                 targetPos = new Vector3f(cube.getWorldTranslation().x, 0, cube.getWorldTranslation().z);
-                
+
             } else if (cubeDown == null && cubeDown2 != null) {
                 targetPos = new Vector3f(cube.getWorldTranslation().x, 1, cube.getWorldTranslation().z);
-                
+
             } else if (cubeDown != null && cubeDown2 == null) {
                 targetPos = new Vector3f(cube.getWorldTranslation().x, 1, cube.getWorldTranslation().z);
-                
+
             }
 
             if (targetPos != null) {
                 gravityApplied = true;
-                Tween.to(cube, SpatialAccessor.POS_XYZ, 1.0f)
-                    .target(targetPos.x, targetPos.y, targetPos.z)
-                    .ease(Bounce.OUT)
-                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
-            
+                Tween.to(cube, SpatialAccessor.POS_XYZ, 0.6f)
+                        .target(targetPos.x, targetPos.y, targetPos.z)
+                        .ease(Bounce.OUT)
+                        .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+
             }
         }
-        
+
         if (gravityApplied) {
-            log("Apply gravity");
             gravityTimer.reset();
-            
+
         } else {
+            checkIfGameOver();
             playing = false;
         }
     }
 
     public String getRandomCubeType() {
-        int index = FastMath.nextRandomInt(1, 6);
+
+        int max = 4;
+        int playerlevel = getPlayerLevel();
+        if (playerlevel == 2) {
+            max = 5;
+        } else if (playerlevel >= 3) {
+            max = 6;
+        }
+
+        int index = FastMath.nextRandomInt(1, max);
         return "cube_type_" + index;
     }
 
@@ -380,7 +563,6 @@ public class Game extends BasicGame {
 
 //                targetPos = new Vector3f(x, 0, z);
 //                log("Found cube at: " + cube.getWorldTranslation());
-
                 if (cube.getWorldTranslation().y >= targetPos.y) {
                     targetPos = new Vector3f(x, cube.getWorldTranslation().y + spacing, z);
 //                    log("Set new target pos: " + targetPos);
@@ -399,6 +581,13 @@ public class Game extends BasicGame {
 
     public boolean isPlaying() {
         return playing;
+    }
+
+    @Override
+    public void start(BasicPlayer physicsPlayer) {
+        super.start(physicsPlayer);
+
+        refreshSkyColor();
     }
 
 }
