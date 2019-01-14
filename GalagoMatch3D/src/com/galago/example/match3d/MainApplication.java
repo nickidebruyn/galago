@@ -16,6 +16,7 @@ import com.bruynhuis.galago.resource.TextureManager;
 import com.bruynhuis.galago.ui.FontStyle;
 import com.bruynhuis.galago.util.ColorUtils;
 import com.galago.example.match3d.screens.PlayScreen;
+import com.galago.example.match3d.screens.PlayScreenChaseCam;
 
 /**
  *
@@ -55,7 +56,8 @@ public class MainApplication extends Base3DApplication {
     
     @Override
     protected void initScreens(ScreenManager screenManager) {
-        screenManager.loadScreen(PlayScreen.NAME, new PlayScreen());
+//        screenManager.loadScreen(PlayScreen.NAME, new PlayScreen());
+        screenManager.loadScreen(PlayScreenChaseCam.NAME, new PlayScreenChaseCam());
 
     }
 

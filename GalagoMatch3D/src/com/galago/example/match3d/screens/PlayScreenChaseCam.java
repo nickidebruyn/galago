@@ -23,15 +23,11 @@ import com.bruynhuis.galago.ui.FontStyle;
 import com.bruynhuis.galago.ui.Image;
 import com.bruynhuis.galago.ui.Label;
 import com.bruynhuis.galago.ui.effect.WobbleEffect;
-import com.bruynhuis.galago.ui.field.HSlider;
-import com.bruynhuis.galago.ui.field.VSlider;
 import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
-import com.bruynhuis.galago.ui.listener.ValueChangeListener;
 import com.bruynhuis.galago.ui.panel.HPanel;
 import com.bruynhuis.galago.ui.panel.Panel;
 import com.bruynhuis.galago.ui.tween.WidgetAccessor;
 import com.bruynhuis.galago.util.SharedSystem;
-import com.bruynhuis.galago.util.SpatialUtils;
 import com.galago.example.match3d.MainApplication;
 import com.galago.example.match3d.game.Game;
 import com.galago.example.match3d.game.GameProgressListener;
@@ -40,18 +36,18 @@ import com.galago.example.match3d.ui.CubeButton;
 import com.galago.example.match3d.ui.IconButton;
 import com.galago.example.match3d.ui.PlayButton;
 import com.galago.example.match3d.ui.RetryButton;
+import com.jme3.input.ChaseCamera;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
-import com.jme3.scene.CameraNode;
-import com.jme3.scene.Node;
 
 /**
  *
  * @author NideBruyn
  */
-public class PlayScreen extends AbstractScreen implements BasicGameListener, PickListener, GameProgressListener {
+public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListener, PickListener, GameProgressListener {
 
     public static final String NAME = "PlayScreen";
     private MainApplication mainApplication;
@@ -63,8 +59,7 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
     private FilterPostProcessor fpp;
     private float cameraDistance = 11f;
 
-    private CameraNode cameraNode;
-    private Node cameraJointNode;
+    private ChaseCamera chaseCamera;
     private CameraShaker cameraShaker;
     private int placementCount = 0;
 
@@ -84,8 +79,6 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
     private CubeButton cubeButton2;
     private CubeButton cubeButton3;
     private Image cubeButtonSelection;
-    private HSlider rotateSlider;
-    private VSlider tiltSlider;
 
     private HPanel iconsPanel;
     private IconButton likeButton;
@@ -287,43 +280,6 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
 
         cubeButtonPanel.centerBottom(0, 10);
         
-        rotateSlider = new HSlider(hudPanel, "Interface/slider.png", "Interface/icon-hand.png", 360, 50);
-//        rotateSlider = new HSlider(hudPanel, 300);
-        rotateSlider.centerAt(0, -200);
-        rotateSlider.setMaxValue(90);
-        rotateSlider.setMinValue(-90);
-        rotateSlider.setIncrementValue(0.5f);
-        rotateSlider.getLabel().setVisible(false);
-        rotateSlider.addValueChangeListener(new ValueChangeListener() {
-            @Override
-            public void doValueChange(float value) {
-                if (isActive()) {
-//                    log("Angle: " + value);
-                    SpatialUtils.rotateTo(cameraJointNode, 0, 360-value, 0);
-                }                
-            }
-        });
-        
-        tiltSlider = new VSlider(hudPanel, "Interface/sliderv.png", "Interface/icon-hand.png", 50, 260);
-//        rotateSlider = new HSlider(hudPanel, 300);
-        tiltSlider.centerAt(220, 0);
-        tiltSlider.setMaxValue(cameraDistance + 5f);
-        tiltSlider.setMinValue(cameraDistance - 5f);
-        tiltSlider.setIncrementValue(1f);
-        tiltSlider.getLabel().setVisible(false);
-        tiltSlider.addValueChangeListener(new ValueChangeListener() {
-            @Override
-            public void doValueChange(float value) {
-                if (isActive()) {
-                    log("Height: " + value);
-                    cameraNode.setLocalTranslation(cameraNode.getLocalTranslation().x, value, cameraNode.getLocalTranslation().z);
-                    cameraNode.lookAt(new Vector3f(0, 0, 0), Vector3f.UNIT_Y);
-                    
-                    
-                }                
-            }
-        });
-
         handIcon = new Image(hudPanel, "Interface/icon-hand.png", 50, 50, true);
         handIcon.centerAt(0, -220);
 
@@ -449,18 +405,37 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
 
         }
         
-        //Initialize the camera
-        cameraDistance = 7;
-        camera.setLocation(new Vector3f(-cameraDistance, cameraDistance*0.8f, cameraDistance));
-        camera.lookAt(new Vector3f(0, cameraDistance * 0.02f, 0), Vector3f.UNIT_Y);
-        
-        cameraJointNode = new Node("camera-joint");
-        rootNode.attachChild(cameraJointNode);
-        
-        cameraNode = new CameraNode("camera-node", camera);
-        cameraNode.move(-cameraDistance, cameraDistance, cameraDistance);
-        cameraNode.lookAt(new Vector3f(0, 0, 0), Vector3f.UNIT_Y);
-        cameraJointNode.attachChild(cameraNode);
+//        cameraDistance = 7;
+//        camera.setLocation(new Vector3f(-cameraDistance, cameraDistance*0.8f, cameraDistance));
+//        camera.lookAt(new Vector3f(0, cameraDistance * 0.02f, 0), Vector3f.UNIT_Y);
+        if (chaseCamera == null) {
+
+            chaseCamera = new ChaseCamera(camera, rootNode, inputManager);
+            chaseCamera.setDefaultDistance(cameraDistance);
+            chaseCamera.setChasingSensitivity(60);
+            chaseCamera.setSmoothMotion(true);
+            chaseCamera.setTrailingEnabled(false);
+
+            chaseCamera.setDefaultHorizontalRotation(135 * FastMath.DEG_TO_RAD);
+            chaseCamera.setDefaultVerticalRotation(40 * FastMath.DEG_TO_RAD);
+
+//            chaseCamera.setMinVerticalRotation(20 * FastMath.DEG_TO_RAD);
+//            chaseCamera.setMaxVerticalRotation(45 * FastMath.DEG_TO_RAD);
+
+            chaseCamera.setMinVerticalRotation(0 * FastMath.DEG_TO_RAD);
+            chaseCamera.setMaxVerticalRotation(0 * FastMath.DEG_TO_RAD);
+
+            chaseCamera.setLookAtOffset(new Vector3f(0, 0.5f, 0));
+
+            chaseCamera.setHideCursorOnRotate(false);
+//            chaseCamera.setRotationSpeed(5);
+            chaseCamera.setRotationSpeed(8);
+            chaseCamera.setMinDistance(cameraDistance);
+            chaseCamera.setMaxDistance(cameraDistance);
+
+            chaseCamera.setDragToRotate(true);
+            chaseCamera.setRotationSensitivity(5);
+        }
 
         cameraShaker = new CameraShaker(camera, rootNode);
 
@@ -510,8 +485,6 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
         handIcon.hide();
         gameoverLabel.hide();
         messageLabel.hide();
-        rotateSlider.hide();
-        tiltSlider.hide();
 
         bestLabel.setText("BEST " + baseApplication.getGameSaves().getGameData().getScore());
         bestLabel.show();
@@ -538,19 +511,12 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
         messageLabel.hide();
 
         if (firstGame) {
-            rotateSlider.hide();
-            tiltSlider.hide();
-            
             handIcon.show();
             handIcon.fadeFromTo(0, 1, 1.5f, 0);
             handIcon.moveFromToCenter(-100, -370, 100, -370, 1.0f, 1, Linear.INOUT, 2, true);
 
         } else {
             handIcon.hide();
-            rotateSlider.show();
-            rotateSlider.getLabel().setVisible(false);
-            tiltSlider.show();
-            tiltSlider.getLabel().setVisible(false);
 
         }
 
@@ -580,8 +546,6 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
         infoLabel.hide();
         handIcon.hide();
         messageLabel.hide();
-        rotateSlider.hide();
-        tiltSlider.hide();
 
         gameoverLabel.show();
         gameoverLabel.fadeFromTo(0f, 1f, 1f, 0f);
@@ -728,14 +692,10 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
                                     handIcon.hide();
 
                                 } else if (placementCount == 2) {
-                                    infoLabel.setText("SLIDE LEFT OR RIGHT TO ROTATE");
+                                    infoLabel.setText("DRAG LEFT OR RIGHT");
                                     infoLabel.fadeFromTo(0f, 1f, 0.5f, 0f);
-//                                    handIcon.show();
-//                                    handIcon.moveFromToCenter(-100, -220, 100, -220, 1.2f, 0, Linear.INOUT, 5, true);
-                                    rotateSlider.show();
-                                    rotateSlider.getLabel().setVisible(false);
-                                    tiltSlider.show();
-                                    tiltSlider.getLabel().setVisible(false);
+                                    handIcon.show();
+                                    handIcon.moveFromToCenter(-100, -220, 100, -220, 1.2f, 0, Linear.INOUT, 5, true);
 
                                 } else if (placementCount == 1) {
                                     handIcon.hide();

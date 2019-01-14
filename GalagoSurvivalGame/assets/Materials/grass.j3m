@@ -1,0 +1,8 @@
+Material My Material : Common/MatDefs/Misc/ColoredTextured.j3md {
+     MaterialParameters {
+        ColorMap : Textures/grass.jpg
+        Color : 1.0 0.0 0.4 1.0
+     }
+    AdditionalRenderState {
+    }
+}

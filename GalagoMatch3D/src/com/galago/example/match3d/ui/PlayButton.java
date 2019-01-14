@@ -5,6 +5,7 @@
  */
 package com.galago.example.match3d.ui;
 
+import com.bruynhuis.galago.ui.TextAlign;
 import com.bruynhuis.galago.ui.button.ControlButton;
 import com.bruynhuis.galago.ui.effect.TouchEffect;
 import com.bruynhuis.galago.ui.panel.Panel;
@@ -16,10 +17,11 @@ import com.bruynhuis.galago.ui.panel.Panel;
 public class PlayButton extends ControlButton {
 
     public PlayButton(Panel parent) {
-        super(parent, "playbutton", 480, 100);
+        super(parent, "playbutton", 480, 150);
         setText("TAP  TO  PLAY");
         setFontSize(24);
         addEffect(new TouchEffect(this));
+        setTextVerticalAlignment(TextAlign.BOTTOM);
 
     }
 

@@ -22,7 +22,7 @@ import java.util.List;
  *
  * @author NideBruyn
  */
-public class HSlider extends Panel {
+public class VSlider extends Panel {
 
     private float value = 0f;
     private float minValue = 0f;
@@ -36,28 +36,28 @@ public class HSlider extends Panel {
     private List<ValueChangeListener> valueChangeListeners = new ArrayList<ValueChangeListener>();
     
     private float percentage = 0f;
-    private float NATIVE_WIDTH = 264;
+    private float NATIVE_HEIGHT = 264;
     private float PADDING = 10f;
-    private float HALFSIZE = (NATIVE_WIDTH*0.5f)-PADDING; //This is half the amount
+    private float HALFSIZE = (NATIVE_HEIGHT*0.5f)-PADDING; //This is half the amount
     
-    public HSlider(Panel parent, float width) {
-        this(parent, "Resources/hslider.png", "Resources/button-slider.png", width, 54);
+    public VSlider(Panel parent, float height) {
+        this(parent, "Resources/vslider.png", "Resources/button-sliderv.png", 54, height);
     }
 
-    public HSlider(Panel parent, String sliderImage, String buttonImagefile, float width, float height) {
+    public VSlider(Panel parent, String sliderImage, String buttonImagefile, float width, float height) {
         super(parent, sliderImage, width, height, true);
-        float scaling = width/NATIVE_WIDTH;
-        NATIVE_WIDTH = width;
-        HALFSIZE = (NATIVE_WIDTH*0.5f)-PADDING;
+        float scaling = height/NATIVE_HEIGHT;
+        NATIVE_HEIGHT = height;
+        HALFSIZE = (NATIVE_HEIGHT*0.5f)-PADDING;
         
-        label = new Label(this, "0", 14, NATIVE_WIDTH, 16);
+        label = new Label(this, "0", 14, 16, 16);
         label.setTextColor(ColorRGBA.LightGray);
-        label.centerTop(0, -16);
+        label.leftCenter(0, 0);
         
-        buttonImage = new Image(this, buttonImagefile, height*scaling, height*scaling, true);
+        buttonImage = new Image(this, buttonImagefile, width*scaling, width*scaling, true);
         buttonImage.center();
 
-        touchButton = new ControlButton(this, "slider-button", NATIVE_WIDTH, height, true);
+        touchButton = new ControlButton(this, "slider-button", width, NATIVE_HEIGHT, true);
         touchButton.center();
         touchButton.addTouchButtonListener(new TouchButtonAdapter() {
             @Override
@@ -90,7 +90,7 @@ public class HSlider extends Panel {
             @Override
             protected void controlUpdate(float tpf) {
                 if (calculateValue) {
-                    calculateNewPosition(window.getInputManager().getCursorPosition().x);
+                    calculateNewPosition(window.getInputManager().getCursorPosition().y);
                 }
             }
 
@@ -102,37 +102,37 @@ public class HSlider extends Panel {
         parent.add(this);
     }
 
-    private void calculateNewPosition(float touchX) {
-        float touchDownX = getWidgetNode().getWorldTranslation().x;
-        float dx = (touchDownX - touchX) / window.getScaleFactorWidth();
-        float dis = FastMath.sqrt((float) (dx * dx + 0));
+    private void calculateNewPosition(float touchY) {
+        float touchDownY = getWidgetNode().getWorldTranslation().y;
+        float dy = (touchDownY - touchY) / window.getScaleFactorHeight();
+        float dis = FastMath.sqrt((float) (dy * dy + 0));
         float val = 0f;
-        
+                
         if (dis > HALFSIZE) {
             dis = HALFSIZE;
         }
         
         //Calculate value
-        if (touchX < touchDownX) {
+        if (touchY < touchDownY) {
             val = HALFSIZE - dis;
-            buttonImage.centerAt(-dis, 0);
+            buttonImage.centerAt(0, -dis);
 
-        } else if (touchX > touchDownX) {
+        } else if (touchY > touchDownY) {
             val = HALFSIZE + dis;
-            buttonImage.centerAt(dis, 0);
+            buttonImage.centerAt(0, dis);
                 
         } else {            
             buttonImage.center();
         }
         
-        percentage = val/(HALFSIZE*2f);
         
-//        value =        
+        percentage = val/(HALFSIZE*2f);
         
         
         value = ((maxValue - minValue)*percentage) + (minValue);
-        label.setText(labelText + String.format("%.2f", value));
+//        Debug.log("Value = " + value);
         
+        label.setText(labelText + String.format("%.2f", value));        
         
         if (valueChangeListeners.size() > 0) {
             for (int i = 0; i < valueChangeListeners.size(); i++) {
