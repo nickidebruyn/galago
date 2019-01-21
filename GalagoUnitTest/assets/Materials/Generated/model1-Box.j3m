@@ -1,0 +1,12 @@
+Material MyMaterial : Common/MatDefs/Light/Lighting.j3md {
+    MaterialParameters {
+        Diffuse : 1.0 0.0 1.0 0.5
+        UseMaterialColors : true
+        UseVertexColor : false
+    }
+    AdditionalRenderState {
+
+      Blend Alpha
+      FaceCull Off
+    }
+}

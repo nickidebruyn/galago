@@ -17,6 +17,7 @@ public class PickEvent {
     
     private Geometry contactObject;
     private Vector3f contactPoint;
+    private Vector3f contactNormal;
     private Vector2f cursorPosition;
     private boolean keyDown = false;
     private boolean left = false;
@@ -131,6 +132,14 @@ public class PickEvent {
 
     public void setZoomDown(boolean zoomDown) {
         this.zoomDown = zoomDown;
+    }
+
+    public Vector3f getContactNormal() {
+        return contactNormal;
+    }
+
+    public void setContactNormal(Vector3f contactNormal) {
+        this.contactNormal = contactNormal;
     }
 
 }

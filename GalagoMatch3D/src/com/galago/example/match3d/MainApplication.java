@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.galago.example.match3d;
 
 import com.bruynhuis.galago.app.Base3DApplication;
@@ -15,6 +14,7 @@ import com.bruynhuis.galago.resource.SoundManager;
 import com.bruynhuis.galago.resource.TextureManager;
 import com.bruynhuis.galago.ui.FontStyle;
 import com.bruynhuis.galago.util.ColorUtils;
+import com.galago.example.match3d.screens.CapsScreen;
 import com.galago.example.match3d.screens.PlayScreen;
 import com.galago.example.match3d.screens.PlayScreenChaseCam;
 
@@ -23,7 +23,7 @@ import com.galago.example.match3d.screens.PlayScreenChaseCam;
  * @author NideBruyn
  */
 public class MainApplication extends Base3DApplication {
-    
+
     public static void main(String[] args) {
         new MainApplication();
     }
@@ -40,24 +40,39 @@ public class MainApplication extends Base3DApplication {
     @Override
     protected void postInitApp() {
         showScreen(PlayScreen.NAME);
+
+//        System.out.println("\n\n\n\n########################################################");
+//        System.out.println("Application: " + this);
+//        System.out.println("Renderer Application: " + this.getRenderer());
+//        System.out.println("Caps: " + getRenderer().getCaps());
+//        System.out.println("########################################################\n\n\n\n");
+//        EnumSet<Caps> caps = getRenderer().getCaps();
+//        if (caps != null) {
+//            for (Iterator<Caps> iterator = caps.iterator(); iterator.hasNext();) {
+//                Caps cap = iterator.next();
+//                log("Caps: " + cap.name());
+//            }
+//
+//        }
     }
 
     @Override
     protected boolean isPhysicsEnabled() {
         return false;
     }
-    
+
     @Override
     protected void initCamera() {
         super.initCamera();
 //        setOrthographicProjection(6);
 
     }
-    
+
     @Override
     protected void initScreens(ScreenManager screenManager) {
 //        screenManager.loadScreen(PlayScreen.NAME, new PlayScreen());
         screenManager.loadScreen(PlayScreenChaseCam.NAME, new PlayScreenChaseCam());
+        screenManager.loadScreen("caps", new CapsScreen());
 
     }
 

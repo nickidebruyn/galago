@@ -40,6 +40,7 @@ public class TouchPickListener implements ActionListener, AnalogListener {
     private Camera cam;
     private Node scene;
     private Vector3f contactPoint;
+    private Vector3f contactNormal;
     private Geometry contactObject;
     private PickListener pickListener;
     private CollisionResults results;
@@ -102,6 +103,7 @@ public class TouchPickListener implements ActionListener, AnalogListener {
 //            } else {
                 CollisionResult closest = results.getClosestCollision();
                 contactPoint = closest.getContactPoint();
+                contactNormal = closest.getContactNormal();
                 contactObject = closest.getGeometry();
                 
 //            }
@@ -109,6 +111,7 @@ public class TouchPickListener implements ActionListener, AnalogListener {
 
         } else {
             contactPoint = null;
+            contactNormal = null;
             contactObject = null;
 
         }
@@ -136,6 +139,7 @@ public class TouchPickListener implements ActionListener, AnalogListener {
                     
                     pickEvent.setContactObject(contactObject);
                     pickEvent.setContactPoint(contactPoint);
+                    pickEvent.setContactNormal(contactNormal);
                     pickEvent.setCursorPosition(inputManager.getCursorPosition());
                     pickEvent.setKeyDown(keyPressed);
                     pickEvent.setLeft(false);
@@ -260,10 +264,12 @@ public class TouchPickListener implements ActionListener, AnalogListener {
             if (contactObject != null) {
                 pickEvent.setContactObject(contactObject);
                 pickEvent.setContactPoint(contactPoint);
+                pickEvent.setContactNormal(contactNormal);
 
             } else {
                 pickEvent.setContactObject(null);
                 pickEvent.setContactPoint(null);
+                pickEvent.setContactNormal(null);
             }
 
             pickListener.drag(pickEvent, tpf);

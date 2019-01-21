@@ -468,6 +468,16 @@ public class SpatialUtils {
 
         return geometry;
     }
+    
+    public static Spatial addCone(Node parent, int radialSamples, float radius, float height) {
+
+        Cylinder c = new Cylinder(2, radialSamples, 0.0001f, radius, height, true, false);                    
+        Geometry geometry = new Geometry("cone", c);
+        parent.attachChild(geometry);
+        geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+
+        return geometry;
+    }
 
     public static Spatial addDebugPoint(Node parent, float size, ColorRGBA color, Vector3f position) {
         Spatial marker = addBox(parent, size * 0.05f, size, size * 0.05f);
@@ -827,5 +837,24 @@ public class SpatialUtils {
                 .ease(Circ.OUT)
                 .repeatYoyo(repeat, delay)
                 .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+    }
+
+    /**
+     * This is a helper method that will move a spatial object in the -z direction which is forward.
+     * 
+     * @param spatial
+     * @param amount 
+     */
+    public static void forward(Spatial spatial, float amount) {
+        
+        if (spatial != null) {
+            
+            Vector3f dir = spatial.getLocalRotation().getRotationColumn(1);
+            dir = dir.normalize();
+//            Debug.log("forward = " + dir);
+            spatial.move(amount*dir.x, amount*dir.y, amount*dir.z);
+            
+        }
+        
     }
 }

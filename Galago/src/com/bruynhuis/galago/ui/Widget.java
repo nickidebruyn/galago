@@ -640,4 +640,35 @@ public abstract class Widget implements Savable {
                 .ease(tweenEquation)
                 .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
     }
+    
+    public void rotateFromTo(float fromAngle, float toAngle, float duration, float delay) {
+        setRotation(fromAngle);
+
+        Tween.to(this, WidgetAccessor.ROTATION, duration)
+                .target(toAngle)
+                .delay(delay)
+                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+
+    }
+
+    public void rotateFromTo(float fromAngle, float toAngle, float duration, float delay, TweenEquation tweenEquation) {
+        setRotation(fromAngle);
+
+        Tween.to(this, WidgetAccessor.ROTATION, duration)
+                .target(toAngle)
+                .delay(delay)
+                .ease(tweenEquation)
+                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+    }
+    
+    public void rotateFromTo(float fromAngle, float toAngle, float duration, float delay, TweenEquation tweenEquation, TweenCallback callback) {
+        setRotation(fromAngle);
+
+        Tween.to(this, WidgetAccessor.ROTATION, duration)
+                .target(toAngle)
+                .delay(delay)
+                .ease(tweenEquation)
+                .setCallback(callback)
+                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+    }
 }

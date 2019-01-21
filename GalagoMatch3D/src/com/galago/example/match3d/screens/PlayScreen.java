@@ -85,7 +85,7 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
     private CubeButton cubeButton3;
     private Image cubeButtonSelection;
     private HSlider rotateSlider;
-    private VSlider tiltSlider;
+//    private VSlider tiltSlider;
 
     private HPanel iconsPanel;
     private IconButton likeButton;
@@ -304,25 +304,25 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
             }
         });
         
-        tiltSlider = new VSlider(hudPanel, "Interface/sliderv.png", "Interface/icon-hand.png", 50, 260);
-//        rotateSlider = new HSlider(hudPanel, 300);
-        tiltSlider.centerAt(220, 0);
-        tiltSlider.setMaxValue(cameraDistance + 5f);
-        tiltSlider.setMinValue(cameraDistance - 5f);
-        tiltSlider.setIncrementValue(1f);
-        tiltSlider.getLabel().setVisible(false);
-        tiltSlider.addValueChangeListener(new ValueChangeListener() {
-            @Override
-            public void doValueChange(float value) {
-                if (isActive()) {
-                    log("Height: " + value);
-                    cameraNode.setLocalTranslation(cameraNode.getLocalTranslation().x, value, cameraNode.getLocalTranslation().z);
-                    cameraNode.lookAt(new Vector3f(0, 0, 0), Vector3f.UNIT_Y);
-                    
-                    
-                }                
-            }
-        });
+//        tiltSlider = new VSlider(hudPanel, "Interface/sliderv.png", "Interface/icon-hand.png", 50, 260);
+////        rotateSlider = new HSlider(hudPanel, 300);
+//        tiltSlider.centerAt(220, 0);
+//        tiltSlider.setMaxValue(cameraDistance + 5f);
+//        tiltSlider.setMinValue(cameraDistance - 5f);
+//        tiltSlider.setIncrementValue(1f);
+//        tiltSlider.getLabel().setVisible(false);
+//        tiltSlider.addValueChangeListener(new ValueChangeListener() {
+//            @Override
+//            public void doValueChange(float value) {
+//                if (isActive()) {
+//                    log("Height: " + value);
+//                    cameraNode.setLocalTranslation(cameraNode.getLocalTranslation().x, value, cameraNode.getLocalTranslation().z);
+//                    cameraNode.lookAt(new Vector3f(0, 0, 0), Vector3f.UNIT_Y);
+//                    
+//                    
+//                }                
+//            }
+//        });
 
         handIcon = new Image(hudPanel, "Interface/icon-hand.png", 50, 50, true);
         handIcon.centerAt(0, -220);
@@ -450,15 +450,15 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
         }
         
         //Initialize the camera
-        cameraDistance = 7;
-        camera.setLocation(new Vector3f(-cameraDistance, cameraDistance*0.8f, cameraDistance));
+        cameraDistance = 9;
+        camera.setLocation(new Vector3f(-cameraDistance, cameraDistance, cameraDistance*0.5f));
         camera.lookAt(new Vector3f(0, cameraDistance * 0.02f, 0), Vector3f.UNIT_Y);
         
         cameraJointNode = new Node("camera-joint");
         rootNode.attachChild(cameraJointNode);
         
         cameraNode = new CameraNode("camera-node", camera);
-        cameraNode.move(-cameraDistance, cameraDistance, cameraDistance);
+        cameraNode.move(-cameraDistance*0.7f, cameraDistance, cameraDistance*0.7f);
         cameraNode.lookAt(new Vector3f(0, 0, 0), Vector3f.UNIT_Y);
         cameraJointNode.attachChild(cameraNode);
 
@@ -511,7 +511,7 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
         gameoverLabel.hide();
         messageLabel.hide();
         rotateSlider.hide();
-        tiltSlider.hide();
+//        tiltSlider.hide();
 
         bestLabel.setText("BEST " + baseApplication.getGameSaves().getGameData().getScore());
         bestLabel.show();
@@ -539,7 +539,7 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
 
         if (firstGame) {
             rotateSlider.hide();
-            tiltSlider.hide();
+//            tiltSlider.hide();
             
             handIcon.show();
             handIcon.fadeFromTo(0, 1, 1.5f, 0);
@@ -549,8 +549,8 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
             handIcon.hide();
             rotateSlider.show();
             rotateSlider.getLabel().setVisible(false);
-            tiltSlider.show();
-            tiltSlider.getLabel().setVisible(false);
+//            tiltSlider.show();
+//            tiltSlider.getLabel().setVisible(false);
 
         }
 
@@ -581,7 +581,7 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
         handIcon.hide();
         messageLabel.hide();
         rotateSlider.hide();
-        tiltSlider.hide();
+//        tiltSlider.hide();
 
         gameoverLabel.show();
         gameoverLabel.fadeFromTo(0f, 1f, 1f, 0f);
@@ -734,8 +734,8 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Pic
 //                                    handIcon.moveFromToCenter(-100, -220, 100, -220, 1.2f, 0, Linear.INOUT, 5, true);
                                     rotateSlider.show();
                                     rotateSlider.getLabel().setVisible(false);
-                                    tiltSlider.show();
-                                    tiltSlider.getLabel().setVisible(false);
+//                                    tiltSlider.show();
+//                                    tiltSlider.getLabel().setVisible(false);
 
                                 } else if (placementCount == 1) {
                                     handIcon.hide();

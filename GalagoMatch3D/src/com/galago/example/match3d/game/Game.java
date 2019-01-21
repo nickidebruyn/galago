@@ -239,6 +239,7 @@ public class Game extends BasicGame {
 
         float scaler = 1f - (0.1f + (float) val / 100f);
         ColorRGBA colorRGBA = ColorUtils.hsv(scaler, 0.5f, .9f);
+        baseApplication.getViewPort().setBackgroundColor(colorRGBA);
         skyMaterial.setColor("EndColor", colorRGBA);
     }
 

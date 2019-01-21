@@ -13,7 +13,6 @@ import aurelienribon.tweenengine.equations.Bounce;
 import aurelienribon.tweenengine.equations.Expo;
 import aurelienribon.tweenengine.equations.Linear;
 import com.bruynhuis.galago.control.camera.CameraShaker;
-import com.bruynhuis.galago.filters.FXAAFilter;
 import com.bruynhuis.galago.games.basic.BasicGameListener;
 import com.bruynhuis.galago.listener.PickEvent;
 import com.bruynhuis.galago.listener.PickListener;
@@ -41,7 +40,6 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
-import com.jme3.post.FilterPostProcessor;
 
 /**
  *
@@ -56,7 +54,7 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
     private Player player;
     private boolean firstGame = true;
 
-    private FilterPostProcessor fpp;
+//    private FilterPostProcessor fpp;
     private float cameraDistance = 11f;
 
     private ChaseCamera chaseCamera;
@@ -218,7 +216,8 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
             public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
                 if (isActive()) {
                     baseApplication.getSoundManager().playSoundRandomPitch("button");
-                    baseApplication.doAlert("Leaderboard not implemented yet!");
+//                    baseApplication.doAlert("Leaderboard not implemented yet!");
+                    showScreen("caps");
 
                 }
             }
@@ -396,14 +395,14 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
         touchPickListener = new TouchPickListener(camera, game.getLevelNode());
         touchPickListener.setPickListener(this);
 
-        if (fpp == null) {
-            fpp = new FilterPostProcessor(baseApplication.getAssetManager());
-            baseApplication.getViewPort().addProcessor(fpp);
-
-            FXAAFilter fXAAFilter = new FXAAFilter();
-            fpp.addFilter(fXAAFilter);
-
-        }
+//        if (fpp == null) {
+//            fpp = new FilterPostProcessor(baseApplication.getAssetManager());
+//            baseApplication.getViewPort().addProcessor(fpp);
+//
+//            FXAAFilter fXAAFilter = new FXAAFilter();
+//            fpp.addFilter(fXAAFilter);
+//
+//        }
         
 //        cameraDistance = 7;
 //        camera.setLocation(new Vector3f(-cameraDistance, cameraDistance*0.8f, cameraDistance));
@@ -419,11 +418,11 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
             chaseCamera.setDefaultHorizontalRotation(135 * FastMath.DEG_TO_RAD);
             chaseCamera.setDefaultVerticalRotation(40 * FastMath.DEG_TO_RAD);
 
-//            chaseCamera.setMinVerticalRotation(20 * FastMath.DEG_TO_RAD);
-//            chaseCamera.setMaxVerticalRotation(45 * FastMath.DEG_TO_RAD);
+            chaseCamera.setMinVerticalRotation(20 * FastMath.DEG_TO_RAD);
+            chaseCamera.setMaxVerticalRotation(45 * FastMath.DEG_TO_RAD);
 
-            chaseCamera.setMinVerticalRotation(0 * FastMath.DEG_TO_RAD);
-            chaseCamera.setMaxVerticalRotation(0 * FastMath.DEG_TO_RAD);
+//            chaseCamera.setMinVerticalRotation(0 * FastMath.DEG_TO_RAD);
+//            chaseCamera.setMaxVerticalRotation(0 * FastMath.DEG_TO_RAD);
 
             chaseCamera.setLookAtOffset(new Vector3f(0, 0.5f, 0));
 

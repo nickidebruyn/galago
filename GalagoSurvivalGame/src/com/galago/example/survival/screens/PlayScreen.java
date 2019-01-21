@@ -13,8 +13,6 @@ import com.galago.example.survival.game.Game;
 import com.galago.example.survival.game.Player;
 import com.jme3.app.FlyCamAppState;
 import com.jme3.input.FlyByCamera;
-import com.jme3.math.Vector2f;
-import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
 
 /**
@@ -50,7 +48,7 @@ public class PlayScreen extends AbstractScreen implements Blender3DGameListener 
         
         cameraMultiplyer = -1f;
 
-        game = new Game(mainApplication, rootNode, "Scenes/level1.j3o");
+        game = new Game(mainApplication, rootNode, "Scenes/blender-scene.j3o");
         game.load();
 
         player = new Player(game);
@@ -90,8 +88,8 @@ public class PlayScreen extends AbstractScreen implements Blender3DGameListener 
         if (isActive()) {
             if (game.isStarted() && !game.isPaused() && !game.isGameOver()) {
                 
-                cameraHeight = game.getTerrain().getHeight(new Vector2f(camera.getLocation().x, camera.getLocation().z)) + cameraHeightMax;
-                camera.setLocation(new Vector3f(camera.getLocation().x, cameraHeight, camera.getLocation().z));
+//                cameraHeight = game.getTerrain().getHeight(new Vector2f(camera.getLocation().x, camera.getLocation().z)) + cameraHeightMax;
+//                camera.setLocation(new Vector3f(camera.getLocation().x, cameraHeight, camera.getLocation().z));
                 
 //                cameraHeight += tpf*cameraMultiplyer;
 //                

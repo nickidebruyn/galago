@@ -14,11 +14,14 @@ public class MainActivity extends AbstractGameActivity {
 
     @Override
     protected void init() {
+
         
     }
 
     @Override
     protected void postLoad() {
+
+        
     }
 
 }
