@@ -29,9 +29,11 @@ import com.bruynhuis.galago.ui.tween.WidgetAccessor;
 import com.bruynhuis.galago.util.SharedSystem;
 import com.galago.example.match3d.MainApplication;
 import com.galago.example.match3d.game.Game;
+import static com.galago.example.match3d.game.Game.CUBE_TYPE;
 import com.galago.example.match3d.game.GameProgressListener;
 import com.galago.example.match3d.game.Player;
 import com.galago.example.match3d.ui.CubeButton;
+import com.galago.example.match3d.ui.ExitDialog;
 import com.galago.example.match3d.ui.IconButton;
 import com.galago.example.match3d.ui.PlayButton;
 import com.galago.example.match3d.ui.RetryButton;
@@ -40,6 +42,10 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import com.jme3.scene.Spatial;
+import java.util.Iterator;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  *
@@ -77,19 +83,26 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
     private CubeButton cubeButton2;
     private CubeButton cubeButton3;
     private Image cubeButtonSelection;
+//    private Image sunbeams;
 
     private HPanel iconsPanel;
     private IconButton likeButton;
     private IconButton soundButton;
     private IconButton shareButton;
     private IconButton leaderboardButton;
+//    private VSlider tiltSlider;
 
     private Image handIcon;
 
     private CubeButton selectedCubeButton;
 
-    private float maxDragDistance = 50f;
+    private float maxDragDistance = 30f;
+    private float cameraTiltAngle = 35;
     private Vector2f dragStart;
+    private boolean highscoreBeaten = false;
+    private String savedTool1Type, savedTool2Type, savedTool3Type;
+
+    private ExitDialog exitDialog;
 
     @Override
     protected void init() {
@@ -166,7 +179,6 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
                 if (isActive()) {
                     baseApplication.getSoundManager().playSoundRandomPitch("button");
                     baseApplication.doRateApplication();
-                    
 
                 }
             }
@@ -278,17 +290,70 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
         cubeButtonSelection.addEffect(new WobbleEffect(cubeButtonSelection, 1.04f, 0.3f));
 
         cubeButtonPanel.centerBottom(0, 10);
-        
+
         handIcon = new Image(hudPanel, "Interface/icon-hand.png", 50, 50, true);
         handIcon.centerAt(0, -220);
 
+//        sunbeams = new Image(hudPanel, "Interface/sunbeams.png", 800, 800, true);
         messageLabel = new Label(hudPanel, "Message", 26);
         messageLabel.centerAt(0, 0);
-        
+
+//        tiltSlider = new VSlider(hudPanel, "Resources/blank.png", "Resources/blank.png", 100, 300);
+//        tiltSlider.setMaxValue(55);
+//        tiltSlider.setMinValue(15);
+//        tiltSlider.setIncrementValue(0.5f);
+//        tiltSlider.rightCenter(0, 0);
+//        tiltSlider.getLabel().setVisible(false);
+//        tiltSlider.addValueChangeListener(new ValueChangeListener() {
+//            @Override
+//            public void doValueChange(float value) {
+//                cameraTiltAngle = value;
+//            }
+//        });
+        exitDialog = new ExitDialog(window);
+        exitDialog.addExitButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+
+                if (isActive()) {
+                    PlayScreenChaseCam.super.doEscape(false);
+                }
+
+            }
+
+        });
+
+        exitDialog.addCancelButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+
+                if (isActive()) {
+                    exitDialog.hide();
+                }
+
+            }
+
+        });
+
+        exitDialog.addRestartButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+
+                if (isActive()) {
+                    exitDialog.hide();
+                    baseApplication.getSoundManager().playSoundRandomPitch("button");
+                    firstGame = false;
+                    showScreen(NAME);
+                }
+
+            }
+
+        });
+
     }
-    
+
     protected void updateSoundIcon() {
-        
+
         if (baseApplication.getGameSaves().getGameData().isSoundOn()) {
             soundButton.updatePicture("Interface/icon-sound-on.png");
         } else {
@@ -351,16 +416,16 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
         if (placementCount == 0 && firstGame) {
             String cubeButtonType = game.getRandomCubeType();
             ColorRGBA cubeButtonColor = game.getCubeColor(cubeButtonType);
-            
+
             cubeButton1.setBackgroundColor(cubeButtonColor);
             cubeButton1.setName(cubeButtonType);
-            
+
             cubeButton2.setBackgroundColor(cubeButtonColor);
             cubeButton2.setName(cubeButtonType);
-            
+
             cubeButton3.setBackgroundColor(cubeButtonColor);
             cubeButton3.setName(cubeButtonType);
-            
+
         }
     }
 
@@ -376,7 +441,7 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
 
     @Override
     protected void load() {
-        
+
         updateSoundIcon();
 
         selectedCubeButton = null;
@@ -403,7 +468,6 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
 //            fpp.addFilter(fXAAFilter);
 //
 //        }
-        
 //        cameraDistance = 7;
 //        camera.setLocation(new Vector3f(-cameraDistance, cameraDistance*0.8f, cameraDistance));
 //        camera.lookAt(new Vector3f(0, cameraDistance * 0.02f, 0), Vector3f.UNIT_Y);
@@ -416,15 +480,13 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
             chaseCamera.setTrailingEnabled(false);
 
             chaseCamera.setDefaultHorizontalRotation(135 * FastMath.DEG_TO_RAD);
-            chaseCamera.setDefaultVerticalRotation(40 * FastMath.DEG_TO_RAD);
+            chaseCamera.setDefaultVerticalRotation(cameraTiltAngle * FastMath.DEG_TO_RAD);
 
-            chaseCamera.setMinVerticalRotation(20 * FastMath.DEG_TO_RAD);
-            chaseCamera.setMaxVerticalRotation(45 * FastMath.DEG_TO_RAD);
-
+//            chaseCamera.setMinVerticalRotation(20 * FastMath.DEG_TO_RAD);
+//            chaseCamera.setMaxVerticalRotation(55 * FastMath.DEG_TO_RAD);
 //            chaseCamera.setMinVerticalRotation(0 * FastMath.DEG_TO_RAD);
 //            chaseCamera.setMaxVerticalRotation(0 * FastMath.DEG_TO_RAD);
-
-            chaseCamera.setLookAtOffset(new Vector3f(0, 0.5f, 0));
+            chaseCamera.setLookAtOffset(new Vector3f(0, 0.7f, 0));
 
             chaseCamera.setHideCursorOnRotate(false);
 //            chaseCamera.setRotationSpeed(5);
@@ -433,7 +495,7 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
             chaseCamera.setMaxDistance(cameraDistance);
 
             chaseCamera.setDragToRotate(true);
-            chaseCamera.setRotationSensitivity(5);
+            chaseCamera.setRotationSensitivity(8);
         }
 
         cameraShaker = new CameraShaker(camera, rootNode);
@@ -445,11 +507,15 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
         setPreviousScreen(null);
 //        mainApplication.showStats();
 
+        highscoreBeaten = false;
+
         if (firstGame) {
+            loadProgress();
             showStartGameUI();
         } else {
             showInGameUI();
             game.start(player);
+            saveProgress();
         }
     }
 
@@ -492,6 +558,7 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
 
         iconsPanel.moveFromToCenter(0, -500, 0, -350, 1f, 1.f);
 
+//        tiltSlider.hide();
     }
 
     private void showInGameUI() {
@@ -499,23 +566,26 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
         retryButton.hide();
         titleLabel.hide();
 //        instructionsLabel.hide();
-        scoreLabel.setText("0");
+        scoreLabel.setText(player.getScore() + "");
         scoreLabel.show();
         bestLabel.hide();
         gameoverLabel.hide();
 
         infoLabel.setText("SELECT A COLOR");
         infoLabel.show();
-        
+
         messageLabel.hide();
 
         if (firstGame) {
             handIcon.show();
             handIcon.fadeFromTo(0, 1, 1.5f, 0);
             handIcon.moveFromToCenter(-100, -370, 100, -370, 1.0f, 1, Linear.INOUT, 2, true);
+//            tiltSlider.hide();
 
         } else {
             handIcon.hide();
+//            tiltSlider.show();
+//            tiltSlider.getLabel().setVisible(false);
 
         }
 
@@ -533,6 +603,7 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
         cubeButtonPanel.show();
         cubeButtonPanel.moveFromToCenter(0, -500, 0, -340, 1f, 0f);
         updateSelectedCubeButton(null);
+        updateSavedToolButtons();
 
         touchPickListener.registerWithInput(inputManager);
 
@@ -563,6 +634,7 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
         iconsPanel.moveFromToCenter(0, -500, 0, -350, 1f, 1.f);
 
         touchPickListener.unregisterInput();
+//        tiltSlider.hide();
 
     }
 
@@ -576,18 +648,18 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
     @Override
     protected void pause() {
     }
-    
-    private void saveGameProgress() {
-        
-    }
-    
+
     private void saveHighScore() {
         int score = player.getScore();
         int oldScore = baseApplication.getGameSaves().getGameData().getScore();
         if (score > oldScore) {
             baseApplication.getGameSaves().getGameData().setScore(score);
-            showMessage("New Highscore!");
-            baseApplication.getSoundManager().playSound("levelup");
+            if (!highscoreBeaten) {
+                showMessage("New Highscore!");
+                baseApplication.getSoundManager().playSound("levelup");
+                highscoreBeaten = true;
+            }
+
         }
 
         //Finally save the data
@@ -596,7 +668,7 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
 
     @Override
     public void doGameOver() {
-        
+
         baseApplication.getSoundManager().playSound("gameover");
         cameraShaker.shake(CameraShaker.LARGE_AMOUNT, 50);
         baseApplication.doVibrate();
@@ -626,11 +698,11 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
     @Override
     public void doScoreChanged(int score) {
         scoreLabel.setText(score + "");
-        
+
         if (score == 1) {
             showMessage("Nicely done!");
         }
-        
+
         saveHighScore();
 
     }
@@ -639,14 +711,13 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
     public void update(float tpf) {
         if (isActive()) {
 
-            if (game.isStarted() && !game.isPaused()) {
-                
-//                if (camera.getLocation().y < 3f) {
-//                    log("Danger camera below");
-//                    camera.setLocation(new Vector3f(camera.getLocation().x, 3f, camera.getLocation().z));
+//            if (game.isStarted() && !game.isPaused()) {
+//                if (camera.getLocation().y < 5f) {
+//                    log("Danger camera below: ");
+            chaseCamera.setDefaultVerticalRotation(cameraTiltAngle * FastMath.DEG_TO_RAD);
+//                    
 //                }
-
-            }
+//            }
 
         }
     }
@@ -655,76 +726,90 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
     public void picked(PickEvent pickEvent, float tpf) {
 
         if (game.isStarted() && !game.isPaused()) {
-            
+
             if (pickEvent.isKeyDown()) {
                 dragStart = inputManager.getCursorPosition().clone();
-                
-            } else {
-                if (pickEvent.getContactObject() != null && selectedCubeButton != null && !isDragging()) {
-//                log("Clicked on " + pickEvent.getContactObject().getName());
-                    //TODO;
-                    Vector3f cubeLocation = null;
-                    dragStart = null;
 
-                    if (pickEvent.getContactObject().getName().equals(Game.PLATFORM)
-                            || pickEvent.getContactObject().getName().equals(Game.CUBE)) {
-                        cubeLocation = new Vector3f(pickEvent.getContactObject().getWorldTranslation().x, 0, pickEvent.getContactObject().getWorldTranslation().z);
+            } else if (pickEvent.getContactObject() != null && selectedCubeButton != null && !isDragging()) {
+
+                //TODO;
+                Vector3f cubeLocation = null;
+                dragStart = null;
+
+                if (pickEvent.getContactObject().getName().equals(Game.PLATFORM)
+                        || pickEvent.getContactObject().getName().equals(Game.CUBE)) {
+                    cubeLocation = new Vector3f(pickEvent.getContactObject().getWorldTranslation().x, 0, pickEvent.getContactObject().getWorldTranslation().z);
 
 //                    log("Location to add " + cubeLocation);
-                        if (game.isPlaying()) {
-                            //TODO: Play block/no play sound
+                    if (game.isPlaying()) {
+                        //TODO: Play block/no play sound
 
-                        } else {
-                            String type = selectedCubeButton.getName();
-                            boolean addedCube = game.addCube(type, cubeLocation.x, cubeLocation.z);
+                    } else {
+                        String type = selectedCubeButton.getName();
+                        Vector3f normal = pickEvent.getContactNormal();
+                        log("Normal: " + normal);
+                        log("Pos   : " + cubeLocation);
 
-                            if (addedCube) {
-                                placementCount++;
-                                cubeButton1.setEnabled(false);
-                                cubeButton2.setEnabled(false);
-                                cubeButton3.setEnabled(false);
+                        float xPos = (float) Math.round(cubeLocation.x + (normal.x));
+                        float zPos = (float) Math.round(cubeLocation.z + (normal.z));
 
-                                cubeButtonSelection.hide();
+                        log("Newpos: " + xPos + ", " + zPos);
 
-                                if (placementCount >= 3 || !firstGame) {
-                                    infoLabel.setText("SELECT A COLOR");
-                                    handIcon.hide();
+                        boolean addedCube = game.addCube(type, xPos, zPos);
 
-                                } else if (placementCount == 2) {
-                                    infoLabel.setText("DRAG LEFT OR RIGHT");
-                                    infoLabel.fadeFromTo(0f, 1f, 0.5f, 0f);
-                                    handIcon.show();
-                                    handIcon.moveFromToCenter(-100, -220, 100, -220, 1.2f, 0, Linear.INOUT, 5, true);
+                        if (addedCube) {
+                            placementCount++;
+                            cubeButton1.setEnabled(false);
+                            cubeButton2.setEnabled(false);
+                            cubeButton3.setEnabled(false);
 
-                                } else if (placementCount == 1) {
-                                    handIcon.hide();
-                                    infoLabel.setText("MATCH SAME COLOR IN ROW");
-                                    infoLabel.fadeFromTo(0f, 1f, 0.5f, 0f);
-                                }
+                            cubeButtonSelection.hide();
 
-                                Tween.to(selectedCubeButton, WidgetAccessor.SCALE_XY, 0.6f)
-                                        .target(0f, 0f)
-                                        .ease(Expo.OUT)
-                                        .setCallback(new TweenCallback() {
-                                            @Override
-                                            public void onEvent(int i, BaseTween<?> bt) {
-                                                selectedCubeButton.hide();
-                                                updateSelectedCubeButton(null);
-                                                checkForCubeButtonReload();
-                                                cubeButton1.setEnabled(true);
-                                                cubeButton2.setEnabled(true);
-                                                cubeButton3.setEnabled(true);
+                            if (placementCount >= 4 || !firstGame) {
+                                infoLabel.setText("SELECT A COLOR");
+                                handIcon.hide();
 
-                                            }
-                                        })
-                                        .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+                            } else if (placementCount == 3) {
+                                infoLabel.setText("DRAG LEFT OR RIGHT");
+                                infoLabel.fadeFromTo(0f, 1f, 0.5f, 0f);
+                                handIcon.show();
+                                handIcon.moveFromToCenter(-100, -220, 100, -220, 1.2f, 0, Linear.INOUT, 5, true);
+//                                tiltSlider.show();
+//                                tiltSlider.getLabel().setVisible(false);
+
+                            } else if (placementCount == 2) {
+                                handIcon.hide();
+                                infoLabel.setText("MATCH HORIZONTALLY");
+                                infoLabel.fadeFromTo(0f, 1f, 0.5f, 0f);
+
+                            } else if (placementCount == 1) {
+                                handIcon.hide();
+                                infoLabel.setText("MATCH 3 SAME COLOR IN ROW");
+                                infoLabel.fadeFromTo(0f, 1f, 0.5f, 0f);
                             }
 
+                            Tween.to(selectedCubeButton, WidgetAccessor.SCALE_XY, 0.6f)
+                                    .target(0f, 0f)
+                                    .ease(Expo.OUT)
+                                    .setCallback(new TweenCallback() {
+                                        @Override
+                                        public void onEvent(int i, BaseTween<?> bt) {
+                                            selectedCubeButton.hide();
+                                            updateSelectedCubeButton(null);
+                                            checkForCubeButtonReload();
+                                            cubeButton1.setEnabled(true);
+                                            cubeButton2.setEnabled(true);
+                                            cubeButton3.setEnabled(true);
+
+                                        }
+                                    })
+                                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
                         }
 
                     }
 
                 }
+
             }
         }
 
@@ -752,18 +837,27 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
         log("booster = " + boosterLevel);
 
         if (boosterLevel == 2) {
-            showMessage("+ Double Boost");
+            player.addScore(10);
+            showMessage("+10 Super Boost");
             baseApplication.getSoundManager().setSoundPitch("booster", 1f);
             baseApplication.getSoundManager().playSound("booster");
 
         } else if (boosterLevel == 3) {
-            showMessage("+ Triple Boost");
+            player.addScore(20);
+            showMessage("+20 Mega Bonus");
             baseApplication.getSoundManager().setSoundPitch("booster", 0.8f);
             baseApplication.getSoundManager().playSound("booster");
 
         } else if (boosterLevel == 4) {
-            showMessage("+ Quadro Boost");
+            player.addScore(50);
+            showMessage("+50 Ultra Bonus");
             baseApplication.getSoundManager().setSoundPitch("booster", 0.6f);
+            baseApplication.getSoundManager().playSound("booster");
+
+        } else if (boosterLevel == 5) {
+            player.addScore(10);
+            showMessage("+10 Clean Sweep Bonus");
+            baseApplication.getSoundManager().setSoundPitch("booster", 0.5f);
             baseApplication.getSoundManager().playSound("booster");
         }
 
@@ -772,8 +866,9 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
     private void showMessage(String message) {
         messageLabel.setText(message);
         messageLabel.show();
-        messageLabel.fadeFromTo(1f, 0, 1.2f, 0f);
-        messageLabel.moveFromToCenter(0, 20, 0, 250, 1.2f, 0f, new TweenCallback() {
+        messageLabel.scaleFromTo(0, 0, 1.2f, 1.2f, 0.5f, 0f, Bounce.OUT);
+        messageLabel.fadeFromTo(1f, 0, 0.6f, 1f);
+        messageLabel.moveFromToCenter(0, 20, 0, 350, 1.2f, 0.5f, new TweenCallback() {
             @Override
             public void onEvent(int i, BaseTween<?> bt) {
                 messageLabel.hide();
@@ -781,6 +876,172 @@ public class PlayScreenChaseCam extends AbstractScreen implements BasicGameListe
         });
 
     }
-    
-    
+
+    @Override
+    public void doEscape(boolean touchEvent) {
+
+        if (exitDialog.isVisible()) {
+//            exitDialog.hide();
+        } else {
+            if (game != null && game.isStarted()) {
+                saveProgress();
+            }
+            exitDialog.show();
+        }
+
+    }
+
+    /**
+     * This method will save the current players progress.
+     */
+    public void saveProgress() {
+        //TODO: Save the cube positions and colors        
+        Properties properties = baseApplication.getGameSaves().getGameData().getProperties();
+        properties.clear();
+        properties.put("level", game.getPlayerLevel());
+        properties.put("score", player.getScore());
+        properties.put("cubeplacementcount", game.getCubePlacementCount());
+
+        if (cubeButton1.isVisible()) {
+            properties.put("tool1", cubeButton1.getName());
+        }
+
+        if (cubeButton2.isVisible()) {
+            properties.put("tool2", cubeButton2.getName());
+        }
+
+        if (cubeButton3.isVisible()) {
+            properties.put("tool3", cubeButton3.getName());
+        }
+
+        for (int i = 0; i < game.getCubesNode().getQuantity(); i++) {
+            Spatial cube = game.getCubesNode().getChild(i);
+            if (cube != null) {
+                String name = "cube" + i;
+                String typeKey = name + "_type";
+                String type = cube.getUserData(CUBE_TYPE);
+                String posKey = name + "_pos";
+                String pos = cube.getLocalTranslation().x + "," + cube.getLocalTranslation().y + "," + cube.getLocalTranslation().z;
+
+//                log("SAVING CUBE DATA");
+//                log("\t" + typeKey + ": " + type);
+//                log("\t" + posKey + ": " + pos);
+                properties.put(typeKey, type);
+                properties.put(posKey, pos);
+
+            }
+        }
+
+        baseApplication.getGameSaves().getGameData().setProperties(properties);
+        baseApplication.getGameSaves().save();
+
+    }
+
+    /**
+     * This method will load the current players progress.
+     */
+    public void loadProgress() {
+
+        savedTool1Type = null;
+        savedTool2Type = null;
+        savedTool3Type = null;
+
+        baseApplication.getGameSaves().read();
+        Properties properties = baseApplication.getGameSaves().getGameData().getProperties();
+//        log("properties: " + properties);
+
+        if (properties != null) {
+
+            Set<Object> keys = properties.keySet();
+            for (Iterator<Object> iterator = keys.iterator(); iterator.hasNext();) {
+                Object key = iterator.next();
+                Object val = properties.get(key);
+                log("Key: " + key + "; val: " + val);
+
+                if (key.equals("score")) {
+                    int savedScore = (int) val;
+                    player.addScore(savedScore);
+
+                    if (savedScore > 0) {
+                        firstGame = false;
+                    }
+
+                } else if (key.equals("level")) {
+                    int playerLevel = (int) val;
+                    game.setPlayerLevel(playerLevel);
+
+                } else if (key.equals("cubeplacementcount")) {
+                    int cubeplacementcount = (int) val;
+                    game.setCubePlacementCount(cubeplacementcount);
+
+                } else if (key.equals("tool1")) {
+                    savedTool1Type = val.toString();
+
+                } else if (key.equals("tool2")) {
+                    savedTool2Type = val.toString();
+
+                } else if (key.equals("tool3")) {
+                    savedTool3Type = val.toString();
+
+                } else if (key.toString().startsWith("cube") && key.toString().endsWith("type")) {
+                    String type = val.toString();
+//                    log("Found cube type, " + type);
+                    String posStr = properties.getProperty(key.toString().replace("type", "pos"));
+//                    log("Found cube pos, " + posStr);
+                    String[] posArr = posStr.split(",");
+                    if (posArr.length == 3) {
+                        float x = Float.parseFloat(posArr[0]);
+                        float y = Float.parseFloat(posArr[1]);
+                        float z = Float.parseFloat(posArr[2]);
+
+//                        log("Adding cube "+type+" from saved data at (" + x + ", " + y +", " + z + ")");
+                        ColorRGBA color = game.getCubeColor(type);
+                        game.loadCube(type, color, x, y, z);
+
+                    }
+
+                }
+
+            }
+        }
+
+        game.refreshGame();
+    }
+
+    private void updateSavedToolButtons() {
+
+        if (savedTool1Type != null || savedTool2Type != null || savedTool3Type != null) {
+            
+            if (savedTool1Type != null) {
+                ColorRGBA color = game.getCubeColor(savedTool1Type);
+                cubeButton1.setScale(1f);
+                cubeButton1.setBackgroundColor(color);
+                cubeButton1.setName(savedTool1Type);
+                cubeButton1.show();
+            } else {
+                cubeButton1.hide();
+            }
+
+            if (savedTool2Type != null) {
+                ColorRGBA color = game.getCubeColor(savedTool2Type);
+                cubeButton2.setScale(1f);
+                cubeButton2.setBackgroundColor(color);
+                cubeButton2.setName(savedTool2Type);
+                cubeButton2.show();
+            } else {
+                cubeButton2.hide();
+            }
+
+            if (savedTool3Type != null) {
+                ColorRGBA color = game.getCubeColor(savedTool3Type);
+                cubeButton3.setScale(1f);
+                cubeButton3.setBackgroundColor(color);
+                cubeButton3.setName(savedTool3Type);
+                cubeButton3.show();
+            } else {
+                cubeButton3.hide();
+            }
+        }
+
+    }
 }

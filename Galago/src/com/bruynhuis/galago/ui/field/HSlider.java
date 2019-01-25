@@ -8,6 +8,7 @@ import com.bruynhuis.galago.ui.Image;
 import com.bruynhuis.galago.ui.Label;
 import com.bruynhuis.galago.ui.button.ControlButton;
 import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
+import com.bruynhuis.galago.ui.listener.TouchButtonListener;
 import com.bruynhuis.galago.ui.listener.ValueChangeListener;
 import com.bruynhuis.galago.ui.panel.Panel;
 import com.jme3.math.ColorRGBA;
@@ -34,6 +35,7 @@ public class HSlider extends Panel {
     private String labelText = "";
     private boolean calculateValue = false;
     private List<ValueChangeListener> valueChangeListeners = new ArrayList<ValueChangeListener>();
+    private List<TouchButtonListener> touchButtonListener = new ArrayList<TouchButtonListener>();
     
     private float percentage = 0f;
     private float NATIVE_WIDTH = 264;
@@ -197,6 +199,14 @@ public class HSlider extends Panel {
     
     public void clearValueChangeListeners() {
         this.valueChangeListeners.clear();
+    }
+    
+    public void addTouchButtonListener(TouchButtonListener buttonListener) {
+        this.touchButton.addTouchButtonListener(buttonListener);
+    }
+    
+    public void removeTouchButtonListener(TouchButtonListener buttonListener) {
+        this.touchButton.removeTouchButtonListener(buttonListener);
     }
 
     public Label getLabel() {

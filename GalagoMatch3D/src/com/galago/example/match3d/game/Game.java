@@ -48,8 +48,8 @@ public class Game extends BasicGame {
     public static final String CUBE_TYPE_5 = "cube_type_5";
     public static final String CUBE_TYPE_6 = "cube_type_6";
 
-    public static final int PLAYER_LEVEL_2_RANGE = 20;
-    public static final int PLAYER_LEVEL_3_RANGE = 100;
+    public static final int PLAYER_LEVEL_2_RANGE = 50;
+    public static final int PLAYER_LEVEL_3_RANGE = 150;
 
     private GameProgressListener gameProgressListener;
 
@@ -71,8 +71,10 @@ public class Game extends BasicGame {
     private float angle = 0;
     private int boosterCount = 0;
     private int playerLevel = 1;
+    private int cubePlacementCount = 0;
+    private int savedScore = 0;
 
-    private Timer matchedCubeDisposeTimer = new Timer(60);
+    private Timer matchedCubeDisposeTimer = new Timer(80);
     private Timer gravityTimer = new Timer(100);
 
     private ColorRGBA PLATFORM_COLOR = ColorUtils.rgb(100, 100, 100);
@@ -129,7 +131,6 @@ public class Game extends BasicGame {
 //        borderMarker = SpatialUtils.addBox(rootNode, spacing*1.5f, spacing*1.5f, spacing*1.5f);
 //        borderMarker.setMaterial(baseApplication.getAssetManager().loadMaterial("Materials/marker.j3m"));
 //        borderMarker.move(0, spacing*1.5f-(spacing*0.5f), 0);
-        
         initLight(ColorRGBA.Gray, ColorRGBA.LightGray, sunDirection);
 
         ColorRGBA colorRGBA = ColorUtils.hsv(0.0f, 0.75f, .9f);
@@ -176,17 +177,23 @@ public class Game extends BasicGame {
 
                             //Calculate scores
                             if (cubestoRemove.size() == 3) {
-                                player.addScore(1 * boosterCount);
-                                refreshSkyColor();
+                                player.addScore(1);
 
-                            } else if (cubestoRemove.size() == 6) {
-                                player.addScore(2 * boosterCount);
-                                refreshSkyColor();
+                            } else if (cubestoRemove.size() >= 5 && cubestoRemove.size() < 9) {
+                                player.addScore(2);
 
-                            } else if (cubestoRemove.size() == 9) {
-                                player.addScore(3 * boosterCount);
-                                refreshSkyColor();
+                            } else if (cubestoRemove.size() >= 9) {
+                                player.addScore(3);
+
                             }
+
+                            //Fire a booster score of 5 if the player cleared the board.
+                            log("Cubes left = " + cubesNode.getQuantity());
+                            if (boosterCount >= 3 && cubesNode.getQuantity() == 0) {
+                                fireGameProgressScoreBooster(5);
+                            }
+
+                            refreshSkyColor();
 
                             updatePlayerLevel();
 
@@ -218,11 +225,11 @@ public class Game extends BasicGame {
     }
 
     private void updatePlayerLevel() {
-        if (playerLevel == 1 && player.getScore() >= PLAYER_LEVEL_2_RANGE) {
+        if (playerLevel == 1 && cubePlacementCount >= PLAYER_LEVEL_2_RANGE) {
             playerLevel++;
             fireGameProgressLevelUp(playerLevel);
 
-        } else if (playerLevel == 2 && player.getScore() >= PLAYER_LEVEL_3_RANGE) {
+        } else if (playerLevel == 2 && cubePlacementCount >= PLAYER_LEVEL_3_RANGE) {
             playerLevel++;
             fireGameProgressLevelUp(playerLevel);
         }
@@ -233,11 +240,11 @@ public class Game extends BasicGame {
         if (player != null) {
             val = (float) player.getScore();
         }
-        if (val >= 90f) {
-            val = 90f;
+        if (val >= 180f) {
+            val = 180f;
         }
 
-        float scaler = 1f - (0.1f + (float) val / 100f);
+        float scaler = 1f - (0.1f + (float) val / 200f);
         ColorRGBA colorRGBA = ColorUtils.hsv(scaler, 0.5f, .9f);
         baseApplication.getViewPort().setBackgroundColor(colorRGBA);
         skyMaterial.setColor("EndColor", colorRGBA);
@@ -266,27 +273,41 @@ public class Game extends BasicGame {
 
     }
 
+    
+    public Spatial loadCube(String type, ColorRGBA colorRGBA, float x, float y, float z) {
+        Spatial cube = SpatialUtils.addBox(cubesNode, blocksize / 2f, blocksize / 2f, blocksize / 2f);
+        cube.setName(CUBE);
+        cube.setUserData(CUBE_TYPE, type);
+        
+        Material m = baseApplication.getAssetManager().loadMaterial("Materials/cube.j3m");
+        m.setColor("Ambient", colorRGBA);
+        m.setColor("Diffuse", colorRGBA);
+        cube.setMaterial(m);
+
+        cube.setLocalTranslation(x, y, z);
+
+        return cube;
+    }
+
     public boolean addCube(String type, float x, float z) {
 
+        //Check the range
+        if (x > 1 || x < -1 || z > 1 || z < -1) {
+            return false;
+        }
+
+        //Only continue if above is true
         final Vector3f targetPos = getTargetYPosition(x, z);
         matchesFound = false;
         boosterCount = 0;
 
         if (targetPos != null) {
             playing = true;
-            final Spatial cube = SpatialUtils.addBox(cubesNode, blocksize / 2f, blocksize / 2f, blocksize / 2f);
-            cube.setName(CUBE);
-            cube.setUserData(CUBE_TYPE, type);
             final ColorRGBA cubeColor = getCubeColor(type);
-            Material m = baseApplication.getAssetManager().loadMaterial("Materials/cube.j3m");
-            m.setColor("Ambient", cubeColor);
-            m.setColor("Diffuse", cubeColor);
-            cube.setMaterial(m);
-
-//            SpatialUtils.addColor(cube, getCubeColor(type), false);
-            SpatialUtils.move(cube, x, cubeStartHeight, z);
-
+            final Spatial cube = loadCube(type, cubeColor, x, cubeStartHeight, z);
+            
             baseApplication.getSoundManager().playSound("drop");
+            cubePlacementCount++;
 
             //Create wobble effect
             final float wobbleAmount = 0.2f;
@@ -392,13 +413,13 @@ public class Game extends BasicGame {
         //If a match occurred then mark the cubes as matched
         for (int i = 0; i < cubesNode.getQuantity(); i++) {
             Spatial cube = cubesNode.getChild(i);
-            if (cube.getUserData(MATCHED) == null) {
-                Spatial cubeLeft = getCubeOfSameTypeRelativeTo(cube, -spacing, 0, 0);
-                Spatial cubeRight = getCubeOfSameTypeRelativeTo(cube, spacing, 0, 0);
-                Spatial cubeFront = getCubeOfSameTypeRelativeTo(cube, 0, 0, -spacing);
-                Spatial cubeBack = getCubeOfSameTypeRelativeTo(cube, 0, 0, spacing);
-                Spatial cubeUp = getCubeOfSameTypeRelativeTo(cube, 0, spacing, 0);
-                Spatial cubeDown = getCubeOfSameTypeRelativeTo(cube, 0, -spacing, 0);
+//            if (cube.getUserData(MATCHED) == null) {
+            Spatial cubeLeft = getCubeOfSameTypeRelativeTo(cube, -spacing, 0, 0);
+            Spatial cubeRight = getCubeOfSameTypeRelativeTo(cube, spacing, 0, 0);
+            Spatial cubeFront = getCubeOfSameTypeRelativeTo(cube, 0, 0, -spacing);
+            Spatial cubeBack = getCubeOfSameTypeRelativeTo(cube, 0, 0, spacing);
+            Spatial cubeUp = getCubeOfSameTypeRelativeTo(cube, 0, spacing, 0);
+            Spatial cubeDown = getCubeOfSameTypeRelativeTo(cube, 0, -spacing, 0);
 
 //                if (cubeUp != null && cubeDown != null) {
 //                    matchesFound = true;
@@ -407,20 +428,20 @@ public class Game extends BasicGame {
 //                    cubeDown.setUserData(MATCHED, "true");
 //
 //                } else 
-                if (cubeLeft != null && cubeRight != null) {
-                    matchesFound = true;
-                    cube.setUserData(MATCHED, "true");
-                    cubeLeft.setUserData(MATCHED, "true");
-                    cubeRight.setUserData(MATCHED, "true");
+            if (cubeLeft != null && cubeRight != null) {
+                matchesFound = true;
+                cube.setUserData(MATCHED, "true");
+                cubeLeft.setUserData(MATCHED, "true");
+                cubeRight.setUserData(MATCHED, "true");
 
-                } else if (cubeFront != null && cubeBack != null) {
-                    matchesFound = true;
-                    cube.setUserData(MATCHED, "true");
-                    cubeFront.setUserData(MATCHED, "true");
-                    cubeBack.setUserData(MATCHED, "true");
+            } else if (cubeFront != null && cubeBack != null) {
+                matchesFound = true;
+                cube.setUserData(MATCHED, "true");
+                cubeFront.setUserData(MATCHED, "true");
+                cubeBack.setUserData(MATCHED, "true");
 
-                }
             }
+//            }
 
         }
 
@@ -590,8 +611,29 @@ public class Game extends BasicGame {
     @Override
     public void start(BasicPlayer physicsPlayer) {
         super.start(physicsPlayer);
-
+    
         refreshSkyColor();
+    }
+
+    public void refreshGame() {        
+        refreshSkyColor();
+        
+    }
+
+    public Node getCubesNode() {
+        return cubesNode;
+    }
+
+    public void setPlayerLevel(int playerLevel) {
+        this.playerLevel = playerLevel;
+    }
+
+    public int getCubePlacementCount() {
+        return cubePlacementCount;
+    }
+
+    public void setCubePlacementCount(int cubePlacementCount) {
+        this.cubePlacementCount = cubePlacementCount;
     }
 
 }

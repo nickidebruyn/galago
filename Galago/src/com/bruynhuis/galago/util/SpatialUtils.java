@@ -41,10 +41,13 @@ import com.jme3.scene.shape.Cylinder;
 import com.jme3.scene.shape.Dome;
 import com.jme3.scene.shape.Quad;
 import com.jme3.scene.shape.Sphere;
+import com.jme3.terrain.Terrain;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.texture.Texture;
 import com.jme3.water.SimpleWaterProcessor;
 import com.jme3.water.WaterFilter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -228,18 +231,18 @@ public class SpatialUtils {
         final WaterFilter water = new WaterFilter(parent, lightDir);
         water.setWaterHeight(yPos);
         water.setWindDirection(new Vector2f(-0.15f, 0.15f));
-        water.setFoamHardness(0.85f);
-        water.setFoamExistence(new Vector3f(0.2f, 1f, 0.6f));
-        water.setShoreHardness(0.5f);
-        water.setMaxAmplitude(0.5f);
+        water.setFoamHardness(0.6f);
+        water.setFoamExistence(new Vector3f(0.4f, 1f, 0.6f));
+        water.setShoreHardness(0.2f);
+        water.setMaxAmplitude(1f);
         water.setWaveScale(0.01f);
         water.setSpeed(0.9f);
-        water.setShininess(0.1f);
+        water.setShininess(0.7f);
         water.setNormalScale(0.75f);
 //        water.setRefractionConstant(0.2f);
 //        water.setReflectionDisplace(20f);
-        water.setCausticsIntensity(0.8f);
-        water.setWaterTransparency(1.2f);
+        water.setCausticsIntensity(0.5f);
+        water.setWaterTransparency(0.8f);
         water.setColorExtinction(new Vector3f(10f, 20f, 30f));
         fpp.addFilter(water);
         SharedSystem.getInstance().getBaseApplication().getViewPort().addProcessor(fpp);
@@ -345,6 +348,30 @@ public class SpatialUtils {
                         mat.setVector3("LightPos", new Vector3f(5, 20, 5));
                         geom.setMaterial(mat);
 
+                    }
+
+                }
+
+            }
+        };
+
+        node.depthFirstTraversal(sgv);
+
+    }
+    
+    public static void enableWireframe(Node node, final boolean enabled) {
+
+        SceneGraphVisitor sgv = new SceneGraphVisitor() {
+            public void visit(Spatial spatial) {
+
+                if (spatial instanceof Geometry) {
+
+                    Geometry geom = (Geometry) spatial;
+                    Material mat = geom.getMaterial();
+                    
+                    if (mat != null) {
+                        mat.getAdditionalRenderState().setWireframe(enabled);
+                        
                     }
 
                 }
@@ -856,5 +883,88 @@ public class SpatialUtils {
             
         }
         
+    }
+    
+    
+    /**
+     * Perform the actual height modification on the terrain.
+     * @param worldLoc the location in the world where the tool was activated
+     * @param radius of the tool, terrain in this radius will be affected
+     * @param heightFactor the amount to adjust the height by
+     */
+    public static void doModifyTerrainHeight(Terrain terrain, Vector3f worldLoc, float radius, float heightFactor) {
+
+        if (terrain == null)
+            return;
+
+        int radiusStepsX = (int) (radius / ((Node)terrain).getLocalScale().x);
+        int radiusStepsZ = (int) (radius / ((Node)terrain).getLocalScale().z);
+
+        float xStepAmount = ((Node)terrain).getLocalScale().x;
+        float zStepAmount = ((Node)terrain).getLocalScale().z;
+
+        List<Vector2f> locs = new ArrayList<Vector2f>();
+        List<Float> heights = new ArrayList<Float>();
+
+        for (int z=-radiusStepsZ; z<radiusStepsZ; z++) {
+            for (int x=-radiusStepsZ; x<radiusStepsX; x++) {
+
+                float locX = worldLoc.x + (x*xStepAmount);
+                float locZ = worldLoc.z + (z*zStepAmount);
+
+                // see if it is in the radius of the tool
+                if (isInRadius(locX-worldLoc.x,locZ-worldLoc.z,radius)) {
+                    // adjust height based on radius of the tool
+                    float h = calculateHeight(radius, heightFactor, locX-worldLoc.x, locZ-worldLoc.z);
+                    // increase the height
+                    locs.add(new Vector2f(locX, locZ));
+                    heights.add(h);
+                }
+            }
+        }
+
+        // do the actual height adjustment
+        terrain.adjustHeight(locs, heights);
+
+        ((Node)terrain).updateModelBound(); // or else we won't collide with it where we just edited
+        
+    }
+    
+    /**
+     * See if the X,Y coordinate is in the radius of the circle. It is assumed
+     * that the "grid" being tested is located at 0,0 and its dimensions are 2*radius.
+     * @param x
+     * @param z
+     * @param radius
+     * @return
+     */
+    public static boolean isInRadius(float x, float y, float radius) {
+        Vector2f point = new Vector2f(x,y);
+        // return true if the distance is less than equal to the radius
+        return Math.abs(point.length()) <= radius;
+    }
+    
+    /**
+     * Interpolate the height value based on its distance from the center (how far along
+     * the radius it is).
+     * The farther from the center, the less the height will be.
+     * This produces a linear height falloff.
+     * @param radius of the tool
+     * @param heightFactor potential height value to be adjusted
+     * @param x location
+     * @param z location
+     * @return the adjusted height value
+     */
+    public static float calculateHeight(float radius, float heightFactor, float x, float z) {
+        float val = calculateRadiusPercent(radius, x, z);
+        return heightFactor * val;
+    }
+    
+    public static float calculateRadiusPercent(float radius, float x, float z) {
+         // find percentage for each 'unit' in radius
+        Vector2f point = new Vector2f(x,z);
+        float val = Math.abs(point.length()) / radius;
+        val = 1f - val;
+        return val;
     }
 }

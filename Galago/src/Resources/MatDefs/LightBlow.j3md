@@ -1,0 +1,325 @@
+MaterialDef LightBlow {
+
+    MaterialParameters {
+
+        // Fog
+        Color FogColor
+        TextureCubeMap FogSkyBox
+
+        // Multiply Color system
+        Boolean Multiply_Color
+
+        // Toon System
+        Boolean Toon
+        Color EdgesColor 
+        Float EdgeSize
+        Boolean Fog_Edges
+
+        // Color of RimLighting2
+        Color RimLighting2
+
+        // Color of RimLighting
+        Color RimLighting
+
+        // Light Map
+        Boolean SeperateTexCoord
+        Boolean SeperateTexCoord2
+        Boolean OverlayLightmap
+        Texture2D LightMap
+        Boolean LightMap_R
+        Boolean LightMap_G
+        Boolean LightMap_B
+        Boolean LightMap_A
+
+        // No attenuation increases fps
+        Boolean No_Attenuation
+
+     // Output emission from the diffuse map alpha channel
+        Boolean EmissiveMap
+        
+        // Apha threshold for fragment discarding
+        Float AlphaDiscardThreshold (AlphaTestFallOff)
+
+     // Output alpha from the diffuse map
+        Boolean Alpha_A_Dif
+
+     // Output alpha from the diffuse map
+        Boolean Alpha_A_Nor   
+       
+        // Switch Normal Map xyz(rgb) channels
+        Boolean Nor_Inv_X
+        Boolean Nor_Inv_Y
+        Boolean Nor_Inv_Z
+
+        // IBL Map for Image Based Lighting
+        TextureCubeMap IblMap
+        Texture2D IblMap_Simple
+
+
+        // Switch Hemispherical Lighting on/off
+        Boolean Hemi_Lighting_1
+        Boolean Hemi_Lighting_2
+        Boolean Linear_Lighting
+
+        // Specular lighting
+        Boolean Specular_Lighting
+        Float Shininess (MaterialShininess) : 3 // Specular power/shininess
+        Boolean Spec_A_Nor // Output specular from the normal map alpha channel
+        Boolean Spec_A_Dif // Output specular from the diffuse map alpha channel
+
+        // Reflection
+        TextureCubeMap RefMap // Ref Map for reflection
+        Boolean Ref_A_Nor // Output reflection from the normal map alpha channel
+        Boolean Ref_A_Dif // Output reflection from the diffuse map alpha channel
+        Float RefIntensity : 1 // Reflection Intensity
+        Boolean AdditiveReflection
+
+
+        // Use more efficent algorithms to improve performance
+        Boolean LowQuality
+
+        // Improve quality at the cost of performance
+        Boolean HighQuality
+
+        // Normal map is in BC5/ATI2n/LATC/3Dc compression format
+        Boolean LATC
+
+        // Use the provided ambient, diffuse, and specular colors
+        Boolean UseMaterialColors
+
+        // Activate shading along the tangent, instead of the normal
+        // Requires tangent data to be available on the model.
+        Boolean VTangent
+
+        // Use minnaert diffuse instead of lambert
+        Color Minnaert
+        
+        // Use ward specular instead of phong
+        Boolean WardIso
+
+        // Use vertex color as an additional diffuse color.
+        Boolean UseVertexColor
+
+        // Ambient color
+        Color Ambient (MaterialAmbient)
+
+        // Diffuse color
+        Color Diffuse (MaterialDiffuse)
+
+        // Specular color
+        Color Specular (MaterialSpecular)
+
+
+        // Texture Mask for texture blending
+        Texture2D TextureMask
+
+        // Diffuse map
+        Texture2D DiffuseMap
+        Texture2D DiffuseMap_1
+        Texture2D DiffuseMap_2
+        Texture2D DiffuseMap_3
+
+        Float uv_0_scale : 1        
+        Float uv_1_scale : 1
+        Float uv_2_scale : 1
+        Float uv_3_scale : 1
+
+        // Normal map
+        Texture2D NormalMap
+        Texture2D NormalMap_1
+        Texture2D NormalMap_2
+        Texture2D NormalMap_3
+
+        // Specular/gloss map
+        Texture2D SpecularMap
+
+        // Parallax/height map
+        Texture2D ParallaxMap
+        Boolean NORMAL_PARALLAX  // Output parallax map from the normal map alpha channel
+        Boolean PackedNormalParallax  // Set to true is parallax map is stored in the alpha channel of the normal map
+        Float ParallaxHeight : 0.05   // Sets the relief height for parallax mapping
+        Boolean SteepParallax  // Set to true to activate Steep Parallax mapping
+
+        // Color ramp, will map diffuse and specular values through it.
+        Texture2D ColorRamp
+
+        // Texture of the glowing parts of the material
+        Texture2D GlowMap
+
+        // The glow color of the object
+        Color GlowColor
+
+        // Parameters for fresnel
+        // X = bias
+        // Y = scale
+        // Z = power
+      //  Vector3 FresnelParams
+
+        // the ref map is a spheremap and not a cube map
+        Boolean EnvMapAsSphereMap
+
+
+        //shadows
+         Int FilterMode
+        Boolean HardwareShadows
+
+        Texture2D ShadowMap0
+        Texture2D ShadowMap1
+        Texture2D ShadowMap2
+        Texture2D ShadowMap3
+        //pointLights
+        Texture2D ShadowMap4
+        Texture2D ShadowMap5
+        
+        Float ShadowIntensity
+        Vector4 Splits
+        Vector2 FadeInfo
+
+        Matrix4 LightViewProjectionMatrix0
+        Matrix4 LightViewProjectionMatrix1
+        Matrix4 LightViewProjectionMatrix2
+        Matrix4 LightViewProjectionMatrix3
+        //pointLight
+        Matrix4 LightViewProjectionMatrix4
+        Matrix4 LightViewProjectionMatrix5   
+        Vector3 LightPos
+        Vector3 LightDir
+
+        Float PCFEdge
+        Float ShadowMapSize
+
+        // For hardware skinning
+        Int NumberOfBones
+        Matrix4Array BoneMatrices
+
+        // Refraction Filter
+        Boolean DoRefract : False
+        Float Distance : 200.0
+        Texture2D Mask_Texture        
+
+    }
+
+    Technique {
+
+        LightMode MultiPass
+
+        VertexShader GLSL100:   Resources/Shaders/LightBlow.vert
+        FragmentShader GLSL100: Resources/Shaders/LightBlow.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            NormalMatrix
+            WorldViewMatrix
+            ViewMatrix
+            CameraPosition
+            WorldMatrix
+        }
+
+        Defines {
+
+            RIM_LIGHTING_2 : RimLighting2
+            RIM_LIGHTING : RimLighting
+            OVERLAYLIGHTMAP : OverlayLightmap
+            SEPERATE_TEXCOORD : SeperateTexCoord
+            SEPERATE_TEXCOORD2 : SeperateTexCoord2
+            HAS_LIGHTMAP : LightMap
+            LIGHTMAP_R : LightMap_R
+            LIGHTMAP_G : LightMap_G
+            LIGHTMAP_B : LightMap_B
+            LIGHTMAP_A : LightMap_A
+            ALPHA_A_DIF : Alpha_A_Dif
+            ALPHA_A_NOR : Alpha_A_Nor
+            NO_ATTENUATION : No_Attenuation
+            EMISSIVEMAP : EmissiveMap
+            NOR_INV_X : Nor_Inv_X
+            NOR_INV_Y : Nor_Inv_Y
+            NOR_INV_Z : Nor_Inv_Z
+            IBL : IblMap
+            IBL_SIMPLE : IblMap_Simple
+            HEMI_LIGHTING_1 : Hemi_Lighting_1
+            HEMI_LIGHTING_2 : Hemi_Lighting_2
+            LINEAR_LIGHTING : Linear_Lighting
+            SPECULAR_LIGHTING : Specular_Lighting
+            SPEC_A_NOR : Spec_A_Nor 
+            SPEC_A_DIF : Spec_A_Dif
+            REF_A_NOR : Ref_A_Nor 
+            REF_A_DIF : Ref_A_Dif
+            
+            LATC : LATC
+            VERTEX_COLOR : UseVertexColor
+            ATTENUATION : Attenuation
+            MATERIAL_COLORS : UseMaterialColors  // NEED TO REMOVE!
+            V_TANGENT : VTangent
+            MINNAERT  : Minnaert
+            WARDISO   : WardIso
+            LOW_QUALITY : LowQuality
+            HQ_ATTENUATION : HighQuality
+
+            TEXTURE_MASK : TextureMask
+            DIFFUSEMAP : DiffuseMap
+            DIFFUSEMAP_1 : DiffuseMap_1
+            DIFFUSEMAP_2 : DiffuseMap_2
+            DIFFUSEMAP_3 : DiffuseMap_3
+            NORMALMAP : NormalMap
+            NORMALMAP_1 : NormalMap_1
+            NORMALMAP_2 : NormalMap_2
+            NORMALMAP_3 : NormalMap_3
+            SPECULARMAP : SpecularMap
+            PARALLAXMAP : ParallaxMap
+            NORMAL_PARALLAX : NORMAL_PARALLAX
+            NORMALMAP_PARALLAX : PackedNormalParallax
+            STEEP_PARALLAX : SteepParallax
+            COLORRAMP : ColorRamp
+            REFLECTION : RefMap
+            ADDITIVE_REFLECTION : AdditiveReflection
+            SPHERE_MAP : EnvMapAsSphereMap
+            MULTIPLY_COLOR : Multiply_Color
+            FOG : FogColor
+            FOG_SKY : FogSkyBox
+            TOON : Toon
+            TOON_EDGES : EdgesColor
+            FOG_EDGES : Fog_Edges
+
+            NUM_BONES : NumberOfBones
+
+        }
+
+    }
+
+
+    Technique CartoonEdge {
+
+        LightMode MultiPass
+
+        VertexShader GLSL100:   Resources/Shaders/ToonBlow_Edges.vert
+        FragmentShader GLSL100: Resources/Shaders/ToonBlow_Edges.frag
+
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            NormalMatrix
+            WorldViewMatrix
+            ViewMatrix
+            CameraPosition
+            WorldMatrix
+            NUM_BONES : NumberOfBones
+        }
+
+        Defines {
+
+            SPHERE_MAP : SphereMap
+            FOG : FogColor
+            FOG_SKY : FogSkyBox
+            TOON_EDGES : EdgesColor
+            FOG_EDGES : Fog_Edges
+            NUM_BONES : NumberOfBones
+        }
+
+        RenderState {
+            FaceCull Front
+            DepthTest On
+            DepthWrite On
+        }
+    }
+
+}

@@ -1,0 +1,6 @@
+Material My Material : Common/MatDefs/Terrain/HeightBasedTerrain.j3md {
+     MaterialParameters {
+     }
+    AdditionalRenderState {
+    }
+}

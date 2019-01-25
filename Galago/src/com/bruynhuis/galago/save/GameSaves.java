@@ -4,20 +4,15 @@
  */
 package com.bruynhuis.galago.save;
 
-import com.bruynhuis.galago.app.BaseApplication;
+import com.bruynhuis.galago.util.Debug;
 import com.jme3.system.JmeSystem;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInput;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -28,6 +23,7 @@ import java.util.logging.Logger;
 public class GameSaves {
 
     private File file;
+    private File levelfile;
     private String fileName = "defaultgame.save";
     private GameData gameData;
 
@@ -128,19 +124,20 @@ public class GameSaves {
 
         if (folder != null && folder.exists()) {
             try {
-                file = new File(folder.getAbsolutePath() + File.separator + levelFileName);
-                if (file.exists()) {
-                    FileInputStream fileIn = new FileInputStream(file);
+                levelfile = new File(folder.getAbsolutePath() + File.separator + levelFileName);
+                if (levelfile.exists()) {
+                    FileInputStream fileIn = new FileInputStream(levelfile);
                     ObjectInputStream in = new ObjectInputStream(fileIn);
                     try {
                         levelData = (LevelData) in.readObject();
 
                     } catch (ClassNotFoundException ex) {
                         Logger.getLogger(GameSaves.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                        Debug.log("LevelData on read: " + ex.getMessage());
                     }
 
                 } else {
-                    file.createNewFile();
+                    levelfile.createNewFile();
                     levelData = new LevelData();
                     levelData.setSaved(true);
                     save();
@@ -176,9 +173,11 @@ public class GameSaves {
 
             } catch (FileNotFoundException ex) {
                 Logger.getLogger(GameSaves.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                Debug.log("LevelData on save: " + ex.getMessage());
 
             } catch (IOException ex) {
                 Logger.getLogger(GameSaves.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                Debug.log("LevelData on save: " + ex.getMessage());
 
             } finally {
                 if (fileOut != null) {
@@ -186,6 +185,7 @@ public class GameSaves {
                         fileOut.close();
                     } catch (IOException ex) {
                         Logger.getLogger(GameSaves.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                        Debug.log("LevelData on save: " + ex.getMessage());
                     }
                 }
 

@@ -1,0 +1,9 @@
+Material My Material : Resources/MatDefs/Lava.j3md {
+     MaterialParameters {
+        ColorMap : Repeat Textures/noise.png
+        LavaSpeed : -0.08
+        TextureScale : 0.8 0.8
+     }
+    AdditionalRenderState {
+    }
+}
