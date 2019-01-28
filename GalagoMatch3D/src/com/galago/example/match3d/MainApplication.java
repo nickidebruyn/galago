@@ -14,9 +14,7 @@ import com.bruynhuis.galago.resource.SoundManager;
 import com.bruynhuis.galago.resource.TextureManager;
 import com.bruynhuis.galago.ui.FontStyle;
 import com.bruynhuis.galago.util.ColorUtils;
-import com.galago.example.match3d.screens.CapsScreen;
 import com.galago.example.match3d.screens.PlayScreen;
-import com.galago.example.match3d.screens.PlayScreenChaseCam;
 
 /**
  *
@@ -35,6 +33,7 @@ public class MainApplication extends Base3DApplication {
     @Override
     protected void preInitApp() {
         BACKGROUND_COLOR = ColorUtils.hsv(0.9f, 0.5f, .9f);
+        loadingBarVisible = false;
     }
 
     @Override
@@ -70,10 +69,7 @@ public class MainApplication extends Base3DApplication {
 
     @Override
     protected void initScreens(ScreenManager screenManager) {
-//        screenManager.loadScreen(PlayScreen.NAME, new PlayScreen());
-        screenManager.loadScreen(PlayScreenChaseCam.NAME, new PlayScreenChaseCam());
-        screenManager.loadScreen("caps", new CapsScreen());
-
+        screenManager.loadScreen(PlayScreen.NAME, new PlayScreen());
     }
 
     @Override

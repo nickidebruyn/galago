@@ -134,7 +134,7 @@ public class Game extends BasicGame {
         initLight(ColorRGBA.Gray, ColorRGBA.LightGray, sunDirection);
 
         ColorRGBA colorRGBA = ColorUtils.hsv(0.0f, 0.75f, .9f);
-        sky = SpatialUtils.addSkySphere(levelNode, colorRGBA, PLATFORM_COLOR, baseApplication.getCamera());
+        sky = SpatialUtils.addSkySphere(levelNode, colorRGBA, ColorRGBA.Black, baseApplication.getCamera());
         skyMaterial = ((Geometry) sky).getMaterial();
         refreshSkyColor();
 

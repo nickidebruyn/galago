@@ -25,6 +25,7 @@ public class ExitDialog extends PopupDialog {
         
         setTitle("What would you like to do?");
         setTitleColor(ColorRGBA.White);
+        title.setFontSize(34);
         title.centerAt(0, 100);                
         
         cancelButton = new Button(this, "cancel", "Resume");
