@@ -796,12 +796,12 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
             GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this, this, this);
             builder.addApi(Games.API)
                     .addApi(Plus.API)
-                    //                    .addApi(AppStateManager.API)
+//                    .addApi(AppStateManager.API)
                     .addApi(Drive.API)
                     .addScope(Drive.SCOPE_APPFOLDER)
                     .addScope(Games.SCOPE_GAMES)
                     .addScope(Plus.SCOPE_PLUS_LOGIN)
-                    //                    .addScope(AppStateManager.SCOPE_APP_STATE)
+//                    .addScope(AppStateManager.SCOPE_APP_STATE)
                     .setGravityForPopups(Gravity.CENTER);
             googleApiClient = builder.build();
         }
