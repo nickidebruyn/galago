@@ -10,6 +10,8 @@ import com.bruynhuis.galago.app.Base2DApplication;
 import com.bruynhuis.galago.games.blender2d.Blender2DGameListener;
 import com.bruynhuis.galago.screen.AbstractScreen;
 import com.bruynhuis.galago.ui.Label;
+import com.bruynhuis.galago.ui.button.ControlButton;
+import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
 import com.galago.example.pinball.game.Game;
 import com.galago.example.pinball.game.Player;
 import com.jme3.scene.Spatial;
@@ -22,6 +24,8 @@ public class PlayScreen extends AbstractScreen implements Blender2DGameListener 
 	
     public static final String NAME = "PlayScreen";
     private Label title;
+    private ControlButton leftButton;
+    private ControlButton rightButton;
     
     private Game game;
     private Player player;
@@ -31,6 +35,31 @@ public class PlayScreen extends AbstractScreen implements Blender2DGameListener 
         title = new Label(hudPanel, "Screen Title");
         title.centerTop(0, 0);
         
+        leftButton = new ControlButton(hudPanel, "left-button", 240, 400);
+        leftButton.leftBottom(0, 0);
+        leftButton.addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchDown(float touchX, float touchY, float tpf, String uid) {
+                if (isActive()) {
+                    game.doLeftFlip();
+                }
+            }
+
+            @Override
+            public void doTouchCancel(float touchX, float touchY, float tpf, String uid) {
+                if (isActive()) {
+                    game.doLeftStop();
+                }
+            }
+
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                if (isActive()) {
+                    game.doLeftStop();
+                }
+            }
+            
+        });
         
     }
 
@@ -48,6 +77,9 @@ public class PlayScreen extends AbstractScreen implements Blender2DGameListener 
 
     @Override
     protected void show() {
+        setPreviousScreen(null);
+        game.start(player);
+        
     }
 
     @Override
@@ -61,7 +93,8 @@ public class PlayScreen extends AbstractScreen implements Blender2DGameListener 
 
     @Override
     public void doGameOver() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        log("Exit");
+        exitScreen();
     }
 
     @Override
@@ -76,12 +109,12 @@ public class PlayScreen extends AbstractScreen implements Blender2DGameListener 
 
     @Override
     public void doCollisionPlayerWithTerrain(Spatial collided, Spatial collider) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void doCollisionPlayerWithStatic(Spatial collided, Spatial collider) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        
     }
 
     @Override

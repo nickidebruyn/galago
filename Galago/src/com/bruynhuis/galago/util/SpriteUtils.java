@@ -16,6 +16,7 @@ import com.bruynhuis.galago.sprite.physics.RigidBodyControl;
 import com.bruynhuis.galago.sprite.physics.shape.BoxCollisionShape;
 import com.bruynhuis.galago.sprite.physics.shape.CircleCollisionShape;
 import com.bruynhuis.galago.sprite.physics.shape.CollisionShape;
+import com.bruynhuis.galago.sprite.physics.shape.TriCollisionShape;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
 import com.jme3.material.Material;
@@ -24,6 +25,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 
@@ -48,6 +50,39 @@ public class SpriteUtils {
         Sprite sprite = new Sprite("sprite", width, height);
         parent.attachChild(sprite);
 
+        return sprite;
+    }
+    
+    /**
+     * Add a sprite image to the parent.
+     * @param parent
+     * @param image
+     * @param width
+     * @param height
+     * @return 
+     */
+    public static Sprite addSprite(Node parent, String image, float width, float height) {
+        Sprite sprite = addSprite(parent, width, height);        
+        sprite.setImage(image);
+        sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+
+        return sprite;
+    }
+    
+    /**
+     * Add a sprite with an offset.
+     * @param parent
+     * @param image
+     * @param width
+     * @param height
+     * @param offsetX
+     * @param offsetY
+     * @param offsetZ
+     * @return 
+     */
+    public static Sprite addSprite(Node parent, String image, float width, float height, float offsetX, float offsetY, float offsetZ) {
+        Sprite sprite = addSprite(parent, image, width, height);        
+        sprite.setLocalTranslation(offsetX, offsetY, offsetZ);
         return sprite;
     }
 
@@ -377,4 +412,22 @@ public class SpriteUtils {
         parent.attachChild(bText);
         return bText;
     }
+
+    public static void addCollisionShapeBasedOfGeometry(RigidBodyControl rbc, Geometry geometry) {
+        int triCount = geometry.getMesh().getTriangleCount();
+        Debug.log("\t Add collision shapes: -TriCount: " + triCount);        
+        Debug.log("\t World Bounds: " + geometry.getWorldBound());
+        
+        Vector3f vec1 = new Vector3f(0, 0, 0);
+        Vector3f vec2 = new Vector3f(0, 0, 0);
+        Vector3f vec3 = new Vector3f(0, 0, 0);
+                
+        for (int t = 0; t < triCount; t++) {
+            geometry.getMesh().getTriangle(t, vec1, vec2, vec3);
+            TriCollisionShape triCollisionShape = new TriCollisionShape(vec1.clone(), vec2.clone(), vec3.clone());
+            rbc.addCollisionShape(triCollisionShape);
+        }
+        
+    }
+    
 }

@@ -14,7 +14,6 @@ import com.bruynhuis.galago.resource.ScreenManager;
 import com.bruynhuis.galago.resource.SoundManager;
 import com.bruynhuis.galago.resource.TextureManager;
 import com.bruynhuis.galago.util.ColorUtils;
-import com.galago.example.hyper2d.screens.CapsScreen;
 import com.galago.example.hyper2d.screens.PlayScreen;
 
 /**
@@ -38,7 +37,7 @@ public class MainApplication extends Base2DApplication {
 
     @Override
     protected void postInitApp() {
-        showScreen("caps");
+        showScreen(PlayScreen.NAME);
     }
 
     @Override
@@ -48,8 +47,8 @@ public class MainApplication extends Base2DApplication {
     
     @Override
     protected void initScreens(ScreenManager screenManager) {
-        screenManager.loadScreen("caps", new CapsScreen());
-//        screenManager.loadScreen(PlayScreen.NAME, new PlayScreen());
+//        screenManager.loadScreen("caps", new CapsScreen());
+        screenManager.loadScreen(PlayScreen.NAME, new PlayScreen());
 
     }
 

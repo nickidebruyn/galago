@@ -24,7 +24,6 @@ import com.bruynhuis.galago.listener.RemoteActionListener;
 import com.google.android.gms.ads.*;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.plus.Plus;
 import com.google.android.gms.games.Games;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -37,7 +36,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.AsyncTask;
 import android.util.Log;
 import com.bruynhuis.galago.listener.SelectionActionListener;
 import com.bruynhuis.galago.sound.AndroidMidiPlayer;
@@ -49,13 +47,23 @@ import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
 import com.jme3.audio.AudioRenderer;
 import com.google.android.gms.analytics.Tracker;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.drive.Drive;
+import com.google.android.gms.games.SnapshotsClient;
 import com.google.android.gms.games.snapshot.Snapshot;
 import com.google.android.gms.games.snapshot.SnapshotMetadata;
 import com.google.android.gms.games.snapshot.SnapshotMetadataChange;
 import com.google.android.gms.games.snapshot.Snapshots;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -74,6 +82,7 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
         implements KeyboardInputListener, RemoteActionListener, EscapeListener,
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SensorEventListener, SelectionActionListener {
 
+    private static final String TAG = "TAG";
     protected SensorManager sensorManager = null;
     protected Sensor accelerometer;
     protected Sensor magnetometer;
@@ -83,6 +92,10 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
     private float I[] = new float[9];
     private float[] orientationVector = new float[3];
     private float[] lastAcc = {0, 0, 0};
+
+    // Request code used to invoke sign in user interactions.
+    private static final int RC_SIGN_IN = 9001;
+
     private static final int GOOGLE_RESOLUTION_REQUEST_CODE = 444;
     private static final int SAVED_GAMES_REQUEST_CODE = 555;
     private static final int ACHIEVEMENTS_REQUEST_CODE = 666;
@@ -90,7 +103,8 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
     protected AdView adView;
     protected InterstitialAd interstitialAd;
     protected RewardedVideoAd rewardedVideoAd;
-    protected GoogleApiClient googleApiClient;
+    protected GoogleSignInClient googleSignInClient;
+    protected GoogleSignInAccount signedInAccount;
     protected GoogleAnalytics analytics;
 //    private Snapshot openedSnapshot;
 //    private byte[] openedLevelData;
@@ -137,7 +151,7 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
         eglDepthBits = 16;
         eglSamples = 0;
         eglStencilBits = 0;
-        frameRate = 60;       
+        frameRate = 60;
 
         // Exit Dialog title & message
         exitDialogTitle = "Exit?";
@@ -241,49 +255,76 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
     }
 
     public void doAddScores(Properties prprts) {
-        if (googleApiClient != null) {
+        if (usePlayServices && isSignedIn()) {
             String scoreStr = prprts.getProperty(BaseApplication.SCORE);
             if (scoreStr != null && !scoreStr.equals("")) {
                 long score = Long.valueOf(scoreStr);
-                if (googleApiClient.isConnected()) {
-                    Games.Leaderboards.submitScore(googleApiClient, prprts.getProperty(BaseApplication.LEADERBOARD), score);
-                }
+                Games.getLeaderboardsClient(this, GoogleSignIn.getLastSignedInAccount(this)).submitScore(prprts.getProperty(BaseApplication.LEADERBOARD), score);
             }
 
         }
     }
 
     public void doGoogleSignIn(Properties prprts) {
-        if (googleApiClient != null) {
-            if (!googleApiClient.isConnected()) {
-                googleApiClient.connect();
+        if (usePlayServices) {
+            if (!isSignedIn()) {
+                startActivityForResult(googleSignInClient.getSignInIntent(), RC_SIGN_IN);
             }
         }
     }
 
     public void doGoogleSignOut(Properties prprts) {
-        if (googleApiClient != null) {
-            if (googleApiClient.isConnected()) {
-                googleApiClient.disconnect();
-                if (getJmeApplication() != null) {
-                    ((BaseApplication) getJmeApplication()).doGoogleAPIDisconnected("Disconnected from google play services!");
-                }
+        if (usePlayServices) {
+            if (isSignedIn()) {
+                googleSignInClient.signOut().addOnCompleteListener(this,
+                        new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(Task<Void> task) {
+
+                        if (task != null) {
+                            if (task.isSuccessful()) {
+                                if (getJmeApplication() != null) {
+                                    ((BaseApplication) getJmeApplication()).doGoogleAPIDisconnected("Disconnected from google play services!");
+                                }
+                            } else if (getJmeApplication() != null) {
+                                ((BaseApplication) getJmeApplication()).doGoogleAPIError("Failed to signout of google play services!");
+                            }
+
+                        }
+
+                    }
+                });
+
             }
         }
     }
 
     public void doGetScores(Properties prprts) {
-        if (googleApiClient != null) {
+        if (usePlayServices) {
             int score = Integer.valueOf(prprts.getProperty(BaseApplication.SCORE));
 
-            if (googleApiClient.isConnected()) {
+            if (isSignedIn()) {
 
                 if (prprts.getProperty(BaseApplication.LEADERBOARD) == null) {
-                    startActivityForResult(Games.Leaderboards.getAllLeaderboardsIntent(googleApiClient), GOOGLE_RESOLUTION_REQUEST_CODE); // not caring about the result
+                    Games.getLeaderboardsClient(this, GoogleSignIn.getLastSignedInAccount(this))
+                            .getAllLeaderboardsIntent()
+                            .addOnSuccessListener(new OnSuccessListener<Intent>() {
+                                @Override
+                                public void onSuccess(Intent intent) {
+                                    startActivityForResult(intent, GOOGLE_RESOLUTION_REQUEST_CODE);
+                                }
+                            });
 
                 } else {
-                    Games.Leaderboards.submitScore(googleApiClient, prprts.getProperty(BaseApplication.LEADERBOARD), score);
-                    startActivityForResult(Games.Leaderboards.getLeaderboardIntent(googleApiClient, prprts.getProperty(BaseApplication.LEADERBOARD)), GOOGLE_RESOLUTION_REQUEST_CODE); // not caring about the result
+                    Games.getLeaderboardsClient(this, GoogleSignIn.getLastSignedInAccount(this)).submitScore(prprts.getProperty(BaseApplication.LEADERBOARD), score);
+                    Games.getLeaderboardsClient(this, GoogleSignIn.getLastSignedInAccount(this))
+                            .getLeaderboardIntent(prprts.getProperty(BaseApplication.LEADERBOARD))
+                            .addOnSuccessListener(new OnSuccessListener<Intent>() {
+                                @Override
+                                public void onSuccess(Intent intent) {
+                                    startActivityForResult(intent, GOOGLE_RESOLUTION_REQUEST_CODE);
+                                }
+                            });
                 }
 
                 if (getJmeApplication() != null) {
@@ -295,7 +336,7 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
                 isAccessingScores = true;
                 leaderboard = prprts.getProperty(BaseApplication.LEADERBOARD);
 
-                googleApiClient.connect();
+                doGoogleSignIn(prprts);
             }
 
         }
@@ -303,28 +344,32 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
     }
 
     public void doUnlockAchievements(Properties prprts) {
-        if (googleApiClient != null) {
+        if (usePlayServices && isSignedIn()) {
             String achievementID = prprts.getProperty(BaseApplication.ID);
-            if (googleApiClient.isConnected()) {
-                Games.Achievements.unlock(googleApiClient, achievementID);
-            }
+            Games.getAchievementsClient(this, GoogleSignIn.getLastSignedInAccount(this))
+                    .unlock(achievementID);
         }
     }
 
     public void doIncrementAchievements(Properties prprts) {
-        if (googleApiClient != null) {
+        if (usePlayServices && isSignedIn()) {
             String achievementID = prprts.getProperty(BaseApplication.ID);
-            if (googleApiClient.isConnected()) {
-                Games.Achievements.increment(googleApiClient, achievementID, 1);
-            }
+            Games.getAchievementsClient(this, GoogleSignIn.getLastSignedInAccount(this))
+                    .increment(achievementID, 1);
         }
     }
 
     public void doGetAchievements(Properties prprts) {
-        if (googleApiClient != null) {
-            if (googleApiClient.isConnected()) {
-                startActivityForResult(Games.Achievements.getAchievementsIntent(googleApiClient), ACHIEVEMENTS_REQUEST_CODE);
-            }
+        if (usePlayServices && isSignedIn()) {
+            Games.getAchievementsClient(this, GoogleSignIn.getLastSignedInAccount(this))
+                    .getAchievementsIntent()
+                    .addOnSuccessListener(new OnSuccessListener<Intent>() {
+                        @Override
+                        public void onSuccess(Intent intent) {
+                            startActivityForResult(intent, ACHIEVEMENTS_REQUEST_CODE);
+                        }
+                    });
+
         }
     }
 
@@ -336,55 +381,67 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
      * @param snapshotName the unique name of the Snapshot.
      */
     private void doOpenSavedGame(Properties prprts) {
-        if (googleApiClient != null) {
-            if (googleApiClient.isConnected()) {
-
-                final String snapshotName = prprts.getProperty(BaseApplication.SAVED_GAME_NAME);
-
-//                showAlert("Prepare Saved Game: " + snapshotName);
-                PendingResult<Snapshots.OpenSnapshotResult> pendingResult = Games.Snapshots.open(
-                        googleApiClient, snapshotName, true);
-
-//                showAlert("Loading Saved Game");
-                ResultCallback<Snapshots.OpenSnapshotResult> callback = new ResultCallback<Snapshots.OpenSnapshotResult>() {
-                    @Override
-                    public void onResult(Snapshots.OpenSnapshotResult openSnapshotResult) {
-
-                        if (openSnapshotResult.getStatus().isSuccess()) {
-//                            showAlert("Successfully loaded snapshot: " + snapshotName);
-
-                            byte[] data = new byte[0];
-
-                            try {
-                                data = openSnapshotResult.getSnapshot().getSnapshotContents().readFully();
-
-                            } catch (IOException e) {
-//                                showAlert("Exception reading snapshot: " + e.getMessage());
-                                if (getJmeApplication() != null) {
-//                                    showAlert("Error opening saved game with status: " + e.getMessage());
-                                    ((BaseApplication) getJmeApplication()).fireSavedGameErrorListener("Error opening saved game, " + e.getMessage());
-                                }
-                            }
-
-//                            showAlert("Snapshot data: " + new String(data));
-                            if (getJmeApplication() != null) {
-//                                showAlert("Goto");
-                                ((BaseApplication) getJmeApplication()).fireSavedGameOpenListener(snapshotName, new String(data));
-                            }
-
-                        } else //                            showAlert("Failed to load snapshot.");
-                        if (getJmeApplication() != null) {
-//                                showAlert("Error opening saved game.");
-                            ((BaseApplication) getJmeApplication()).fireSavedGameErrorListener("Error opening saved game.");
-                        }
-
-                    }
-                };
-                pendingResult.setResultCallback(callback);
-
-            }
+        if (usePlayServices && isSignedIn()) {
+            loadSnapshot(prprts);
         }
+    }
 
+    private Task<byte[]> loadSnapshot(Properties prprts) {
+        // Display a progress dialog
+
+        // Get the SnapshotsClient from the signed in account.
+        SnapshotsClient snapshotsClient = Games.getSnapshotsClient(this, GoogleSignIn.getLastSignedInAccount(this));
+
+        // In the case of a conflict, the most recently modified version of this snapshot will be used.
+        int conflictResolutionPolicy = SnapshotsClient.RESOLUTION_POLICY_MOST_RECENTLY_MODIFIED;
+
+        final String snapshotName = prprts.getProperty(BaseApplication.SAVED_GAME_NAME);
+
+        // Open the saved game using its name.
+        return snapshotsClient.open(snapshotName, true, conflictResolutionPolicy)
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(Exception e) {
+                        Log.e(TAG, "Error while opening Snapshot.", e);
+                        if (getJmeApplication() != null) {
+                            ((BaseApplication) getJmeApplication()).fireSavedGameErrorListener("Error opening saved game, " + e.getMessage());
+                        }
+                    }
+                }).continueWith(new Continuation<SnapshotsClient.DataOrConflict<Snapshot>, byte[]>() {
+            @Override
+            public byte[] then(Task<SnapshotsClient.DataOrConflict<Snapshot>> task) throws Exception {
+                Snapshot snapshot = task.getResult().getData();
+
+                // Opening the snapshot was a success and any conflicts have been resolved.
+                try {
+                    // Extract the raw data from the snapshot.
+                    return snapshot.getSnapshotContents().readFully();
+
+                } catch (IOException e) {
+                    Log.e(TAG, "Error while reading Snapshot.", e);
+                    if (getJmeApplication() != null) {
+                        ((BaseApplication) getJmeApplication()).fireSavedGameErrorListener("Error opening saved game, " + e.getMessage());
+                    }
+                }
+
+                return null;
+            }
+        }).addOnCompleteListener(new OnCompleteListener<byte[]>() {
+            @Override
+            public void onComplete(Task<byte[]> task) {
+                // Dismiss progress dialog and reflect the changes in the UI when complete.
+                if (getJmeApplication() != null) {
+                    //If no result return error
+                    if (task == null) {
+                        ((BaseApplication) getJmeApplication()).fireSavedGameErrorListener("No saved data found for saved game.");
+                    } else {
+                        byte[] data = task.getResult();
+                        ((BaseApplication) getJmeApplication()).fireSavedGameOpenListener(snapshotName, new String(data));
+                    }
+
+                }
+            }
+        });
     }
 
     /**
@@ -393,64 +450,69 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
      * @param prprts
      */
     private void doCommitSavedGame(Properties prprts) {
-        if (googleApiClient != null) {
-            if (googleApiClient.isConnected()) {
-                final String savedGameName = prprts.getProperty(BaseApplication.SAVED_GAME_NAME);
-//                final String savedGameDesc = prprts.getProperty(BaseApplication.SAVED_GAME_DESCRIPTION);
-                final String dataStr = prprts.getProperty(BaseApplication.SAVED_GAME_DATA);
-                final boolean createIfMissing = false;
+        if (usePlayServices && isSignedIn()) {
+            final String savedGameName = prprts.getProperty(BaseApplication.SAVED_GAME_NAME);
+            final String dataStr = prprts.getProperty(BaseApplication.SAVED_GAME_DATA);
+            final String dataDesc = prprts.getProperty(BaseApplication.SAVED_GAME_DESCRIPTION);
+            final boolean createIfMissing = false;
+            // In the case of a conflict, the most recently modified version of this snapshot will be used.
+            int conflictResolutionPolicy = SnapshotsClient.RESOLUTION_POLICY_MOST_RECENTLY_MODIFIED;
 
-                // Use the data from the EditText as the new Snapshot data.
-                final byte[] data = dataStr.getBytes();
+            // Use the data from the EditText as the new Snapshot data.
+            final byte[] data = dataStr.getBytes();
 
-                AsyncTask<Void, Void, Boolean> updateTask = new AsyncTask<Void, Void, Boolean>() {
-                    @Override
-                    protected void onPreExecute() {
-//                        showAlert("Updating Saved Game");
-                    }
-
-                    @Override
-                    protected Boolean doInBackground(Void... params) {
-                        Snapshots.OpenSnapshotResult open = Games.Snapshots.open(
-                                googleApiClient, savedGameName, createIfMissing).await();
-
-                        if (!open.getStatus().isSuccess()) {
-//                    showAlert("Could not open Snapshot for update.");
-                            return false;
+            SnapshotsClient snapshotsClient = Games.getSnapshotsClient(this, GoogleSignIn.getLastSignedInAccount(this));
+            snapshotsClient.open(savedGameName, createIfMissing, conflictResolutionPolicy)
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(Exception e) {
+                            Log.e(TAG, "Error while saving snapshot.", e);
+                            if (getJmeApplication() != null) {
+                                ((BaseApplication) getJmeApplication()).fireSavedGameErrorListener("Error while saving snapshot, " + e.getMessage());
+                            }
                         }
+                    }).continueWith(new Continuation<SnapshotsClient.DataOrConflict<Snapshot>, byte[]>() {
+                @Override
+                public byte[] then(Task<SnapshotsClient.DataOrConflict<Snapshot>> task) throws Exception {
+                    Snapshot snapshot = task.getResult().getData();
 
-                        // Change data but leave existing metadata
-                        Snapshot snapshot = open.getSnapshot();
-                        snapshot.getSnapshotContents().writeBytes(data);
-
-                        Snapshots.CommitSnapshotResult commit = Games.Snapshots.commitAndClose(
-                                googleApiClient, snapshot, SnapshotMetadataChange.EMPTY_CHANGE).await();
-
-                        if (!commit.getStatus().isSuccess()) {
-//                    showAlert("Failed to commit Snapshot.");
-                            return false;
-                        }
-
-                        // No failures
-                        return true;
-                    }
-
-                    @Override
-                    protected void onPostExecute(Boolean result) {
-                        if (result) {
-//                            showAlert("Successfully commited Snapshot.");
-//                    displayMessage(getString(R.string.saved_games_update_success), false);
-                        } else {
-//                            showAlert("Failed to commit Snapshot.");
-//                    displayMessage(getString(R.string.saved_games_update_failure), true);
-                        }
-
-                    }
-                };
-                updateTask.execute();
-            }
+                    Task<SnapshotMetadata> sm = writeSnapshot(snapshot, data, dataDesc);
+                    return data;
+                }
+            }).addOnCompleteListener(new OnCompleteListener<byte[]>() {
+                @Override
+                public void onComplete(Task<byte[]> task) {
+                    // Dismiss progress dialog and reflect the changes in the UI when complete.
+                    ((BaseApplication) getJmeApplication()).fireSavedGameSavedListener();
+                }
+            });
         }
 
+    }
+
+    /**
+     * Write game data to be saved.
+     *
+     * @param snapshot
+     * @param data
+     * @param desc
+     * @return
+     */
+    private Task<SnapshotMetadata> writeSnapshot(Snapshot snapshot, byte[] data, String desc) {
+
+        // Set the data payload for the snapshot
+        snapshot.getSnapshotContents().writeBytes(data);
+
+        // Create the change operation
+        SnapshotMetadataChange metadataChange = new SnapshotMetadataChange.Builder()
+                .setDescription(desc)
+                .build();
+
+        SnapshotsClient snapshotsClient
+                = Games.getSnapshotsClient(this, GoogleSignIn.getLastSignedInAccount(this));
+
+        // Commit the operation
+        return snapshotsClient.commitAndClose(snapshot, metadataChange);
     }
 
     /**
@@ -459,12 +521,21 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
      * @param prprts
      */
     public void doShowSavedGame(Properties prprts) {
-        if (googleApiClient != null) {
-            if (googleApiClient.isConnected()) {
-                Intent savedGamesIntent = Games.Snapshots.getSelectSnapshotIntent(googleApiClient, "Current saved games",
-                        true, true, Games.Snapshots.DISPLAY_LIMIT_NONE);
-                startActivityForResult(savedGamesIntent, SAVED_GAMES_REQUEST_CODE);
-            }
+        if (usePlayServices && isSignedIn()) {
+
+            SnapshotsClient snapshotsClient = Games.getSnapshotsClient(this, GoogleSignIn.getLastSignedInAccount(this));
+            int maxNumberOfSavedGamesToShow = 5;
+
+            Task<Intent> intentTask = snapshotsClient.getSelectSnapshotIntent(
+                    "Current saved games", true, true, maxNumberOfSavedGamesToShow);
+
+            intentTask.addOnSuccessListener(new OnSuccessListener<Intent>() {
+                @Override
+                public void onSuccess(Intent intent) {
+                    startActivityForResult(intent, SAVED_GAMES_REQUEST_CODE);
+                }
+            });
+
         }
     }
 
@@ -698,7 +769,7 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
                     });
                 }
             }
-            
+
             if (BaseApplication.ADMOB_REWARDS.equals(type)) {
                 if (show) {
                     this.runOnUiThread(new Runnable() {
@@ -793,17 +864,16 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
         super.onCreate(savedInstanceState);
 
         if (usePlayServices) {
-            GoogleApiClient.Builder builder = new GoogleApiClient.Builder(this, this, this);
-            builder.addApi(Games.API)
-                    .addApi(Plus.API)
-//                    .addApi(AppStateManager.API)
-                    .addApi(Drive.API)
-                    .addScope(Drive.SCOPE_APPFOLDER)
-                    .addScope(Games.SCOPE_GAMES)
-                    .addScope(Plus.SCOPE_PLUS_LOGIN)
-//                    .addScope(AppStateManager.SCOPE_APP_STATE)
-                    .setGravityForPopups(Gravity.CENTER);
-            googleApiClient = builder.build();
+            // Configure sign-in to request the user's ID, email address, and basic
+            // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
+            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN)
+                    // Since we are using SavedGames, we need to add the SCOPE_APPFOLDER to access Google Drive.
+                    .requestScopes(Drive.SCOPE_APPFOLDER)
+                    .build();
+
+            // Build a GoogleSignInClient with the options specified by gso.
+            googleSignInClient = GoogleSignIn.getClient(this, gso);
+
         }
 
         if (useAnalytics) {
@@ -834,6 +904,33 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
 
         postLoad();
 
+    }
+
+    protected boolean isSignedIn() {
+        return GoogleSignIn.getLastSignedInAccount(this) != null;
+    }
+
+    private void signInSilently() {
+        googleSignInClient = GoogleSignIn.getClient(this, GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN);
+        googleSignInClient.silentSignIn().addOnCompleteListener(this,
+                new OnCompleteListener<GoogleSignInAccount>() {
+            @Override
+            public void onComplete(Task<GoogleSignInAccount> task) {
+                if (task != null) {
+                    if (task.isSuccessful()) {
+                        signedInAccount = task.getResult();
+
+                        if (getJmeApplication() != null) {
+                            ((BaseApplication) getJmeApplication()).doGoogleAPIConnected("Connected to google play services!");
+                        }
+
+                    } else if (getJmeApplication() != null) {
+                        ((BaseApplication) getJmeApplication()).doGoogleAPIError("Failed to sign into google play services!");
+                    }
+                }
+
+            }
+        });
     }
 
     /**
@@ -887,14 +984,14 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
 
                 YuvImage yuv = new YuvImage(data, camera.getParameters().getPreviewFormat(), width, height, null);
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                Log.e("JME3", "ByteArrayOutputStream created");
+                Log.e(TAG, "ByteArrayOutputStream created");
                 yuv.compressToJpeg(new Rect(0, 0, width, height), 100, bos);
 
                 ((BaseApplication) getJmeApplication()).fireLiveCameraListener(camera.getParameters().getPreviewFormat(), width, height, bos.toByteArray());
 
             }
         });
-        Log.e("JME3", "Preview Callback Added");
+        Log.e(TAG, "Preview Callback Added");
 
         // "set" the preview display
         try {
@@ -938,7 +1035,7 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
                 if (useAdmobInterstitials) {
                     initAdMobInterstitialsAds();
                 }
-                
+
                 if (useAdmobRewards) {
                     initAdMobRewardsAds();
                 }
@@ -1026,9 +1123,9 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
         adView.bringToFront();
 
     }
-    
+
     protected void initAdMobRewardsAds() {
-        rewardedVideoAd = MobileAds.getRewardedVideoAdInstance(this);        
+        rewardedVideoAd = MobileAds.getRewardedVideoAdInstance(this);
         rewardedVideoAd.setRewardedVideoAdListener(new RewardedVideoAdListener() {
 
             @Override
@@ -1054,7 +1151,7 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
                     ((BaseApplication) getJmeApplication()).fireRewardAdClosedListener();
                 }
                 loadAdmobRewardsAd();
-                
+
             }
 
             @Override
@@ -1063,13 +1160,13 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
                 if (getJmeApplication() != null) {
                     ((BaseApplication) getJmeApplication()).fireRewardAdRewardListener(ri.getAmount(), ri.getType());
                 }
-                
+
             }
 
             @Override
             public void onRewardedVideoAdLeftApplication() {
                 //TODO: Call back to the game and fire the reward ad listener
-                
+
             }
 
             @Override
@@ -1078,12 +1175,17 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
 //                showAlert(message);
                 ((BaseApplication) getJmeApplication()).setRewardAdLoaded(false);
             }
+
+            @Override
+            public void onRewardedVideoCompleted() {
+            }
+
         });
-        
+
         loadAdmobRewardsAd();
-        
+
     }
-    
+
     private void loadAdmobRewardsAd() {
         if (rewardedVideoAd != null && !rewardedVideoAd.isLoaded()) {
             rewardedVideoAd.loadAd(ADMOB_REWARDS_ID, new AdRequest.Builder().build());
@@ -1164,6 +1266,10 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
 
         super.onResume();
 
+        if (usePlayServices) {
+            signInSilently();
+        }
+
         if (sensorManager != null) {
             // Register this class as a listener for the accelerometer sensor
 //            sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
@@ -1179,32 +1285,57 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
-        if (googleApiClient != null) {
-            if (requestCode == GOOGLE_RESOLUTION_REQUEST_CODE) {
-                if (resultCode != Activity.RESULT_OK) {
+        if (usePlayServices) {
+            if (requestCode == RC_SIGN_IN) {
+                GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+                if (result.isSuccess()) {
+                    // The signed in account is stored in the result.
+                    signedInAccount = result.getSignInAccount();
                     if (getJmeApplication() != null) {
-                        ((BaseApplication) getJmeApplication()).doGoogleAPIError("You are not allowed to perform this action. Error code " + resultCode);
+                        ((BaseApplication) getJmeApplication()).doGoogleAPIConnected("Connected to google play services!");
                     }
+
                 } else {
-                    googleApiClient.connect();
+                    String message = result.getStatus().getStatusMessage();
+                    if (message == null || message.isEmpty()) {
+                        message = "Failed to sign into google play services.";
+                    }
+
+                    if (getJmeApplication() != null) {
+                        ((BaseApplication) getJmeApplication()).doGoogleAPIError("Failed to sign into google play services!");
+                    }
+
+                    new AlertDialog.Builder(this).setMessage(message)
+                            .setNeutralButton(android.R.string.ok, null).show();
+                }
+            }
+
+            if (requestCode == GOOGLE_RESOLUTION_REQUEST_CODE) {
+//                if (resultCode != Activity.RESULT_OK) {
+//                    if (getJmeApplication() != null) {
+//                        ((BaseApplication) getJmeApplication()).doGoogleAPIError("You are not allowed to perform this action. Error code " + resultCode);
+//                    }
+//                } else {
+//                    googleApiClient.connect();
                     //Games.Leaderboards.submitScore(googleApiClient, leaderboard, scoreToAdd);
                     //startActivityForResult(Games.Leaderboards.getLeaderboardIntent(googleApiClient, leaderboard), 0);
-                }
+//                }
 
             } else if (requestCode == SAVED_GAMES_REQUEST_CODE) {
                 if (resultCode != Activity.RESULT_OK) {
                     if (getJmeApplication() != null) {
-                        if (intent != null) {
-                            if (intent.hasExtra(Snapshots.EXTRA_SNAPSHOT_METADATA)) {
+                        if (data != null) {
+                            if (data.hasExtra(Snapshots.EXTRA_SNAPSHOT_METADATA)) {
                                 // Load a snapshot.
-                                SnapshotMetadata snapshotMetadata = (SnapshotMetadata) intent.getParcelableExtra(Snapshots.EXTRA_SNAPSHOT_METADATA);
+                                SnapshotMetadata snapshotMetadata = (SnapshotMetadata) data.getParcelableExtra(Snapshots.EXTRA_SNAPSHOT_METADATA);
                                 Properties properties = new Properties();
                                 properties.put(BaseApplication.SAVED_GAME_NAME, snapshotMetadata.getUniqueName());
                                 doOpenSavedGame(properties);
 
-                            } else if (intent.hasExtra(Snapshots.EXTRA_SNAPSHOT_NEW)) {
+                            } else if (data.hasExtra(Snapshots.EXTRA_SNAPSHOT_NEW)) {
                                 // Create a new snapshot named with a unique string
                                 String unique = new BigInteger(281, new Random()).toString(13);
                                 String uniqueSaveName = "Saved-" + unique;
@@ -1284,7 +1415,7 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
                 result.startResolutionForResult(this, GOOGLE_RESOLUTION_REQUEST_CODE);
             } catch (Exception e) {
                 if (getJmeApplication() != null) {
-                    ((BaseApplication) getJmeApplication()).doGoogleAPIError("An unknown error occurred.");
+                    ((BaseApplication) getJmeApplication()).doGoogleAPIError("An unknown error occurred, " + e.getMessage());
                 }
             }
         } else if (getJmeApplication() != null) {
@@ -1296,15 +1427,29 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
 
     @Override
     public void onConnected(Bundle connectionHint) {
-        if (googleApiClient != null) {
+        if (usePlayServices && isSignedIn()) {
             if (isAccessingScores) {
 
                 if (leaderboard == null) {
-                    startActivityForResult(Games.Leaderboards.getAllLeaderboardsIntent(googleApiClient), GOOGLE_RESOLUTION_REQUEST_CODE); // not caring about the result
+                    Games.getLeaderboardsClient(this, GoogleSignIn.getLastSignedInAccount(this))
+                            .getAllLeaderboardsIntent()
+                            .addOnSuccessListener(new OnSuccessListener<Intent>() {
+                                @Override
+                                public void onSuccess(Intent intent) {
+                                    startActivityForResult(intent, GOOGLE_RESOLUTION_REQUEST_CODE);
+                                }
+                            });
 
                 } else {
-                    Games.Leaderboards.submitScore(googleApiClient, leaderboard, scoreToAdd);
-                    startActivityForResult(Games.Leaderboards.getLeaderboardIntent(googleApiClient, leaderboard), GOOGLE_RESOLUTION_REQUEST_CODE);
+                    Games.getLeaderboardsClient(this, GoogleSignIn.getLastSignedInAccount(this)).submitScore(leaderboard, scoreToAdd);
+                    Games.getLeaderboardsClient(this, GoogleSignIn.getLastSignedInAccount(this))
+                            .getLeaderboardIntent(leaderboard)
+                            .addOnSuccessListener(new OnSuccessListener<Intent>() {
+                                @Override
+                                public void onSuccess(Intent intent) {
+                                    startActivityForResult(intent, GOOGLE_RESOLUTION_REQUEST_CODE);
+                                }
+                            });
                 }
 
             }
@@ -1317,28 +1462,6 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
     }
 
     public void onConnectionSuspended(int cause) {
-    }
-
-    /**
-     * Gets a string error reason from an error code.
-     */
-    private String getInterstitialsAdErrorReason(int errorCode) {
-        String errorReason = "";
-        switch (errorCode) {
-            case AdRequest.ERROR_CODE_INTERNAL_ERROR:
-                errorReason = "Internal error";
-                break;
-            case AdRequest.ERROR_CODE_INVALID_REQUEST:
-                errorReason = "Invalid request";
-                break;
-            case AdRequest.ERROR_CODE_NETWORK_ERROR:
-                errorReason = "Network Error";
-                break;
-            case AdRequest.ERROR_CODE_NO_FILL:
-                errorReason = "No fill";
-                break;
-        }
-        return errorReason;
     }
 
     @Override

@@ -499,7 +499,7 @@ public abstract class BlenderPhysics2DGame implements PhysicsCollisionListener {
      * 
      * @param spatial 
      */
-    private void add2DRigidbody(Spatial spatial) {
+    protected void add2DRigidbody(Spatial spatial) {
         Float massVal = spatial.getUserData(MASS);
         float mass = 0;
         if (massVal != null) {
@@ -543,7 +543,7 @@ public abstract class BlenderPhysics2DGame implements PhysicsCollisionListener {
 
     }
     
-    private void addCollisionShape(RigidBodyControl rigidBodyControl, Geometry geometry) {
+    protected void addCollisionShape(RigidBodyControl rigidBodyControl, Geometry geometry) {
         String type = null;
         if (geometry.getUserData(SHAPE) != null) {
             type = geometry.getUserData(SHAPE);
