@@ -551,6 +551,16 @@ public abstract class Widget implements Savable {
                 .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
 
     }
+    
+    public void fadeFromTo(float from, float to, float duration, float delay, TweenCallback callback) {
+        setTransparency(from);
+        Tween.to(this, WidgetAccessor.OPACITY, duration)
+                .target(to)
+                .delay(delay)
+                .setCallback(callback)
+                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+
+    }
 
     public void fadeFromTo(float from, float to, float duration, float delay, TweenEquation tweenEquation, int count, boolean yoyo) {
         setTransparency(from);
@@ -616,6 +626,31 @@ public abstract class Widget implements Savable {
                     .delay(delay)
                     .ease(tweenEquation)
                     .repeat(count, 0)
+                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+        }
+
+    }
+    
+    public void moveFromToCenter(float fromX, float fromY, float toX, float toY, float duration, float delay, TweenEquation tweenEquation, int count, boolean yoyo, TweenCallback callback) {
+        centerAt(toX, toY);
+        Vector3f target = getPosition().clone();
+        centerAt(fromX, fromY);
+
+        if (yoyo) {
+            Tween.to(this, WidgetAccessor.POS_XY, duration)
+                    .target(target.x, target.y)
+                    .delay(delay)
+                    .ease(tweenEquation)
+                    .repeatYoyo(count, 0)
+                    .setCallback(callback)
+                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+        } else {
+            Tween.to(this, WidgetAccessor.POS_XY, duration)
+                    .target(target.x, target.y)
+                    .delay(delay)
+                    .ease(tweenEquation)
+                    .repeat(count, 0)
+                    .setCallback(callback)                    
                     .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
         }
 
