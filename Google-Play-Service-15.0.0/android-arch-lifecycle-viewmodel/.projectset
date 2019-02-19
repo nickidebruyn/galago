@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<psf version="2.0">
-<provider id="org.eclipse.team.svn.core.svnnature">
-<project reference="1.0.1,https://github.com/dandar3/android-arch-lifecycle-viewmodel/tags/1.1.1,android-arch-lifecycle-viewmodel,a0fbe1f50c2200181a58bb5daf7985a7;https://github.com/dandar3/android-arch-lifecycle-viewmodel;https://github.com/dandar3/android-arch-lifecycle-viewmodel;branches;tags;trunk;true;04226314-ca00-c09b-8834-ce57b7db7bff;https://github.com/dandar3/android-arch-lifecycle-viewmodel;;false;;;0"/>
-<project reference="1.0.1,https://github.com/dandar3/android-support-annotations/tags/27.1.1,android-support-annotations,50bf70d4a36f00161579af21f0f3324d;https://github.com/dandar3/android-support-annotations;https://github.com/dandar3/android-support-annotations;branches;tags;trunk;true;aa34aa4b-e5c0-a7b4-83f5-ce57b7db7bff;https://github.com/dandar3/android-support-annotations;;false;;;0"/>
-</provider>
-</psf>

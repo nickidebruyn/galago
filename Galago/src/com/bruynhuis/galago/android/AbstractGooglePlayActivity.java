@@ -118,7 +118,8 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
     protected String APP_PATH = "";
     protected String PLAYSTORE_URL = "";
     protected String MOREAPPS_URL = "";
-    protected String ADMOB_ID = "";
+    protected String ADMOB_APP_ID = "";
+    protected String ADMOB_BANNER_ID = "";
     protected String ADMOB_INTERSTITIALS_ID = "";
     protected String ADMOB_REWARDS_ID = "";
     protected String ANALYTICS_TRACKER_ID = "";
@@ -875,6 +876,14 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
             googleSignInClient = GoogleSignIn.getClient(this, gso);
 
         }
+        
+        if (useAdmob || useAdmobInterstitials || useAdmobRewards) {
+            if (ADMOB_APP_ID == null || ADMOB_APP_ID.equals("")) {
+                throw new RuntimeException("You need to specify the admob app id...");
+            }
+            
+            MobileAds.initialize(this, ADMOB_APP_ID);
+        }
 
         if (useAnalytics) {
             initAnalytics();
@@ -1072,8 +1081,6 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
         });
 
         AdRequest adRequest = new AdRequest.Builder().build();
-//        adView.loadAd(adRequest);
-
         interstitialAd.loadAd(adRequest);
     }
 
@@ -1088,7 +1095,7 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
         addViewLayout = new RelativeLayout(this);
 
         adView = new AdView(this);
-        adView.setAdUnitId(ADMOB_ID);
+        adView.setAdUnitId(ADMOB_BANNER_ID);
         adView.setAdSize(AdSize.SMART_BANNER);
 
         adView.setAdListener(new AdListener() {
