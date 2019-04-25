@@ -118,6 +118,9 @@ public class JoystickInputListener implements RawInputListener {
             
             //Set the analog value
             joystickEvent.setAnalogValue(val);
+            
+            //Set the joystick index
+            joystickEvent.setJoystickIndex(evt.getJoyIndex());
 
             //First check to see if button is down
             if ((val <= 1f) && (val >= -1f) && val != 0) {             
@@ -216,7 +219,7 @@ public class JoystickInputListener implements RawInputListener {
 
     public void onJoyButtonEvent(JoyButtonEvent evt) {
         if (evt.getButton().getJoystick() != null && !evt.isConsumed()) {
-            log("Button = " + evt.getButton().getButtonId() + ";   down = " + evt.isPressed());
+//            log("Button = " + evt.getButton().getButtonId() + ";   down = " + evt.isPressed());
 //            joystickEvent.clearAll();
 
             joystickEvent.setButtonDown(evt.isPressed());

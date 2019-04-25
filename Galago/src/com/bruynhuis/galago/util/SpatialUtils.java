@@ -19,6 +19,7 @@ import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
+import com.jme3.material.MatParam;
 import com.jme3.material.MatParamTexture;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
@@ -39,6 +40,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Cylinder;
 import com.jme3.scene.shape.Dome;
+import com.jme3.scene.shape.Line;
 import com.jme3.scene.shape.Quad;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.terrain.Terrain;
@@ -57,6 +59,89 @@ import java.util.List;
  * @author nidebruyn
  */
 public class SpatialUtils {
+
+    public static void updateSpatialEdge(Spatial spatial, final ColorRGBA edgeColor, final float edgeSize) {
+        if (spatial != null) {
+            SceneGraphVisitor sgv = new SceneGraphVisitor() {
+                @Override
+                public void visit(Spatial sp) {
+                    if (sp instanceof Geometry) {
+                        Geometry geom = (Geometry) sp;
+                        
+                        MatParam param = geom.getMaterial().getParam("EdgesColor");
+
+                        if (param != null) {
+                            geom.getMaterial().setColor("EdgesColor", edgeColor);
+                            geom.getMaterial().setFloat("EdgeSize", edgeSize);
+                            geom.getMaterial().setBoolean("Fog_Edges", false);                            
+
+                        }
+                    }
+                }
+            };
+
+            spatial.depthFirstTraversal(sgv);
+        }
+
+    }
+
+    public static void updateSpatialTransparency(Spatial spatial, final boolean transparent, final float opacity) {
+        if (spatial != null) {
+            SceneGraphVisitor sgv = new SceneGraphVisitor() {
+                @Override
+                public void visit(Spatial sp) {
+                    if (sp instanceof Geometry) {
+                        Geometry geom = (Geometry) sp;
+
+                        if (transparent) {
+                            geom.setQueueBucket(RenderQueue.Bucket.Transparent);
+                            geom.getMaterial().getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+                            MatParam diffuseParam = geom.getMaterial().getParam("Diffuse");
+
+                            if (diffuseParam == null) {
+                                diffuseParam = geom.getMaterial().getParam("Color");
+                            }
+
+                            if (diffuseParam != null) {
+                                ColorRGBA col = (ColorRGBA) diffuseParam.getValue();
+                                diffuseParam.setValue(new ColorRGBA(col.r, col.g, col.b, opacity));
+                            }
+
+                        }
+                    }
+                }
+            };
+
+            spatial.depthFirstTraversal(sgv);
+        }
+
+    }
+
+    public static void updateSpatialColor(Spatial spatial, ColorRGBA color) {
+        if (spatial != null) {
+            SceneGraphVisitor sgv = new SceneGraphVisitor() {
+                @Override
+                public void visit(Spatial sp) {
+                    if (sp instanceof Geometry) {
+                        Geometry geom = (Geometry) sp;
+                        MatParam diffuseParam = geom.getMaterial().getParam("Diffuse");
+
+                        if (diffuseParam == null) {
+                            diffuseParam = geom.getMaterial().getParam("Color");
+                        }
+
+                        if (diffuseParam != null) {
+                            diffuseParam.setValue(color);
+                        }
+
+                    }
+                }
+            };
+
+            spatial.depthFirstTraversal(sgv);
+        }
+
+    }
 
     public static Spatial addSkySphere(Node parent, ColorRGBA bottomColor, ColorRGBA topColor, Camera camera) {
 
@@ -358,7 +443,7 @@ public class SpatialUtils {
         node.depthFirstTraversal(sgv);
 
     }
-    
+
     public static void enableWireframe(Node node, final boolean enabled) {
 
         SceneGraphVisitor sgv = new SceneGraphVisitor() {
@@ -368,10 +453,10 @@ public class SpatialUtils {
 
                     Geometry geom = (Geometry) spatial;
                     Material mat = geom.getMaterial();
-                    
+
                     if (mat != null) {
                         mat.getAdditionalRenderState().setWireframe(enabled);
-                        
+
                     }
 
                 }
@@ -478,6 +563,29 @@ public class SpatialUtils {
     }
 
     /**
+     * Add a line to the scene
+     *
+     * @param parent
+     * @param start
+     * @param end
+     * @param linewidth
+     * @return
+     */
+    public static Spatial addLine(Node parent, Vector3f start, Vector3f end, ColorRGBA color, float linewidth) {
+
+        Line line = new Line(start, end);
+        line.setLineWidth(linewidth);
+        Geometry geometry = new Geometry("line", line);
+        parent.attachChild(geometry);
+        geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+
+        Material m = addColor(geometry, color, true);
+        m.getAdditionalRenderState().setLineWidth(linewidth);
+
+        return geometry;
+    }
+
+    /**
      * Add a sphere to the scene.
      *
      * @param parent
@@ -495,10 +603,10 @@ public class SpatialUtils {
 
         return geometry;
     }
-    
+
     public static Spatial addCone(Node parent, int radialSamples, float radius, float height) {
 
-        Cylinder c = new Cylinder(2, radialSamples, 0.0001f, radius, height, true, false);                    
+        Cylinder c = new Cylinder(2, radialSamples, 0.0001f, radius, height, true, false);
         Geometry geometry = new Geometry("cone", c);
         parent.attachChild(geometry);
         geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
@@ -578,7 +686,7 @@ public class SpatialUtils {
      * @param colorRGBA
      * @return
      */
-    public static void addColor(Spatial spatial, ColorRGBA colorRGBA, boolean unshaded) {
+    public static Material addColor(Spatial spatial, ColorRGBA colorRGBA, boolean unshaded) {
         Material material = null;
 
         if (unshaded) {
@@ -595,6 +703,88 @@ public class SpatialUtils {
 
         spatial.setMaterial(material);
 
+        return material;
+    }
+    
+    /**
+     * A helper method that will update all child spatials to the new material
+     * @param spatial
+     * @param image
+     * @param baseColor
+     * @param edgeColor
+     * @param edgeSize
+     * @param matCap
+     * @param unshaded 
+     */
+    public static void updateCartoonColor(Spatial spatial, final String image, final ColorRGBA baseColor, final ColorRGBA edgeColor, final float edgeSize, final boolean matCap, final boolean unshaded) {
+        if (spatial != null) {
+            SceneGraphVisitor sgv = new SceneGraphVisitor() {
+                @Override
+                public void visit(Spatial sp) {
+                    if (sp instanceof Geometry) {
+                        Geometry geom = (Geometry) sp;
+                        addCartoonColor(geom, image, baseColor, edgeColor, edgeSize, matCap, unshaded);
+
+                    }
+                }
+            };
+
+            spatial.depthFirstTraversal(sgv);
+        }
+
+    }
+
+    /**
+     * Add cartoon color to the spatial.
+     *
+     *
+     * @param colorRGBA
+     * @return
+     */
+    public static Material addCartoonColor(Spatial spatial, String image, ColorRGBA baseColor, ColorRGBA edgeColor, float edgeSize, boolean matCap, boolean unshaded) {
+
+        Texture texture = null;
+        if (image != null) {
+            texture = SharedSystem.getInstance().getBaseApplication().getAssetManager().loadTexture(image);
+            texture.setWrap(Texture.WrapMode.Repeat);
+
+        }
+
+        Material material = null;
+        if (matCap) {
+            material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Resources/MatDefs/MatCap.j3md");
+            material.setColor("Multiply_Color", baseColor);
+            if (texture != null) {
+                material.setTexture("DiffuseMap", texture);
+            }
+
+        } else if (unshaded) {
+            material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Resources/MatDefs/UnshadedToon.j3md");
+            material.setColor("Color", baseColor);
+            if (texture != null) {
+                material.setTexture("ColorMap", texture);
+
+            }
+        } else {
+            material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Resources/MatDefs/LightBlow.j3md");
+            material.setColor("Diffuse", baseColor);
+            material.setBoolean("UseMaterialColors", true);
+            material.setBoolean("Multiply_Color", true);
+            
+            if (texture != null) {
+                material.setTexture("DiffuseMap", texture);
+
+            }
+
+        }
+
+        material.setColor("EdgesColor", edgeColor);
+        material.setFloat("EdgeSize", edgeSize);
+        material.setBoolean("Fog_Edges", true);
+
+        spatial.setMaterial(material);
+
+        return material;
     }
 
     /**
@@ -867,55 +1057,57 @@ public class SpatialUtils {
     }
 
     /**
-     * This is a helper method that will move a spatial object in the -z direction which is forward.
-     * 
+     * This is a helper method that will move a spatial object in the -z
+     * direction which is forward.
+     *
      * @param spatial
-     * @param amount 
+     * @param amount
      */
     public static void forward(Spatial spatial, float amount) {
-        
+
         if (spatial != null) {
-            
+
             Vector3f dir = spatial.getLocalRotation().getRotationColumn(1);
             dir = dir.normalize();
 //            Debug.log("forward = " + dir);
-            spatial.move(amount*dir.x, amount*dir.y, amount*dir.z);
-            
+            spatial.move(amount * dir.x, amount * dir.y, amount * dir.z);
+
         }
-        
+
     }
-    
-    
+
     /**
      * Perform the actual height modification on the terrain.
+     *
      * @param worldLoc the location in the world where the tool was activated
      * @param radius of the tool, terrain in this radius will be affected
      * @param heightFactor the amount to adjust the height by
      */
     public static void doModifyTerrainHeight(Terrain terrain, Vector3f worldLoc, float radius, float heightFactor) {
 
-        if (terrain == null)
+        if (terrain == null) {
             return;
+        }
 
-        int radiusStepsX = (int) (radius / ((Node)terrain).getLocalScale().x);
-        int radiusStepsZ = (int) (radius / ((Node)terrain).getLocalScale().z);
+        int radiusStepsX = (int) (radius / ((Node) terrain).getLocalScale().x);
+        int radiusStepsZ = (int) (radius / ((Node) terrain).getLocalScale().z);
 
-        float xStepAmount = ((Node)terrain).getLocalScale().x;
-        float zStepAmount = ((Node)terrain).getLocalScale().z;
+        float xStepAmount = ((Node) terrain).getLocalScale().x;
+        float zStepAmount = ((Node) terrain).getLocalScale().z;
 
         List<Vector2f> locs = new ArrayList<Vector2f>();
         List<Float> heights = new ArrayList<Float>();
 
-        for (int z=-radiusStepsZ; z<radiusStepsZ; z++) {
-            for (int x=-radiusStepsZ; x<radiusStepsX; x++) {
+        for (int z = -radiusStepsZ; z < radiusStepsZ; z++) {
+            for (int x = -radiusStepsZ; x < radiusStepsX; x++) {
 
-                float locX = worldLoc.x + (x*xStepAmount);
-                float locZ = worldLoc.z + (z*zStepAmount);
+                float locX = worldLoc.x + (x * xStepAmount);
+                float locZ = worldLoc.z + (z * zStepAmount);
 
                 // see if it is in the radius of the tool
-                if (isInRadius(locX-worldLoc.x,locZ-worldLoc.z,radius)) {
+                if (isInRadius(locX - worldLoc.x, locZ - worldLoc.z, radius)) {
                     // adjust height based on radius of the tool
-                    float h = calculateHeight(radius, heightFactor, locX-worldLoc.x, locZ-worldLoc.z);
+                    float h = calculateHeight(radius, heightFactor, locX - worldLoc.x, locZ - worldLoc.z);
                     // increase the height
                     locs.add(new Vector2f(locX, locZ));
                     heights.add(h);
@@ -926,29 +1118,31 @@ public class SpatialUtils {
         // do the actual height adjustment
         terrain.adjustHeight(locs, heights);
 
-        ((Node)terrain).updateModelBound(); // or else we won't collide with it where we just edited
-        
+        ((Node) terrain).updateModelBound(); // or else we won't collide with it where we just edited
+
     }
-    
+
     /**
      * See if the X,Y coordinate is in the radius of the circle. It is assumed
-     * that the "grid" being tested is located at 0,0 and its dimensions are 2*radius.
+     * that the "grid" being tested is located at 0,0 and its dimensions are
+     * 2*radius.
+     *
      * @param x
      * @param z
      * @param radius
      * @return
      */
     public static boolean isInRadius(float x, float y, float radius) {
-        Vector2f point = new Vector2f(x,y);
+        Vector2f point = new Vector2f(x, y);
         // return true if the distance is less than equal to the radius
         return Math.abs(point.length()) <= radius;
     }
-    
+
     /**
-     * Interpolate the height value based on its distance from the center (how far along
-     * the radius it is).
-     * The farther from the center, the less the height will be.
-     * This produces a linear height falloff.
+     * Interpolate the height value based on its distance from the center (how
+     * far along the radius it is). The farther from the center, the less the
+     * height will be. This produces a linear height falloff.
+     *
      * @param radius of the tool
      * @param heightFactor potential height value to be adjusted
      * @param x location
@@ -959,10 +1153,10 @@ public class SpatialUtils {
         float val = calculateRadiusPercent(radius, x, z);
         return heightFactor * val;
     }
-    
+
     public static float calculateRadiusPercent(float radius, float x, float z) {
-         // find percentage for each 'unit' in radius
-        Vector2f point = new Vector2f(x,z);
+        // find percentage for each 'unit' in radius
+        Vector2f point = new Vector2f(x, z);
         float val = Math.abs(point.length()) / radius;
         val = 1f - val;
         return val;

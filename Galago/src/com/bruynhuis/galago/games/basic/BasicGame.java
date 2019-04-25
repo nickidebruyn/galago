@@ -31,6 +31,8 @@ public abstract class BasicGame {
     protected boolean started = false;
     protected boolean paused = false;
     protected boolean loading = false;
+    private boolean gameComplete = false;
+    private boolean gameOver = false;
     protected BasicPlayer player;
     protected BasicGameListener gameListener;
     protected Vector3f startPosition = Vector3f.ZERO;
@@ -47,6 +49,8 @@ public abstract class BasicGame {
         loading = false;
         started = false;
         paused = false;
+        gameComplete = false;
+        gameOver = false;
 
         if (sunLight != null) {
             levelNode.removeLight(sunLight);
@@ -102,18 +106,24 @@ public abstract class BasicGame {
         loading = false;
         started = true;
         paused = false;
+        gameOver = false;
+        gameComplete = false;
         this.player.start();
     }
 
     public void doGameOver() {
         started = false;
         paused = true;
+        gameOver = true;
+        gameComplete = false;
         fireGameOverListener();
     }
     
     public void doGameCompleted() {
         started = false;
         paused = true;
+        gameComplete = true;
+        gameOver = false;
         fireGameCompletedListener();
     }
 
@@ -161,6 +171,14 @@ public abstract class BasicGame {
 
     public boolean isLoading() {
         return loading;
+    }
+
+    public boolean isGameComplete() {
+        return gameComplete;
+    }
+
+    public boolean isGameOver() {
+        return gameOver;
     }
 
     public BasicPlayer getPlayer() {

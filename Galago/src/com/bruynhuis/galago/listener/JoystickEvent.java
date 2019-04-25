@@ -18,6 +18,7 @@ public class JoystickEvent {
     private boolean up = false;
     private boolean down = false;
     private float analogValue;
+    private int joystickIndex;
     
     private boolean buttonDown = false;
     private boolean button1 = false;
@@ -201,6 +202,7 @@ public class JoystickEvent {
         up = false;
         down = false;
         analogValue = 0;
+        joystickIndex = 0;
     }
     
     public boolean isAxisDown() {
@@ -208,10 +210,21 @@ public class JoystickEvent {
 //        return isLeft() || isRight() || isUp() || isDown();
     }
 
+    public int getJoystickIndex() {
+        return joystickIndex;
+    }
+
+    public void setJoystickIndex(int joystickIndex) {
+        this.joystickIndex = joystickIndex;
+    }
+
     @Override
     public String toString() {
-        return "JoystickEvent{" + "axisDown=" + axisDown + ", left=" + left + ", right=" + right + ", up=" + up + ", down=" + down + ", analogValue=" + analogValue + ", buttonDown=" + buttonDown + ", button1=" + button1 + ", button2=" + button2 + ", button3=" + button3 + ", button4=" + button4 + ", button5=" + button5 + ", button6=" + button6 + ", button7=" + button7 + ", button8=" + button8 + ", button9=" + button9 + ", button10=" + button10 + '}';
+        return "JoystickEvent{" + "axisDown=" + axisDown + ", left=" + left + ", right=" + right + ", up=" + up + ", down=" + down + ", analogValue=" + analogValue + ", joystickIndex=" + joystickIndex + ", buttonDown=" + buttonDown + ", button1=" + button1 + ", button2=" + button2 + ", button3=" + button3 + ", button4=" + button4 + ", button5=" + button5 + ", button6=" + button6 + ", button7=" + button7 + ", button8=" + button8 + ", button9=" + button9 + ", button10=" + button10 + '}';
     }
+
+ 
+    
     
     
 }

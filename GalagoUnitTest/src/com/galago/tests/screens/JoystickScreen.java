@@ -54,10 +54,16 @@ public class JoystickScreen extends AbstractScreen implements JoystickListener {
     }
 
     public void stick(JoystickEvent joystickEvent, float fps) {
-        left = joystickEvent.isLeft();
-        right = joystickEvent.isRight();
-        up = joystickEvent.isUp();
-        down = joystickEvent.isDown();
+        
+        log("Stick index pressed");
+        log("" + joystickEvent.toString());
+        
+        left = joystickEvent.isLeft() && joystickEvent.isAxisDown();
+        right = joystickEvent.isRight() && joystickEvent.isAxisDown();
+        up = joystickEvent.isUp() && joystickEvent.isAxisDown();
+        down = joystickEvent.isDown() && joystickEvent.isAxisDown();
+        
+        speed = joystickEvent.getAnalogValue()*500;
         
         if (joystickEvent.isButton1() && joystickEvent.isButtonDown()) {
             baseApplication.getViewPort().setBackgroundColor(ColorRGBA.Red);
@@ -78,7 +84,7 @@ public class JoystickScreen extends AbstractScreen implements JoystickListener {
         if (isActive()) {
             
             if (left) {
-                image.move(-tpf*speed, 0);
+                image.move(tpf*speed, 0);
                 
             }
             if (right) {
@@ -86,7 +92,7 @@ public class JoystickScreen extends AbstractScreen implements JoystickListener {
                 
             }
             if (up) {
-                image.move(0, tpf*speed);
+                image.move(0, -tpf*speed);
                 
             }
             if (down) {

@@ -25,9 +25,11 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.texture.Texture;
 
 /**
  *
@@ -37,6 +39,65 @@ import com.jme3.scene.Spatial;
  * @author nidebruyn
  */
 public class SpriteUtils {
+
+    /**
+     * This method will add a sprite to the parent object and use its native
+     * resolution to load the image. * @param parent
+     *
+     * @param image
+     * @param scale
+     * @return
+     */
+    public static Sprite addSprite(Node parent, String image, float scale, float x, float y, float z) {
+        float width = 100;
+        float height = 100;
+
+        //First we load the texture
+        Texture texture = SharedSystem.getInstance().getBaseApplication().getAssetManager().loadTexture(image);
+        width = ((float) texture.getImage().getWidth()) * scale;
+        height = ((float) texture.getImage().getHeight()) * scale;
+
+//        if (SharedSystem.getInstance().getBaseApplication().getTextureManager().isPixelated()) {
+//            texture.setMinFilter(Texture.MinFilter.NearestNoMipMaps);
+//            texture.setMagFilter(Texture.MagFilter.Nearest);
+//        } else {
+//            texture.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+//        }
+//
+//        Material material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Resources/MatDefs/SpriteShader.j3md");
+//        material.setColor("Color", ColorRGBA.White);
+////        material.setFloat("AlphaDiscardThreshold", 0.1f);
+//        material.setTexture("Texture", texture);
+////        material.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+//
+//        //NB THIS IS VERY IMPORTANT FOR ALPHA BLENDING
+//        material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Custom);
+//        material.getAdditionalRenderState().setCustomBlendFactors(RenderState.BlendFunc.Src_Alpha, 
+//                RenderState.BlendFunc.One_Minus_Src_Alpha, 
+//                RenderState.BlendFunc.One, 
+//                RenderState.BlendFunc.One_Minus_Src_Alpha);
+//        
+//        material.getAdditionalRenderState().setBlendEquation(RenderState.BlendEquation.Add);
+//        material.getAdditionalRenderState().setBlendEquationAlpha(RenderState.BlendEquationAlpha.Add);
+
+        //create the material with the spritesheet material definition
+//        Material material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+        Material material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Resources/MatDefs/SpriteShader.j3md");
+        //set the spritesheet png built with TexturePacker
+        material.setTexture("Texture", texture);
+        //your sprites most likely contain transparency, so it's probably better to set Alpha otherwise you'll see artefacts
+        material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+
+        Sprite sprite = new Sprite("sprite", width, height);
+        sprite.setMaterial(material);
+        sprite.flipCoords(true);
+//        sprite.flipHorizontal(true);
+//        sprite.setQueueBucket(RenderQueue.Bucket.Transparent);
+        sprite.setLocalTranslation(x, y, z);
+        parent.attachChild(sprite);
+
+        return sprite;
+    }
 
     /**
      * Add a sprite to the scene
@@ -52,25 +113,26 @@ public class SpriteUtils {
 
         return sprite;
     }
-    
+
     /**
      * Add a sprite image to the parent.
+     *
      * @param parent
      * @param image
      * @param width
      * @param height
-     * @return 
+     * @return
      */
     public static Sprite addSprite(Node parent, String image, float width, float height) {
-        Sprite sprite = addSprite(parent, width, height);        
-        sprite.setImage(image);
-        sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+        Sprite sprite = addSprite(parent, width, height);
+        addImage(sprite, image);
 
         return sprite;
     }
-    
+
     /**
      * Add a sprite with an offset.
+     *
      * @param parent
      * @param image
      * @param width
@@ -78,10 +140,10 @@ public class SpriteUtils {
      * @param offsetX
      * @param offsetY
      * @param offsetZ
-     * @return 
+     * @return
      */
     public static Sprite addSprite(Node parent, String image, float width, float height, float offsetX, float offsetY, float offsetZ) {
-        Sprite sprite = addSprite(parent, image, width, height);        
+        Sprite sprite = addSprite(parent, image, width, height);
         sprite.setLocalTranslation(offsetX, offsetY, offsetZ);
         return sprite;
     }
@@ -116,6 +178,31 @@ public class SpriteUtils {
 
     public static void addMaterial(Spatial spatial, Material material) {
         spatial.setMaterial(material);
+
+    }
+
+    public static void addImage(Sprite sprite, String image) {
+
+        Texture texture = SharedSystem.getInstance().getBaseApplication().getAssetManager().loadTexture(image);
+        if (SharedSystem.getInstance().getBaseApplication().getTextureManager().isPixelated()) {
+            texture.setMinFilter(Texture.MinFilter.NearestNoMipMaps);
+            texture.setMagFilter(Texture.MagFilter.Nearest);
+        } else {
+            texture.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+        }
+
+        Material material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Resources/MatDefs/SpriteShader.j3md");
+        material.setColor("Color", ColorRGBA.White);
+        material.setFloat("AlphaDiscardThreshold", 0.5f);
+        material.setTexture("Texture", texture);
+        material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        material.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+        material.setTexture("Texture", texture);
+        sprite.setMaterial(material);
+
+        sprite.flipCoords(true);
+        sprite.flipHorizontal(true);
+        sprite.setQueueBucket(RenderQueue.Bucket.Transparent);
 
     }
 
@@ -395,12 +482,13 @@ public class SpriteUtils {
 
     /**
      * Add text to the scene
+     *
      * @param parent
      * @param font
      * @param text
      * @param size
      * @param color
-     * @return 
+     * @return
      */
     public static BitmapText addText(Node parent, BitmapFont font, String text, float size, ColorRGBA color) {
         //Add text
@@ -415,19 +503,19 @@ public class SpriteUtils {
 
     public static void addCollisionShapeBasedOfGeometry(RigidBodyControl rbc, Geometry geometry) {
         int triCount = geometry.getMesh().getTriangleCount();
-        Debug.log("\t Add collision shapes: -TriCount: " + triCount);        
+        Debug.log("\t Add collision shapes: -TriCount: " + triCount);
         Debug.log("\t World Bounds: " + geometry.getWorldBound());
-        
+
         Vector3f vec1 = new Vector3f(0, 0, 0);
         Vector3f vec2 = new Vector3f(0, 0, 0);
         Vector3f vec3 = new Vector3f(0, 0, 0);
-                
+
         for (int t = 0; t < triCount; t++) {
             geometry.getMesh().getTriangle(t, vec1, vec2, vec3);
             TriCollisionShape triCollisionShape = new TriCollisionShape(vec1.clone(), vec2.clone(), vec3.clone());
             rbc.addCollisionShape(triCollisionShape);
         }
-        
+
     }
-    
+
 }

@@ -607,6 +607,33 @@ public abstract class Widget implements Savable {
                 .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
 
     }
+    
+    public void moveFromToCenter(float fromX, float fromY, float toX, float toY, float duration, float delay, TweenEquation tweenEquation) {
+        centerAt(toX, toY);
+        Vector3f target = getPosition().clone();
+        centerAt(fromX, fromY);
+
+        Tween.to(this, WidgetAccessor.POS_XY, duration)
+                .target(target.x, target.y)
+                .delay(delay)
+                .ease(tweenEquation)
+                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+
+    }
+    
+    public void moveFromToCenter(float fromX, float fromY, float toX, float toY, float duration, float delay, TweenEquation tweenEquation, TweenCallback callback) {
+        centerAt(toX, toY);
+        Vector3f target = getPosition().clone();
+        centerAt(fromX, fromY);
+
+        Tween.to(this, WidgetAccessor.POS_XY, duration)
+                .target(target.x, target.y)
+                .delay(delay)
+                .ease(tweenEquation)
+                .setCallback(callback)
+                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+
+    }
 
     public void moveFromToCenter(float fromX, float fromY, float toX, float toY, float duration, float delay, TweenEquation tweenEquation, int count, boolean yoyo) {
         centerAt(toX, toY);
@@ -662,6 +689,17 @@ public abstract class Widget implements Savable {
         Tween.to(this, WidgetAccessor.SCALE_XY, duration)
                 .target(toX, toY)
                 .delay(delay)
+                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+
+    }
+    
+    public void scaleFromTo(float fromX, float fromY, float toX, float toY, float duration, float delay, TweenCallback callback) {
+        setScales(fromX, fromY);
+
+        Tween.to(this, WidgetAccessor.SCALE_XY, duration)
+                .target(toX, toY)
+                .delay(delay)
+                .setCallback(callback)
                 .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
 
     }

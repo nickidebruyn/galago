@@ -64,7 +64,7 @@ public class RoadMeshScreen extends AbstractScreen implements PickListener {
             
         });
 
-        touchPickListener = new TouchPickListener(camera, rootNode);
+        touchPickListener = new TouchPickListener("my", camera, rootNode);
         touchPickListener.setPickListener(this);
     }
 

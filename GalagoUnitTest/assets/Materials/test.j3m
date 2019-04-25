@@ -1,0 +1,16 @@
+Material My Material : Resources/MatDefs/LightBlow.j3md {
+     MaterialParameters {
+        Diffuse : 0.6 1.0 0.0 1.0
+        Toon : false
+        UseMaterialColors : true
+        Multiply_Color : true
+        Fog_Edges : false
+        DoRefract : false
+        EdgesColor : 0.0 0.0 0.0 1.0
+        EdgeSize : 0.1
+        HardwareShadows : true
+        ShadowMapSize : 0.70000005
+     }
+    AdditionalRenderState {
+    }
+}

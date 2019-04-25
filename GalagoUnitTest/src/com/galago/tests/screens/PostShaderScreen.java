@@ -309,7 +309,7 @@ public class PostShaderScreen extends AbstractScreen implements PickListener {
             }
         });
 
-        touchPickListener = new TouchPickListener(camera, rootNode);
+        touchPickListener = new TouchPickListener("my", camera, rootNode);
         touchPickListener.setPickListener(this);
 
         filtersPanel.rightTop(3, 3);
@@ -476,7 +476,7 @@ public class PostShaderScreen extends AbstractScreen implements PickListener {
         fpp.addFilter(oldVideoFilter);
         
         circularFadingFilter = new CircularFadingFilter();
-        circularFadingFilter.setCircleRadius(0.3f);
+        circularFadingFilter.setCircleRadius(0.4f);
         circularFadingFilter.setCircleCenter(new Vector3f(window.getWidthScaled()*0.5f, window.getHeightScaled()*0.5f, 0));
         circularFadingFilter.setEnabled(false);
         fpp.addFilter(circularFadingFilter);

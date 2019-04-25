@@ -196,4 +196,9 @@ public class Sprite extends Node {
         return horizontalFlipped;
     }
     
+    public void setCenterPoint(float x, float y) {
+        geometry.setLocalTranslation(-x, -y, 0);
+        
+    }
+    
 }

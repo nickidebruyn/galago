@@ -51,9 +51,11 @@ public class MenuScreen extends AbstractScreen {
         addSceneButton(gridPanel, "grid", "Grid Panel");
         addSceneButton(gridPanel, "input", "Input GUI");
         addSceneButton(gridPanel, "physics", "Physics Tests");
+        addSceneButton(gridPanel, PhysicsJointScreen.NAME, "Physics Joints");
         addSceneButton(gridPanel, "joystick", "Joystick");
         addSceneButton(gridPanel, "rawjoystick", "Raw Joystick");
         addSceneButton(gridPanel, WorldEditorScreen.NAME, "World Editor");
+        addSceneButton(gridPanel, "fire", "Fire Particles");
         addSceneButton(gridPanel, "watermovement", "Water Movement");
         addSceneButton(gridPanel, "waterwave", "Water Wave");
         addSceneButton(gridPanel, "rainbow", "Rainbow");
@@ -62,6 +64,8 @@ public class MenuScreen extends AbstractScreen {
         addSceneButton(gridPanel, "lightning", "Lightning sky");
         addSceneButton(gridPanel, "motionblur", "Motion Blur");
         addSceneButton(gridPanel, "trailrender", "Trail Render");
+        addSceneButton(gridPanel, TextureMaskingScreen.NAME, "Texture Masking");
+        addSceneButton(gridPanel, EggScreen.NAME, "Egg test");
 
         gridPanel.layout(8, 3);
 

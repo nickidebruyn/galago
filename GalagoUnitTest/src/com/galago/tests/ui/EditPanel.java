@@ -123,4 +123,20 @@ public class EditPanel extends Panel {
 
     }
     
+    public TouchButton addButton(String title, TouchButtonAdapter touchButtonAdapter) {
+        TouchButton button = new TouchButton(optionsPanel, title, "Interface/button.png", 240, 30);
+        button.setText(title);
+        button.setFontSize(16);
+        button.setTextAlignment(TextAlign.LEFT);
+        button.addEffect(new TouchEffect(button));
+
+        if (touchButtonAdapter != null) {
+            button.addTouchButtonListener(touchButtonAdapter);
+        }             
+        
+        optionsPanel.layout();
+        return button;
+
+    }
+    
 }

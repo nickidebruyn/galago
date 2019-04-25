@@ -74,7 +74,7 @@ public class TrailRenderScreen extends AbstractScreen implements PickListener {
             }
         });
 
-        touchPickListener = new TouchPickListener(camera, rootNode);
+        touchPickListener = new TouchPickListener("thisisme", camera, rootNode);
         touchPickListener.setPickListener(this);
     }
 

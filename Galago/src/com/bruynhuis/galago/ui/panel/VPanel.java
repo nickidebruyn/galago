@@ -49,6 +49,17 @@ public class VPanel extends Panel {
 
     /**
      * 
+     * @param parent
+     * @param pictureFile
+     * @param width
+     * @param height 
+     */
+    public VPanel(Widget parent, float width, float height, boolean lock) {
+        super(parent.getWindow(), parent, null, width, height, lock);
+    }
+    
+    /**
+     * 
      * @param window
      * @param parent
      * @param width

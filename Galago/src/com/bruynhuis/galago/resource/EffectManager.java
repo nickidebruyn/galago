@@ -21,78 +21,84 @@ import com.jme3.math.ColorRGBA;
  * @author nidebruyn
  */
 public class EffectManager {
-    
+
     private BaseApplication application;
     private Map<String, Spatial> effects = new HashMap<String, Spatial>();
     private ColorRGBA startColor;
     private ColorRGBA endColor;
     private ColorRGBA materialColor;
-    
+
     public EffectManager(BaseApplication baseApplication) {
         this.application = baseApplication;
     }
-    
+
     public void destroy() {
         effects.clear();
     }
-    
+
     /**
-     * This method can be called when you need to override the particle effects colors.
-     * This will only be applied once.
+     * This method can be called when you need to override the particle effects
+     * colors. This will only be applied once.
+     *
      * @param startColor
-     * @param endColor 
+     * @param endColor
      */
     public void prepareColor(ColorRGBA startColor, ColorRGBA endColor) {
         this.startColor = startColor;
         this.endColor = endColor;
     }
-    
+
     public void prepareMaterialColor(ColorRGBA matColor) {
         this.materialColor = matColor;
     }
-    
+
     /**
      * Load an effect using a path to a j3o model.
+     *
      * @param effect
-     * @param effectPath 
+     * @param effectPath
      */
     public void loadEffect(String effect, String effectPath) {
         Spatial spatial = application.getAssetManager().loadModel(effectPath);
         loadEffect(effect, spatial);
     }
-    
+
     /**
      * Load an effect using a spatial
+     *
      * @param effect
-     * @param effectSpatial 
+     * @param effectSpatial
      */
     public void loadEffect(String effect, Spatial effectSpatial) {
-        effects.put(effect, effectSpatial);        
+        effects.put(effect, effectSpatial);
         preloadParticles(effectSpatial);
     }
-    
+
     /**
      * Should be called when you want to show a particle effect.
+     *
      * @param effect
-     * @param position 
+     * @param position
      */
     public void doEffect(String effect, Vector3f position) {
-        doEffect(effect, position, 200);        
+        doEffect(effect, position, 200);
     }
-    
+
     /**
      * Should be called when you want to show a particle effect.
+     *
      * @param effect
-     * @param position 
+     * @param position
      */
     public void doEffect(String effect, Vector3f position, float timeInMiliSec) {
         Spatial effectSpatial = (Spatial) effects.get(effect);
         doEffect(effectSpatial, position, timeInMiliSec);
     }
-    
+
     /**
      * This will preload the particels
-     * @param spatial 
+     *
+     * @param spatial
      */
     protected void preloadParticles(Spatial spatial) {
         if (spatial != null && spatial instanceof Node) {
@@ -116,7 +122,7 @@ public class EffectManager {
         if (spatial != null && spatial instanceof AnimatedSprite) {
             AnimatedSprite sprite = (AnimatedSprite) spatial;
             sprite.play();
-            
+
         } else if (spatial != null && spatial instanceof Node) {
             for (int i = 0; i < ((Node) spatial).getQuantity(); i++) {
                 Spatial s = ((Node) spatial).getChild(i);
@@ -128,18 +134,18 @@ public class EffectManager {
                     if (endColor != null) {
                         emitter.setStartColor(endColor);
                     }
-                    
+
                     if (materialColor != null) {
                         emitter.getMaterial().setColor("Color", materialColor);
-                        
+
                     }
-                    
+
                     emitter.emitAllParticles();
-                    startColor = null;
-                    endColor = null;
-                    materialColor = null;
                 }
             }
+            startColor = null;
+            endColor = null;
+            materialColor = null;
         }
     }
 
@@ -155,16 +161,16 @@ public class EffectManager {
         sp.setLocalTranslation(position);
         SpatialLifeControl control = new SpatialLifeControl(activeTimeInMilliSec);
         sp.addControl(control);
-        
+
         if (application.getCurrentScreen() != null) {
             application.getCurrentScreen().getRootNode().attachChild(sp);
         } else {
             application.getRootNode().attachChild(sp);
-        }        
+        }
 
         //Call the particle respawn
         doParticleRespawn(sp);
         control.start();
     }
-    
+
 }

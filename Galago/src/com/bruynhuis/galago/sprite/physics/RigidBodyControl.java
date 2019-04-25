@@ -131,7 +131,7 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
     public Vector2f getLinearVelocity() {
         return new Vector2f((float) this.body.getLinearVelocity().x, (float) this.body.getLinearVelocity().y);
     }
-    
+
     public void setAngularVelocity(float angle) {
         this.body.setAngularVelocity(angle);
     }
@@ -162,14 +162,13 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
 //                System.out.println("one body");
                 setPhysicLocation(this.body);
                 setPhysicRotation(this.body);
-            } else {
-//                if (this.body.getMass().getType().equals(Mass.Type.NORMAL)) {
+                
+            } else if (this.body.getMass().getType().equals(Mass.Type.NORMAL)) {
 //                    System.out.println("multiple bodies and mass");
                 //TODO: We do not want to update the physics location of the spatial because it will be set by the 
                 //Collision shape location
-//                    setPhysicLocation(this.body);
-//                    setPhysicRotation(this.body);
-//                }
+                setPhysicLocation(this.body);
+                setPhysicRotation(this.body);
             }
 
         }
@@ -247,10 +246,10 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
 //        clearForces();
         this.body.getTransform().setRotation(radians);
     }
-    
+
     public float getPhysicRotation() {
 //        clearForces();
-        return (float)this.body.getTransform().getRotation();
+        return (float) this.body.getTransform().getRotation();
     }
 
     public void rotate(float radians) {
@@ -309,7 +308,7 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
 
     public void setDensity(float density) {
         this.density = density;
-        
+
         if (this.body.getFixtures() != null && this.body.getFixtures().size() > 0) {
             for (int i = 0; i < this.body.getFixtures().size(); i++) {
                 BodyFixture bodyFixture1 = this.body.getFixtures().get(i);
@@ -319,8 +318,8 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
         } else {
             this.bodyFixture.setDensity((double) density);
             this.bodyFixture.createMass();
-        }       
-        
+        }
+
     }
 
     public void setActive(boolean active) {
@@ -379,21 +378,21 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
             }
         }
     }
-    
+
     public boolean isSensor() {
         if (this.body.getFixtures() != null && this.body.getFixtures().size() > 0) {
             for (int i = 0; i < this.body.getFixtures().size(); i++) {
                 BodyFixture bodyFixture1 = this.body.getFixtures().get(i);
-                return bodyFixture1.isSensor();                
+                return bodyFixture1.isSensor();
             }
         }
         return false;
     }
-    
+
     public void setAngularDamping(float damping) {
-        this.body.setAngularDamping((double)damping);
+        this.body.setAngularDamping((double) damping);
     }
-    
+
     public void setLinearDamping(float damping) {
         this.body.setLinearDamping(damping);
     }
@@ -439,7 +438,7 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
             }
         }
         Debug.log("After body fixtures: " + this.body.getFixtures().size());
-        
+
         //TODO: Need to improve and test
         //Vertical batching
 //        groupedList = getGroupedInSameSizeBodyFixtures();
@@ -535,7 +534,7 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
      * @param groupedList
      */
     private void mergeHorizontally(ArrayList<ArrayList<BodyFixture>> groupedList) {
-        
+
         if (groupedList.size() > 0) {
             for (int i = 0; i < groupedList.size(); i++) {
                 ArrayList<BodyFixture> listOfMergableBodies = groupedList.get(i);
@@ -560,8 +559,7 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
             }
         }
     }
-    
-    
+
     /**
      * Loop over this list of bodies with the same size and first batch them
      * together with no spacing and then after all was batched we merge them
@@ -604,14 +602,14 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
         mergeVertically(groupedList);
 
     }
-    
+
     /**
      * Merge the list of vertically grouped bodies
      *
      * @param groupedList
      */
     private void mergeVertically(ArrayList<ArrayList<BodyFixture>> groupedList) {
-        
+
         if (groupedList.size() > 0) {
             for (int i = 0; i < groupedList.size(); i++) {
                 ArrayList<BodyFixture> listOfMergableBodies = groupedList.get(i);
@@ -685,7 +683,7 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
         }
         return batchedFixtures;
     }
-    
+
     /**
      * Get body fitures vertical with the same spacing
      *

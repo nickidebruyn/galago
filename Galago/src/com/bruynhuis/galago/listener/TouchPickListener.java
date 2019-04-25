@@ -28,15 +28,16 @@ import com.jme3.scene.Node;
  */
 public class TouchPickListener implements ActionListener, AnalogListener {
 
-    public static final String PICK_ACTION_LEFT = "touch_picker_left";
-    public static final String PICK_ACTION_RIGHT = "touch_picker_right";
-    public static final String DRAG_LEFT_ACTION = "drag_left_picker";
-    public static final String DRAG_RIGHT_ACTION = "drag_right_picker";
-    public static final String DRAG_UP_ACTION = "drag_up_picker";
-    public static final String DRAG_DOWN_ACTION = "drag_down_picker";
-    public static final String ZOOM_UP_ACTION = "zoom_up_picker";
-    public static final String ZOOM_DOWN_ACTION = "zoom_down_picker";
+    protected String PICK_ACTION_LEFT = "touch_picker_left";
+    protected String PICK_ACTION_RIGHT = "touch_picker_right";
+    protected String DRAG_LEFT_ACTION = "drag_left_picker";
+    protected String DRAG_RIGHT_ACTION = "drag_right_picker";
+    protected String DRAG_UP_ACTION = "drag_up_picker";
+    protected String DRAG_DOWN_ACTION = "drag_down_picker";
+    protected String ZOOM_UP_ACTION = "zoom_up_picker";
+    protected String ZOOM_DOWN_ACTION = "zoom_down_picker";
 
+    private String name;
     private Camera cam;
     private Node scene;
     private Vector3f contactPoint;
@@ -50,10 +51,26 @@ public class TouchPickListener implements ActionListener, AnalogListener {
     private boolean keyDown = false;
     private PickEvent pickEvent;
     private BaseApplication baseApplication;
-
+    
     public TouchPickListener(Camera cam, Node scene) {
+        this("default-", cam, scene);
+        
+    }
+
+    public TouchPickListener(String name, Camera cam, Node scene) {
+        this.name = name;
         this.cam = cam;
         this.scene = scene;
+        
+        PICK_ACTION_LEFT += name;
+        PICK_ACTION_RIGHT += name;
+        DRAG_LEFT_ACTION += name;
+        DRAG_RIGHT_ACTION += name;
+        DRAG_UP_ACTION += name;
+        DRAG_DOWN_ACTION += name;
+        ZOOM_UP_ACTION += name;
+        ZOOM_DOWN_ACTION += name;
+        
         results = new CollisionResults();
         ray = new Ray(cam.getLocation(), cam.getDirection());
         pickEvent = new PickEvent();

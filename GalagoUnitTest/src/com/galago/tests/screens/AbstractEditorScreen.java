@@ -5,8 +5,10 @@
  */
 package com.galago.tests.screens;
 
+import com.bruynhuis.galago.control.AnimationControl;
 import com.bruynhuis.galago.filters.CartoonEdgeProcessor;
 import com.bruynhuis.galago.filters.FXAAFilter;
+import com.bruynhuis.galago.filters.FogFilter;
 
 import com.bruynhuis.galago.filters.VignetteFilter;
 import com.bruynhuis.galago.listener.PickEvent;
@@ -17,14 +19,19 @@ import com.bruynhuis.galago.ui.button.Checkbox;
 import com.bruynhuis.galago.ui.field.HSlider;
 import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
 import com.bruynhuis.galago.ui.listener.ValueChangeListener;
+import com.bruynhuis.galago.util.Debug;
+import com.bruynhuis.galago.util.ParticleUtils;
 import com.bruynhuis.galago.util.SpatialUtils;
+import com.galago.tests.controls.CharacterRoamController;
+import com.galago.tests.spatial.Gizmo;
 import com.galago.tests.ui.EditPanel;
 import com.galago.tests.ui.SettingsPanel;
+import com.jme3.animation.AnimControl;
 import com.jme3.app.FlyCamAppState;
+import com.jme3.bounding.BoundingBox;
 import com.jme3.input.ChaseCamera;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
-import com.jme3.material.MatParam;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
@@ -33,7 +40,6 @@ import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.BloomFilter;
-import com.jme3.post.filters.FogFilter;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
@@ -42,6 +48,9 @@ import com.jme3.scene.SceneGraphVisitor;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.debug.Grid;
 import com.jme3.scene.debug.WireBox;
+import com.jme3.scene.shape.Sphere;
+import com.jme3.shadow.DirectionalLightShadowFilter;
+import com.jme3.shadow.EdgeFilteringMode;
 import com.jme3.terrain.geomipmap.TerrainLodControl;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.terrain.heightmap.AbstractHeightMap;
@@ -69,17 +78,22 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
     protected SSAOFilter basicSSAOFilter;
     protected FogFilter fogFilter;
     protected VignetteFilter vignetteFilter;
+    protected DirectionalLightShadowFilter dlsf;
 
     protected Node sceneNode;
     protected Node ground;
     protected Node paintGizmo;
+    protected Gizmo gizmo;
     protected Grid grid;
+    protected Geometry gridGeom;
     protected WireBox wireBox;
     protected TerrainQuad terrainQuad;
     protected Material terrainMaterial;
     protected AbstractHeightMap heightmap;
 
     protected Spatial objectToAdd;
+    protected Spatial selectedObject;
+    protected ColorRGBA selectionColor = ColorRGBA.Black;
 
     protected Vector2f mouseDownPosition;
     protected Vector3f contactNormal = new Vector3f(0, 0, 0);
@@ -89,10 +103,10 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
     protected EditPanel editPanel;
     protected Checkbox orbitCameraCheckbox, flyCameraCheckbox;
     protected Checkbox directionalLightCheckbox, ambientLightCheckbox;
-    protected Checkbox gridCheckbox, snapToGridCheckbox, wireframeCheckbox;
-    protected Checkbox bloomCheckbox, fxaaCheckbox, ssaoCheckbox, fogCheckbox, vignetteCheckbox;
-    protected HSlider paintGizmoSlider;    
-    
+    protected Checkbox gridCheckbox, snapToGridCheckbox, wireframeCheckbox, snapToNormalCheckbox;
+    protected Checkbox bloomCheckbox, fxaaCheckbox, ssaoCheckbox, fogCheckbox, vignetteCheckbox, shadowCheckbox;
+    protected HSlider paintGizmoSlider;
+
     private boolean modifyTerrainHeight = true;
 
     @Override
@@ -186,15 +200,27 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
             public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
 
                 if (gridCheckbox.isChecked()) {
-                    ground.setCullHint(Spatial.CullHint.Never);
+                    gridGeom.setCullHint(Spatial.CullHint.Never);
                 } else {
-                    ground.setCullHint(Spatial.CullHint.Always);
+                    gridGeom.setCullHint(Spatial.CullHint.Always);
                 }
 
             }
 
         });
         snapToGridCheckbox = settingsPanel.addCheckbox(" Snap to grid", new TouchButtonAdapter() {
+            @Override
+            public void doTouchDown(float touchX, float touchY, float tpf, String uid) {
+                buttonClicked = true;
+            }
+
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+
+            }
+
+        });
+        snapToNormalCheckbox = settingsPanel.addCheckbox(" Snap to normal", new TouchButtonAdapter() {
             @Override
             public void doTouchDown(float touchX, float touchY, float tpf, String uid) {
                 buttonClicked = true;
@@ -214,7 +240,7 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
 
             @Override
             public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
-                SpatialUtils.enableWireframe(sceneNode, wireframeCheckbox.isChecked());                
+                SpatialUtils.enableWireframe(sceneNode, wireframeCheckbox.isChecked());
 
             }
 
@@ -268,21 +294,20 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
 
         });
 
-        fogCheckbox = settingsPanel.addCheckbox(" Fog", new TouchButtonAdapter() {
-
-            @Override
-            public void doTouchDown(float touchX, float touchY, float tpf, String uid) {
-                buttonClicked = true;
-            }
-
-            @Override
-            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
-                fogFilter.setEnabled(fogCheckbox.isChecked());
-
-            }
-
-        });
-
+//        fogCheckbox = settingsPanel.addCheckbox(" Fog", new TouchButtonAdapter() {
+//
+//            @Override
+//            public void doTouchDown(float touchX, float touchY, float tpf, String uid) {
+//                buttonClicked = true;
+//            }
+//
+//            @Override
+//            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+//                fogFilter.setEnabled(fogCheckbox.isChecked());
+//
+//            }
+//
+//        });
         vignetteCheckbox = settingsPanel.addCheckbox(" Vignette", new TouchButtonAdapter() {
 
             @Override
@@ -293,6 +318,21 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
             @Override
             public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
                 vignetteFilter.setEnabled(vignetteCheckbox.isChecked());
+
+            }
+
+        });
+
+        shadowCheckbox = settingsPanel.addCheckbox(" Shadows", new TouchButtonAdapter() {
+
+            @Override
+            public void doTouchDown(float touchX, float touchY, float tpf, String uid) {
+                buttonClicked = true;
+            }
+
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                dlsf.setEnabled(shadowCheckbox.isChecked());
 
             }
 
@@ -316,20 +356,21 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
 
         };
 
-        settingsPanel.addHeading(" Object");
-        settingsPanel.addButton(" None", objectAction);
-        settingsPanel.addButton(" Cube", objectAction);
-        settingsPanel.addButton(" Sphere", objectAction);
-//        settingsPanel.addButton(" Cone", objectAction);
-//        settingsPanel.addButton(" Tree", objectAction);
-//        settingsPanel.addButton(" Lava", objectAction);
-//        settingsPanel.addButton(" Rock", objectAction);
-        settingsPanel.addButton(" Terrain", objectAction);
-        settingsPanel.addButton(" Ocean", objectAction);
-
 //        THIS IS THE EDIT PANEL
         editPanel = new EditPanel(hudPanel);
-        
+        editPanel.addHeading(" Object");
+        editPanel.addButton(" None", objectAction);
+        editPanel.addButton(" Crate", objectAction);
+        editPanel.addButton(" Ball", objectAction);
+        editPanel.addButton(" XBot", objectAction);
+        editPanel.addButton(" Cone", objectAction);
+        editPanel.addButton(" Tree", objectAction);
+        editPanel.addButton(" Fire", objectAction);
+//        settingsPanel.addButton(" Lava", objectAction);
+//        settingsPanel.addButton(" Rock", objectAction);
+        editPanel.addButton(" Terrain", objectAction);
+        editPanel.addButton(" Ocean", objectAction);
+
         paintGizmoSlider = new HSlider(hudPanel, 250);
         paintGizmoSlider.setMaxValue(5);
         paintGizmoSlider.setMinValue(1);
@@ -337,7 +378,7 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
         paintGizmoSlider.centerTop(0, 0);
         paintGizmoSlider.setLabelText("Radius");
         paintGizmoSlider.addValueChangeListener(new ValueChangeListener() {
-            
+
             @Override
             public void doValueChange(float value) {
                 paintGizmo.setLocalScale(value, 0.0001f, value);
@@ -349,7 +390,6 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
                 buttonClicked = true;
             }
         });
-        
 
     }
 
@@ -363,40 +403,48 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
                 objectToAdd = null;
 
             }
-            
+
             if (type.equalsIgnoreCase("terrain")) {
                 if (terrainQuad != null && terrainQuad.getParent() != null) {
                     terrainQuad.removeFromParent();
-                    terrainMaterial = null;                    
+                    terrainMaterial = null;
                 }
                 loadTerrain();
-                
+
             } else if (type.equalsIgnoreCase("ocean")) {
                 SpatialUtils.addOceanWater(sceneNode, directionalLight.getDirection(), 2);
-                
+
             } else {
                 //Load the object by type
-                objectToAdd = loadObject(rootNode, type);
-                updateSpatialTransparency(objectToAdd, true);                
-                
+                objectToAdd = loadObject(rootNode, type, false);
+                SpatialUtils.updateSpatialTransparency(objectToAdd, true, 0.2f);
+
             }
 
         }
     }
 
-    private Spatial loadObject(Node parent, String type) {
+    private Spatial loadObject(Node parent, String type, boolean paint) {
         Spatial s = null;
-        if (type.equals("cube")) {
+        if (type.equals("crate")) {
             s = SpatialUtils.addBox(parent, snapSize / 2, snapSize / 2, snapSize / 2);
-//            SpatialUtils.addColor(s, ColorRGBA.Orange, true);
-            s.setMaterial(baseApplication.getAssetManager().loadMaterial("Materials/rock.j3m"));
+            SpatialUtils.addCartoonColor(s, "Textures/crate.jpg", ColorRGBA.White, selectionColor, 0.0f, false, false);
+//            s.setMaterial(baseApplication.getAssetManager().loadMaterial("Materials/rock.j3m"));
 
-        } else if (type.equals("sphere")) {
+            if (paint) {
+                SpatialUtils.addMass(s, 1);
+            }
+
+        } else if (type.equals("ball")) {
             s = SpatialUtils.addSphere(parent, 50, 50, snapSize / 2);
-            SpatialUtils.addColor(s, ColorRGBA.Orange, true);
+            SpatialUtils.addCartoonColor(s, "Textures/mat-cap-copper2.jpg", ColorRGBA.White, ColorRGBA.Black, 0.0f, true, false);
+
+            if (paint) {
+                SpatialUtils.addMass(s, 1);
+            }
 
         } else if (type.equals("tree")) {
-            s = baseApplication.getAssetManager().loadModel("Models/tree.j3o");
+            s = baseApplication.getAssetManager().loadModel("Models/vegetation/tree.j3o");
             parent.attachChild(s);
 
         } else if (type.equals("lava")) {
@@ -407,52 +455,53 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
             s = baseApplication.getAssetManager().loadModel("Models/rock.j3o");
             parent.attachChild(s);
 
+        } else if (type.equals("fire")) {
+            s = ParticleUtils.addFire(parent, new Sphere(20, 20, 1));
+            s.scale(0.5f);
+
+        } else if (type.equals("xbot")) {
+            s = baseApplication.getAssetManager().loadModel("Models/xbot/bot.j3o");
+            parent.attachChild(s);
+
+            if (paint) {
+                SceneGraphVisitor sgv = new SceneGraphVisitor() {
+                    @Override
+                    public void visit(Spatial spatial) {
+//                    Debug.log("Spatial: " + spatial.getName());
+                        if (spatial.getControl(AnimControl.class) != null && spatial.getUserData("animation") != null) {
+                            Debug.log("Found Anim Control on " + spatial.getName());
+                            AnimationControl ac = new AnimationControl();
+                            spatial.addControl(ac);
+
+                        }
+                    }
+                };
+                s.depthFirstTraversal(sgv);
+                s.addControl(new CharacterRoamController(s));
+            }
+
+            SpatialUtils.updateCartoonColor(s, "Textures/matcap-blue.jpg", ColorRGBA.randomColor(), ColorRGBA.Black, 1.5f, true, false);
+
+//            SpatialUtils.updateSpatialColor(s, ColorRGBA.randomColor());
         } else if (type.equals("cone")) {
             Node cone = new Node("cone");
             parent.attachChild(cone);
             Spatial spatial = SpatialUtils.addCone(cone, 24, snapSize / 2f, snapSize);
-            SpatialUtils.addColor(spatial, ColorRGBA.Pink, true);
+            SpatialUtils.addColor(spatial, ColorRGBA.Yellow, false);
             SpatialUtils.rotate(spatial, -90, 0, 0);
             s = cone;
+            if (paint) {
+                SpatialUtils.addMass(s, 1);
+            }
 
         }
 
         if (s != null) {
             s.setName(type);
+            s.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
         }
 
         return s;
-    }
-
-    protected void updateSpatialTransparency(Spatial spatial, final boolean transparent) {
-        if (spatial != null) {
-            SceneGraphVisitor sgv = new SceneGraphVisitor() {
-                @Override
-                public void visit(Spatial sp) {
-                    if (sp instanceof Geometry) {
-                        Geometry geom = (Geometry) sp;
-
-                        if (transparent) {
-                            geom.setQueueBucket(RenderQueue.Bucket.Transparent);
-                            geom.getMaterial().getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-                            MatParam diffuseParam = geom.getMaterial().getParam("Diffuse");
-                            if (diffuseParam != null) {
-                                ColorRGBA col = (ColorRGBA) diffuseParam.getValue();
-                                diffuseParam.setValue(new ColorRGBA(col.r, col.g, col.b, 0.3f));
-                            }
-
-                        }
-
-                        log("Update spatial material: " + geom.getMaterial());
-
-                    }
-
-                }
-            };
-
-            spatial.depthFirstTraversal(sgv);
-        }
-
     }
 
     protected void updateObjectToAddPosition() {
@@ -463,13 +512,12 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
             if (objectToAdd.getWorldBound() != null) {
 
 //                objectToAdd.setLocalRotation(Quaternion.ZERO);
+                BoundingBox bb = (BoundingBox) objectToAdd.getWorldBound();
+                float yExt = bb.getYExtent();
 //                
-//                log("Bounds: " + objectToAdd.getWorldBound());
-//               
-//                BoundingBox bb = (BoundingBox) objectToAdd.getWorldBound();
-//                float xExt = bb.getXExtent();
-//                float yExt = bb.getYExtent();
-//                float zExt = bb.getZExtent();
+//                log("Bounds: " + bb);
+//                log("Dis: " + (bb.getCenter().y + yExt));
+
                 objectToAdd.setLocalTranslation(
                         paintGizmo.getLocalTranslation().x,
                         paintGizmo.getLocalTranslation().y,
@@ -478,7 +526,10 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
                 objectToAdd.getLocalRotation().lookAt(contactNormal, Vector3f.UNIT_Y);
                 SpatialUtils.rotate(objectToAdd, 90, 0, 0);
 
-//                objectToAdd.move(contactNormal.mult(0.5f));
+                if (snapToNormalCheckbox.isChecked()) {
+                    objectToAdd.move(contactNormal.mult(yExt));
+                }
+
             }
 
         }
@@ -488,7 +539,7 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
     protected void paintObjectToAdd() {
 
         if (objectToAdd != null) {
-            Spatial obj = loadObject(sceneNode, objectToAdd.getName());
+            Spatial obj = loadObject(sceneNode, objectToAdd.getName(), true);
             SpatialUtils.translate(obj,
                     objectToAdd.getWorldTranslation().x,
                     objectToAdd.getWorldTranslation().y,
@@ -505,33 +556,32 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
          * 1. Create terrain material and load four textures into it.
          */
         terrainMaterial = new Material(assetManager, "Common/MatDefs/Terrain/HeightBasedTerrain.j3md");
-        
+
         Texture texture1 = assetManager.loadTexture("Textures/terrain/Ocean Floor.jpg");
         texture1.setWrap(Texture.WrapMode.Repeat);
         terrainMaterial.setTexture("region1ColorMap", texture1);
         terrainMaterial.setVector3("region1", new Vector3f(-1, 1, 46)); //(startHeight, endHeight, texScale)
-        
+
         Texture texture2 = assetManager.loadTexture("Textures/terrain/sand.jpg");
         texture2.setWrap(Texture.WrapMode.Repeat);
         terrainMaterial.setTexture("region2ColorMap", texture2);
         terrainMaterial.setVector3("region2", new Vector3f(0.5f, 8, 46f)); //(startHeight, endHeight, texScale)
-        
+
         Texture texture3 = assetManager.loadTexture("Textures/terrain/grass.jpg");
         texture3.setWrap(Texture.WrapMode.Repeat);
         terrainMaterial.setTexture("region3ColorMap", texture3);
         terrainMaterial.setVector3("region3", new Vector3f(7f, 30, 80)); //(startHeight, endHeight, texScale)
-        
+
         Texture texture4 = assetManager.loadTexture("Textures/terrain/Mountain Faults.jpg");
         texture4.setWrap(Texture.WrapMode.Repeat);
         terrainMaterial.setTexture("region4ColorMap", texture4);
         terrainMaterial.setVector3("region4", new Vector3f(28, 100, 42)); //(startHeight, endHeight, texScale)
-        
-        
+
         Texture textureSlope = assetManager.loadTexture("Textures/terrain/Age of the Canyon.jpg");
         textureSlope.setWrap(Texture.WrapMode.Repeat);
         terrainMaterial.setTexture("slopeColorMap", textureSlope);
         terrainMaterial.setFloat("slopeTileFactor", 12f);
-        
+
         terrainMaterial.setFloat("terrainSize", 512f);
 
         /**
@@ -540,7 +590,7 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
         Texture heightMapImage = assetManager.loadTexture("Textures/terrain/heightmap2.png");
         heightmap = new ImageBasedHeightMap(heightMapImage.getImage());
         heightmap.load();
-        
+
         /**
          * 3. We have prepared material and heightmap. Now we create the actual
          * terrain: 3.1) Create a TerrainQuad and name it "my terrain". 3.2) A
@@ -556,11 +606,11 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
          * 4. We give the terrain its material, position & scale it, and attach
          * it.
          */
-        terrainQuad.setMaterial(terrainMaterial);        
+        terrainQuad.setMaterial(terrainMaterial);
         terrainQuad.setLocalTranslation(0, 0, 0);
-        terrainQuad.setLocalScale(1f, 0.5f, 1f);
+        terrainQuad.setLocalScale(0.4f, 0.1f, 0.4f);
         sceneNode.attachChild(terrainQuad);
-        
+
         /**
          * 5. The LOD (level of detail) depends on were the camera is:
          */
@@ -569,25 +619,31 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
     }
 
     @Override
-    protected void load() {
+    protected void load() {               
 
         //Load the scene node
         sceneNode = new Node("scene-node");
         rootNode.attachChild(sceneNode);
 
+//        SpatialUtils.addSkySphere(sceneNode, 2, camera);
+        baseApplication.getViewPort().setBackgroundColor(ColorRGBA.LightGray);
+
         //Load the ground grid
-        ground = new Node("ground-name");
+        ground = new Node("ground");
         sceneNode.attachChild(ground);
 
         grid = new Grid((int) cameraDistance * 10, (int) cameraDistance * 10, snapSize);
-        Geometry gridGeom = new Geometry("ground", grid);
+        gridGeom = new Geometry("ground-geom", grid);
         ground.attachChild(gridGeom);
         SpatialUtils.addColor(gridGeom, ColorRGBA.Gray, true);
         gridGeom.center();
 
         Spatial groundPlane = SpatialUtils.addBox(ground, cameraDistance * 10, 0f, cameraDistance * 10);
-        SpatialUtils.addColor(groundPlane, ColorRGBA.Gray, true);
-        groundPlane.setCullHint(Spatial.CullHint.Always);
+        SpatialUtils.addColor(groundPlane, ColorRGBA.LightGray, true);
+        groundPlane.setShadowMode(RenderQueue.ShadowMode.Receive);
+        groundPlane.move(0, -0.01f, 0);
+        SpatialUtils.addMass(groundPlane, 0);
+//        groundPlane.setCullHint(Spatial.CullHint.Always);
 
         //Load the paint gizmo
         paintGizmo = new Node("paint-gizmo");
@@ -600,7 +656,11 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
         paintGizmoGeom.getMaterial().setFloat("AlphaDiscardThreshold", 0.1f);
         paintGizmoGeom.getMaterial().getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
 
-                
+        //Load the gizmo
+        gizmo = new Gizmo("gizmo", camera, inputManager);
+        rootNode.attachChild(gizmo);
+//        gizmo.setCullHint(Spatial.CullHint.Always);
+
         //Load the fly cam
         flyCamAppState = new FlyCamAppState();
         baseApplication.getStateManager().attach(flyCamAppState);
@@ -633,18 +693,19 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
 
         //Load the Light
         directionalLight = new DirectionalLight();
-        directionalLight.setDirection((new Vector3f(-0.5f, -0.85f, -0.5f)).normalizeLocal());
+        directionalLight.setDirection(new Vector3f(-1, -1f, -1));
         directionalLight.setColor(ColorRGBA.White);
-        directionalLight.setFrustumCheckNeeded(true);
+//        directionalLight.setFrustumCheckNeeded(true);
         rootNode.addLight(directionalLight);
 
         /**
          * A white ambient light source.
          */
         ambientLight = new AmbientLight();
-        ambientLight.setColor(ColorRGBA.LightGray);
+        ambientLight.setColor(ColorRGBA.White);
         ambientLight.setFrustumCheckNeeded(true);
-        rootNode.addLight(ambientLight);        
+        ambientLight.setEnabled(false);
+        rootNode.addLight(ambientLight);
 
         //LOAD THE FilterPostProcessor
         fpp = new FilterPostProcessor(assetManager);
@@ -670,13 +731,21 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
         fogFilter = new FogFilter();
         fogFilter.setFogColor(baseApplication.BACKGROUND_COLOR);
         fogFilter.setFogDensity(2f);
-        fogFilter.setFogDistance(80);
+//        fogFilter.setFogDistance(80);
         fogFilter.setEnabled(false);
         fpp.addFilter(fogFilter);
 
         vignetteFilter = new VignetteFilter();
         vignetteFilter.setEnabled(false);
         fpp.addFilter(vignetteFilter);
+
+        dlsf = new DirectionalLightShadowFilter(assetManager, 1024, 2);
+        dlsf.setLight(directionalLight);
+        dlsf.setLambda(0.55f);
+        dlsf.setShadowIntensity(0.8f);
+        dlsf.setEdgeFilteringMode(EdgeFilteringMode.PCF4);
+        dlsf.setEnabled(false);
+        fpp.addFilter(dlsf);
 
         baseApplication.getViewPort().addProcessor(fpp);
 
@@ -688,19 +757,21 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
         orbitCameraCheckbox.setChecked(true);
         flyCameraCheckbox.setChecked(false);
         directionalLightCheckbox.setChecked(true);
-        ambientLightCheckbox.setChecked(true);
+        ambientLightCheckbox.setChecked(false);
 
         gridCheckbox.setChecked(true);
+        snapToNormalCheckbox.setChecked(true);
 
     }
 
     @Override
     protected void show() {
-        touchPickListener = new TouchPickListener(camera, sceneNode);
+//        baseApplication.showDebuging();
+        touchPickListener = new TouchPickListener("main", camera, sceneNode);
         touchPickListener.setPickListener(this);
         touchPickListener.registerWithInput(inputManager);
 
-//        settingsPanel.closePanel();
+        settingsPanel.closePanel();
         editPanel.closePanel();
 
         flyCamAppState.setEnabled(false);
@@ -740,7 +811,7 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
                 mouseDownPosition = pickEvent.getCursorPosition().clone();
             }
 
-            if (pickEvent.getContactObject() != null && !pickEvent.isKeyDown()) {
+            if (mouseDownPosition != null && pickEvent.getContactObject() != null && !pickEvent.isKeyDown()) {
 
                 if (pickEvent.getCursorPosition().distance(mouseDownPosition) < 50 && !buttonClicked) {
                     paintObjectToAdd();
@@ -751,7 +822,57 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
                     buttonClicked = false;
                 }
 
+            } else if (mouseDownPosition != null && pickEvent.getContactObject() != null
+                    && pickEvent.isKeyDown() && objectToAdd == null && pickEvent.isRightButton()) {
+                log("You clicked on " + pickEvent.getContactObject());
+
+                if (pickEvent.getContactObject().getParent().equals(sceneNode)) {
+                    log("Parent 1");
+                    selectNewObject(pickEvent.getContactObject());
+
+                } else if (pickEvent.getContactObject().getParent().getParent().equals(sceneNode)) {
+                    log("Parent 2");
+                    selectNewObject(pickEvent.getContactObject().getParent());
+
+                } else if (pickEvent.getContactObject().getParent().getParent().getParent().equals(sceneNode)) {
+                    log("Parent 3");
+                    selectNewObject(pickEvent.getContactObject().getParent().getParent());
+
+                } else if (pickEvent.getContactObject().getParent().getParent().getParent().getParent().equals(sceneNode)) {
+                    log("Parent 4");
+                    selectNewObject(pickEvent.getContactObject().getParent().getParent().getParent());
+
+                } else if (pickEvent.getContactObject().getParent().getParent().getParent().getParent().getParent().equals(sceneNode)) {
+                    log("Parent 5");
+                    selectNewObject(pickEvent.getContactObject().getParent().getParent().getParent().getParent());
+
+                }
+
             }
+
+        }
+
+    }
+
+    /**
+     * Helper method for selecting an object in the scene.
+     *
+     * @param item
+     */
+    private void selectNewObject(Spatial item) {
+
+        if (selectedObject != null) {
+            SpatialUtils.updateSpatialTransparency(selectedObject, true, 1f);
+            gizmo.setCullHint(Spatial.CullHint.Always);
+            selectedObject = null;
+        }
+
+        if (item != null && item != ground) {
+            log("You selected " + item.getName());
+            selectedObject = item;
+            SpatialUtils.updateSpatialTransparency(selectedObject, true, 0.5f);
+            gizmo.setCullHint(Spatial.CullHint.Never);
+            gizmo.setLocalTranslation(selectedObject.getLocalTranslation());
 
         }
 
@@ -761,14 +882,22 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
     public void drag(PickEvent pickEvent, float tpf) {
         if (pickEvent.getContactObject() != null) {
 
-            if (pickEvent.getContactNormal() != null) {
-//                log("Contact Normal: " + pickEvent.getContactNormal());
-                paintGizmo.getLocalRotation().lookAt(pickEvent.getContactNormal(), Vector3f.UNIT_Y);
-                contactNormal.set(pickEvent.getContactNormal());
+            if (snapToNormalCheckbox.isChecked()) {
+
+                if (pickEvent.getContactNormal() != null) {
+                    paintGizmo.getLocalRotation().lookAt(pickEvent.getContactNormal(), Vector3f.UNIT_Y);
+                    contactNormal.set(pickEvent.getContactNormal());
+                    SpatialUtils.rotate(paintGizmo, -90, 0, 0);
+
+                } else {
+                    contactNormal.set(0, 0, 0);
+                }
+            } else {
+                Vector3f upNormal = new Vector3f(0, 1, 0);
+                paintGizmo.getLocalRotation().lookAt(upNormal, Vector3f.UNIT_Y);
+                contactNormal.set(upNormal);
                 SpatialUtils.rotate(paintGizmo, -90, 0, 0);
 
-            } else {
-                contactNormal.set(0, 0, 0);
             }
 
             Vector3f pointerWorldLocation = pickEvent.getContactPoint();
@@ -780,20 +909,20 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
 
             if (objectToAdd != null) {
                 updateObjectToAddPosition();
-                
+
             } else if (modifyTerrainHeight) {
                 if (terrainQuad != null) {
-                    
+
                     if (pickEvent.isKeyDown() && pickEvent.isRightButton()) {
                         log("You are trying to modify terrain at: " + pickEvent.getContactPoint());
                         SpatialUtils.doModifyTerrainHeight(terrainQuad, pickEvent.getContactPoint(), paintGizmo.getLocalScale().x, 0.1f);
-                        
+
                     }
-                    
+
                 }
-                
+
             }
-            
+
         }
     }
 
@@ -813,5 +942,4 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
         }
     }
 
-    
 }

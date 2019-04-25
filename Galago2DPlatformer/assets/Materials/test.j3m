@@ -1,0 +1,16 @@
+Material My Material : Common/MatDefs/Gui/Gui.j3md {
+     MaterialParameters {
+        Texture : "Textures/gun.png"
+        Color : 1.0 1.0 1.0 1.0
+        VertexColor : false
+     }
+    AdditionalRenderState {
+      PointSprite Off
+      AlphaTestFalloff 1.0
+      DepthWrite On
+      Blend Alpha
+      FaceCull Off
+      Wireframe Off
+      DepthTest On
+    }
+}

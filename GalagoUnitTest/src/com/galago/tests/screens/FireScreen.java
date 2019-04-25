@@ -6,11 +6,14 @@ package com.galago.tests.screens;
 
 import com.bruynhuis.galago.control.RotationControl;
 import com.bruynhuis.galago.screen.AbstractScreen;
+import com.bruynhuis.galago.util.ParticleUtils;
+import com.bruynhuis.galago.util.SpatialUtils;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.scene.CameraNode;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.shape.Box;
 
 /**
  *
@@ -19,6 +22,7 @@ import com.jme3.scene.Spatial;
 public class FireScreen extends AbstractScreen {
     
     private Spatial fireScene;
+    private Spatial floor;
     private CameraNode cameraNode;
     private Node cameraJointNode;
 
@@ -31,8 +35,11 @@ public class FireScreen extends AbstractScreen {
     protected void load() {
         baseApplication.getViewPort().setBackgroundColor(ColorRGBA.Black);
         
-        fireScene = baseApplication.getAssetManager().loadModel("Scenes/scene1.j3o");
-        rootNode.attachChild(fireScene);
+        floor = SpatialUtils.addBox(rootNode, 10, 0.1f, 10);
+        SpatialUtils.addColor(floor, ColorRGBA.DarkGray, true);
+        
+        fireScene = ParticleUtils.addFire(rootNode, new Box(1, 0.1f, 1));
+        fireScene.scale(0.5f);
         
         cameraJointNode = new Node("camjoint");
         rootNode.attachChild(cameraJointNode);
@@ -42,6 +49,7 @@ public class FireScreen extends AbstractScreen {
         cameraNode.setLocalTranslation(0, 6, -12);
         cameraNode.rotate(FastMath.DEG_TO_RAD*20f, 0, 0);
         cameraJointNode.attachChild(cameraNode);
+        
     }
 
     @Override

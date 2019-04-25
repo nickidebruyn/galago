@@ -867,21 +867,22 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
         if (usePlayServices) {
             // Configure sign-in to request the user's ID, email address, and basic
             // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
-            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN)
-                    // Since we are using SavedGames, we need to add the SCOPE_APPFOLDER to access Google Drive.
+            GoogleSignInOptions signInOption
+                    = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN)
+                    // Add the APPFOLDER scope for Snapshot support.
                     .requestScopes(Drive.SCOPE_APPFOLDER)
                     .build();
 
             // Build a GoogleSignInClient with the options specified by gso.
-            googleSignInClient = GoogleSignIn.getClient(this, gso);
+            googleSignInClient = GoogleSignIn.getClient(this, signInOption);
 
         }
-        
+
         if (useAdmob || useAdmobInterstitials || useAdmobRewards) {
             if (ADMOB_APP_ID == null || ADMOB_APP_ID.equals("")) {
                 throw new RuntimeException("You need to specify the admob app id...");
             }
-            
+
             MobileAds.initialize(this, ADMOB_APP_ID);
         }
 
@@ -920,7 +921,13 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
     }
 
     private void signInSilently() {
-        googleSignInClient = GoogleSignIn.getClient(this, GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN);
+
+        GoogleSignInOptions signInOption = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN)
+                // Add the APPFOLDER scope for Snapshot support.
+                .requestScopes(Drive.SCOPE_APPFOLDER)
+                .build();
+
+        googleSignInClient = GoogleSignIn.getClient(this, signInOption);
         googleSignInClient.silentSignIn().addOnCompleteListener(this,
                 new OnCompleteListener<GoogleSignInAccount>() {
             @Override
@@ -1178,7 +1185,7 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
 
             @Override
             public void onRewardedVideoAdFailedToLoad(int i) {
-//                String message = String.format("onRewardAdFailedToLoad (%s)", getInterstitialsAdErrorReason(errorCode));
+//                String message = String.format("onRewardAdFailedToLoad (%s)", getInterstitialsAdErrorReason(i));
 //                showAlert(message);
                 ((BaseApplication) getJmeApplication()).setRewardAdLoaded(false);
             }
@@ -1197,6 +1204,28 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
         if (rewardedVideoAd != null && !rewardedVideoAd.isLoaded()) {
             rewardedVideoAd.loadAd(ADMOB_REWARDS_ID, new AdRequest.Builder().build());
         }
+    }
+    
+    /**
+     * Gets a string error reason from an error code.
+     */
+    private String getInterstitialsAdErrorReason(int errorCode) {
+        String errorReason = "";
+        switch (errorCode) {
+            case AdRequest.ERROR_CODE_INTERNAL_ERROR:
+                errorReason = "Internal error";
+                break;
+            case AdRequest.ERROR_CODE_INVALID_REQUEST:
+                errorReason = "Invalid request";
+                break;
+            case AdRequest.ERROR_CODE_NETWORK_ERROR:
+                errorReason = "Network Error";
+                break;
+            case AdRequest.ERROR_CODE_NO_FILL:
+                errorReason = "No fill";
+                break;
+        }
+        return errorReason;
     }
 
     @Override
@@ -1327,8 +1356,8 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
 //                    }
 //                } else {
 //                    googleApiClient.connect();
-                    //Games.Leaderboards.submitScore(googleApiClient, leaderboard, scoreToAdd);
-                    //startActivityForResult(Games.Leaderboards.getLeaderboardIntent(googleApiClient, leaderboard), 0);
+                //Games.Leaderboards.submitScore(googleApiClient, leaderboard, scoreToAdd);
+                //startActivityForResult(Games.Leaderboards.getLeaderboardIntent(googleApiClient, leaderboard), 0);
 //                }
 
             } else if (requestCode == SAVED_GAMES_REQUEST_CODE) {

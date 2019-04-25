@@ -15,6 +15,7 @@ import com.bruynhuis.galago.resource.TextureManager;
 import com.bruynhuis.galago.util.ColorUtils;
 import com.galago.tests.screens.BatchGUIScreen;
 import com.galago.tests.screens.ButtonLayoutsScreen;
+import com.galago.tests.screens.EggScreen;
 import com.galago.tests.screens.FireScreen;
 import com.galago.tests.screens.GridPanelScreen;
 import com.galago.tests.screens.InputGuiScreen;
@@ -24,14 +25,18 @@ import com.galago.tests.screens.LightningSky;
 import com.galago.tests.screens.MenuScreen;
 import com.galago.tests.screens.MotionBlurScreen;
 import com.galago.tests.screens.PagerPanelScreen;
+import com.galago.tests.screens.PhysicsJointScreen;
 import com.galago.tests.screens.PhysicsScreen;
 import com.galago.tests.screens.PostShaderScreen;
 import com.galago.tests.screens.RoadMeshScreen;
 import com.galago.tests.screens.TextWriterScreen;
+import com.galago.tests.screens.TextureMaskingScreen;
 import com.galago.tests.screens.WorldEditorScreen;
 import com.galago.tests.screens.TrailRenderScreen;
 import com.galago.tests.screens.WaterMovementScreen;
 import com.galago.tests.screens.WaterWaveScreen;
+import com.jme3.bullet.BulletAppState;
+import com.jme3.math.Vector3f;
 
 /**
  *
@@ -54,12 +59,27 @@ public class MainApplication extends Base3DApplication {
 
     @Override
     protected void postInitApp() {
-        showScreen(WorldEditorScreen.NAME);
+        showScreen(MenuScreen.NAME);
     }
 
     @Override
     protected boolean isPhysicsEnabled() {
         return true;
+    }
+    
+    @Override
+    protected void initPhysics() {        
+        //Don't load if it already exist
+        if (bulletAppState != null) {
+            return;
+        }
+        /**
+         * Set up Physics
+         */
+        bulletAppState = new BulletAppState(new Vector3f(-100, 0, -100), new Vector3f(100, 100, 100));
+        stateManager.attach(bulletAppState);
+//        bulletAppState.getPhysicsSpace().setAccuracy(1f/80f);
+//        bulletAppState.getPhysicsSpace().setMaxSubSteps(2);
     }
 
     @Override
@@ -71,6 +91,7 @@ public class MainApplication extends Base3DApplication {
         screenManager.loadScreen("grid", new GridPanelScreen());
         screenManager.loadScreen("input", new InputGuiScreen());
         screenManager.loadScreen("physics", new PhysicsScreen());
+        screenManager.loadScreen(PhysicsJointScreen.NAME, new PhysicsJointScreen());
         screenManager.loadScreen("fire", new FireScreen());
         screenManager.loadScreen("joystick", new JoystickScreen());
         screenManager.loadScreen("rawjoystick", new JoystickRawScreen());
@@ -83,6 +104,8 @@ public class MainApplication extends Base3DApplication {
         screenManager.loadScreen("motionblur", new MotionBlurScreen());
         screenManager.loadScreen("trailrender", new TrailRenderScreen());
         screenManager.loadScreen(WorldEditorScreen.NAME, new WorldEditorScreen());
+        screenManager.loadScreen(TextureMaskingScreen.NAME, new TextureMaskingScreen());
+        screenManager.loadScreen(EggScreen.NAME, new EggScreen());
 
     }
 
