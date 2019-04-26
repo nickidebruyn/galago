@@ -15,6 +15,7 @@ import com.bruynhuis.galago.resource.TextureManager;
 import com.bruynhuis.galago.util.ColorUtils;
 import com.galago.tests.screens.BatchGUIScreen;
 import com.galago.tests.screens.ButtonLayoutsScreen;
+import com.galago.tests.screens.CombatScreen;
 import com.galago.tests.screens.EggScreen;
 import com.galago.tests.screens.FireScreen;
 import com.galago.tests.screens.GridPanelScreen;
@@ -28,6 +29,7 @@ import com.galago.tests.screens.PagerPanelScreen;
 import com.galago.tests.screens.PhysicsJointScreen;
 import com.galago.tests.screens.PhysicsScreen;
 import com.galago.tests.screens.PostShaderScreen;
+import com.galago.tests.screens.RagdollScreen;
 import com.galago.tests.screens.RoadMeshScreen;
 import com.galago.tests.screens.TextWriterScreen;
 import com.galago.tests.screens.TextureMaskingScreen;
@@ -106,6 +108,8 @@ public class MainApplication extends Base3DApplication {
         screenManager.loadScreen(WorldEditorScreen.NAME, new WorldEditorScreen());
         screenManager.loadScreen(TextureMaskingScreen.NAME, new TextureMaskingScreen());
         screenManager.loadScreen(EggScreen.NAME, new EggScreen());
+        screenManager.loadScreen(RagdollScreen.NAME, new RagdollScreen());
+        screenManager.loadScreen(CombatScreen.NAME, new CombatScreen());
 
     }
 

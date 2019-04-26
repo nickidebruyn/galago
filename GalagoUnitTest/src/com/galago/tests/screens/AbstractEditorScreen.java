@@ -365,6 +365,7 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
         editPanel.addButton(" XBot", objectAction);
         editPanel.addButton(" Cone", objectAction);
         editPanel.addButton(" Tree", objectAction);
+        editPanel.addButton(" Cliff", objectAction);
         editPanel.addButton(" Fire", objectAction);
 //        settingsPanel.addButton(" Lava", objectAction);
 //        settingsPanel.addButton(" Rock", objectAction);
@@ -446,6 +447,14 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
         } else if (type.equals("tree")) {
             s = baseApplication.getAssetManager().loadModel("Models/vegetation/tree.j3o");
             parent.attachChild(s);
+            
+        } else if (type.equals("cliff")) {
+            s = baseApplication.getAssetManager().loadModel("Models/terrain/cliff.j3o");
+            parent.attachChild(s);
+            
+            if (paint) {
+                SpatialUtils.updateCartoonColor(s, null, ColorRGBA.randomColor(), ColorRGBA.Black, 0.1f, false, false);
+            }
 
         } else if (type.equals("lava")) {
             s = baseApplication.getAssetManager().loadModel("Models/lava.j3o");
@@ -480,7 +489,7 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
                 s.addControl(new CharacterRoamController(s));
             }
 
-            SpatialUtils.updateCartoonColor(s, "Textures/matcap-blue.jpg", ColorRGBA.randomColor(), ColorRGBA.Black, 1.5f, true, false);
+            SpatialUtils.updateCartoonColor(s, "Textures/matcap-dither.jpg", ColorRGBA.White, ColorRGBA.Black, 1.5f, false, true);
 
 //            SpatialUtils.updateSpatialColor(s, ColorRGBA.randomColor());
         } else if (type.equals("cone")) {
@@ -659,7 +668,7 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
         //Load the gizmo
         gizmo = new Gizmo("gizmo", camera, inputManager);
         rootNode.attachChild(gizmo);
-//        gizmo.setCullHint(Spatial.CullHint.Always);
+        gizmo.setCullHint(Spatial.CullHint.Always);
 
         //Load the fly cam
         flyCamAppState = new FlyCamAppState();

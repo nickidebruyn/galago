@@ -66,6 +66,8 @@ public class MenuScreen extends AbstractScreen {
         addSceneButton(gridPanel, "trailrender", "Trail Render");
         addSceneButton(gridPanel, TextureMaskingScreen.NAME, "Texture Masking");
         addSceneButton(gridPanel, EggScreen.NAME, "Egg test");
+        addSceneButton(gridPanel, RagdollScreen.NAME, "Ragdoll");
+        addSceneButton(gridPanel, CombatScreen.NAME, "Combat");
 
         gridPanel.layout(8, 3);
 
