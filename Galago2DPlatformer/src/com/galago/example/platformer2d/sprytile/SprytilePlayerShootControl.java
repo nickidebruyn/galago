@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.galago.example.platformer2d.game;
+package com.galago.example.platformer2d.sprytile;
 
 import com.bruynhuis.galago.sprite.Sprite;
 import com.bruynhuis.galago.sprite.physics.RigidBodyControl;
@@ -19,9 +19,9 @@ import com.jme3.scene.control.AbstractControl;
  *
  * @author Nidebruyn
  */
-public class PlayerShootControl extends AbstractControl {
+public class SprytilePlayerShootControl extends AbstractControl {
 
-    private Player player;
+    private SprytilePlayer player;
     private float fireDelay = 0.1f;
     private float cooldownTimer = 0f;
     private boolean shoot;
@@ -30,7 +30,7 @@ public class PlayerShootControl extends AbstractControl {
     private Vector3f spawnPoint;
     private Vector3f direction;
 
-    public PlayerShootControl(Player player) {
+    public SprytilePlayerShootControl(SprytilePlayer player) {
         this.player = player;
     }
 
@@ -87,7 +87,7 @@ public class PlayerShootControl extends AbstractControl {
         sprite.addControl(rbc);
         player.getGame().addBullet(rbc);
         
-        sprite.addControl(new BulletControl((Game)player.getGame()));
+        sprite.addControl(new SprytileBulletControl((SprytileGame)player.getGame()));
         
         rbc.setLinearVelocity(bulletSpeed*direction.x, bulletSpeed*direction.y);
     }

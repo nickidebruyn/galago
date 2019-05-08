@@ -750,5 +750,16 @@ public abstract class BlenderPhysics2DGame implements PhysicsCollisionListener {
 //
 //    }
 
+    /**
+     * Add a bullet type object. If the player collides with this it dies.
+     *
+     * @param bodyControl The body to control
+     */
+    public Spatial addBullet(RigidBodyControl bodyControl) {
+        bodyControl.getSpatial().setName(TYPE_BULLET);
+        baseApplication.getDyn4jAppState().getPhysicsSpace().add(bodyControl);
+        levelNode.attachChild(bodyControl.getSpatial());
+        return bodyControl.getSpatial();
 
+    }
 }

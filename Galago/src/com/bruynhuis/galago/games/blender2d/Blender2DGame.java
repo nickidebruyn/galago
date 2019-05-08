@@ -5,6 +5,7 @@
 package com.bruynhuis.galago.games.blender2d;
 
 import com.bruynhuis.galago.app.Base2DApplication;
+import com.bruynhuis.galago.sprite.physics.RigidBodyControl;
 
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
@@ -431,4 +432,17 @@ public abstract class Blender2DGame {
 
     }
 
+    /**
+     * Add a bullet type object. If the player collides with this it dies.
+     *
+     * @param bodyControl The body to control
+     */
+    public Spatial addBullet(RigidBodyControl bodyControl) {
+        bodyControl.getSpatial().setName(TYPE_BULLET);
+        baseApplication.getDyn4jAppState().getPhysicsSpace().add(bodyControl);
+
+        levelNode.attachChild(bodyControl.getSpatial());
+        return bodyControl.getSpatial();
+
+    }
 }
