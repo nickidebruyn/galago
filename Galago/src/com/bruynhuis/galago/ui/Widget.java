@@ -714,6 +714,17 @@ public abstract class Widget implements Savable {
                 .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
     }
     
+    public void scaleFromTo(float fromX, float fromY, float toX, float toY, float duration, float delay, TweenEquation tweenEquation, TweenCallback callback) {
+        setScales(fromX, fromY);
+
+        Tween.to(this, WidgetAccessor.SCALE_XY, duration)
+                .target(toX, toY)
+                .delay(delay)
+                .ease(tweenEquation)
+                .setCallback(callback)
+                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+    }
+    
     public void rotateFromTo(float fromAngle, float toAngle, float duration, float delay) {
         setRotation(fromAngle);
 

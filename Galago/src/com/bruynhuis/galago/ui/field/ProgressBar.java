@@ -5,6 +5,7 @@
 package com.bruynhuis.galago.ui.field;
 
 import com.bruynhuis.galago.ui.ImageWidget;
+import com.bruynhuis.galago.ui.TextAlign;
 import com.bruynhuis.galago.ui.panel.Panel;
 import com.jme3.ui.Picture;
 
@@ -22,6 +23,8 @@ public class ProgressBar extends ImageWidget {
     protected Picture progressPicture;
     protected String progressPictureFile;
     protected float padding = 0;
+    protected float borderWidth = 5;
+    protected TextAlign progressAlignment = TextAlign.LEFT;
     
     /**
      * 
@@ -70,13 +73,33 @@ public class ProgressBar extends ImageWidget {
      */
     public void setProgress(float progress) {
         this.progress = progress;
+        float pad = borderWidth - (borderWidth*progress);
         progressPicture.setWidth(getWidth()*progress);
-        progressPicture.setLocalTranslation((-getWidth() * 0.5f) + ((padding*window.getScaleFactorWidth())*(1f-progress)), -getHeight() * 0.5f, 0f);
+        
+        if (progressAlignment.equals(TextAlign.RIGHT)) {
+            progressPicture.setLocalTranslation((-getWidth() * 0.5f) + ((padding*window.getScaleFactorWidth())*(1f-progress)) + pad, -getHeight() * 0.5f, -0.1f);
+            
+        } else {
+            progressPicture.setLocalTranslation((-getWidth() * 0.5f) + ((padding*window.getScaleFactorWidth())*(1f-progress)) + pad, -getHeight() * 0.5f, -0.1f);
+        }
+        
+    }
+
+    public float getBorderWidth() {
+        return borderWidth;
+    }
+
+    public void setBorderWidth(float borderWidth) {
+        this.borderWidth = borderWidth;
     }
     
     public float getProgress() {
         return progress;
     }   
+
+    public void setProgressAlignment(TextAlign progressAlignment) {
+        this.progressAlignment = progressAlignment;
+    }
     
     @Override
     protected boolean isBatched() {
