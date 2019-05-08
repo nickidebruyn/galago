@@ -15,6 +15,7 @@ import com.bruynhuis.galago.resource.SoundManager;
 import com.bruynhuis.galago.resource.TextureManager;
 import com.bruynhuis.galago.util.ColorUtils;
 import com.galago.example.platformer2d.screens.PlayScreen;
+import com.galago.example.platformer2d.sprytile.SprytilePlayScreen;
 
 /**
  *
@@ -37,7 +38,7 @@ public class MainApplication extends Base2DApplication {
 
     @Override
     protected void postInitApp() {
-        showScreen(PlayScreen.NAME);
+        showScreen(SprytilePlayScreen.NAME);
     }
 
     @Override
@@ -48,6 +49,7 @@ public class MainApplication extends Base2DApplication {
     @Override
     protected void initScreens(ScreenManager screenManager) {
         screenManager.loadScreen(PlayScreen.NAME, new PlayScreen());
+        screenManager.loadScreen(SprytilePlayScreen.NAME, new SprytilePlayScreen());
 
     }
 
