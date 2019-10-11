@@ -37,10 +37,10 @@ public class PagerPanelScreen extends AbstractScreen {
             
         };
         
-        pagerPanel = new PagerPanel(hudPanel, 1280, 600);
+        pagerPanel = new PagerPanel(hudPanel, window.getWidth(), window.getHeight());
         hudPanel.add(pagerPanel);
                 
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < 27; i++) {
             addPage(pagerPanel, "Panel " + i);
         }
         

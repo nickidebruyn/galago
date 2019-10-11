@@ -59,13 +59,12 @@ public class WaterWaveScreen extends AbstractScreen {
     }
 
     private Spatial createWater() {
-        Spatial spatial = baseApplication.getAssetManager().loadModel("Models/water/waterflat.j3o");
-        spatial.setQueueBucket(RenderQueue.Bucket.Transparent);
-        WaveControl waveControl = new WaveControl("Textures/water.png", 3, 2, 0.04f);
+        Spatial spatial = baseApplication.getAssetManager().loadModel("Models/water/water-cube.j3o");
+//        spatial.setQueueBucket(RenderQueue.Bucket.Transparent);
+        WaveControl waveControl = new WaveControl("Textures/water.jpg", 3, 2, 0.04f);
         spatial.addControl(waveControl);
-        waveControl.getMaterial().getAdditionalRenderState().setBlendMode(RenderState.BlendMode.AlphaAdditive);
-
-        waveControl.getMaterial().getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+//        waveControl.getMaterial().getAdditionalRenderState().setBlendMode(RenderState.BlendMode.AlphaAdditive);
+//        waveControl.getMaterial().getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
         
         return spatial;
     }

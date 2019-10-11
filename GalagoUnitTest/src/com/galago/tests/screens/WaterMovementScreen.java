@@ -62,12 +62,15 @@ public class WaterMovementScreen extends AbstractScreen {
         Node node = new Node("waternode");
 
         Quad quad = new Quad(width, height);
+        
         Geometry geometry = new Geometry("waterplane", quad);
         geometry.rotate(-FastMath.DEG_TO_RAD*90, 0, 0);
         quad.scaleTextureCoordinates(new Vector2f(width, height));
         node.attachChild(geometry);
         geometry.center();
+        
         FlowControl flowControl = new FlowControl("Textures/water.jpg", 0.1f, 0.1f);
+        geometry.setMaterial(flowControl.getMaterial());
         node.addControl(flowControl);
 
         return node;

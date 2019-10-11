@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.galago.tests.ui;
+package com.bruynhuis.galago.screen;
 
 import aurelienribon.tweenengine.BaseTween;
 import aurelienribon.tweenengine.TweenCallback;
@@ -16,6 +16,7 @@ import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
 import com.bruynhuis.galago.ui.listener.TouchButtonListener;
 import com.bruynhuis.galago.ui.panel.Panel;
 import com.bruynhuis.galago.ui.panel.VFlowPanel;
+import com.jme3.math.ColorRGBA;
 
 /**
  *
@@ -30,11 +31,11 @@ public class SettingsPanel extends Panel {
     private float animationSpeed = 0.5f;
 
     public SettingsPanel(Panel parent) {
-        super(parent, "Interface/settings-panel.png", 300, 890);
+        super(parent, "Resources/editor/panel-left.png", 300, 900);
 
-        settingsButton = new TouchButton(this, "settings-button", "Interface/gear.png", 32, 32, true);
+        settingsButton = new TouchButton(this, "settings-button", "Resources/editor/icon-settings.png", 54, 54, true);
         settingsButton.setText("");
-        settingsButton.rightTop(8, 22);
+        settingsButton.rightTop(-40, 10);
         settingsButton.addEffect(new TouchEffect(settingsButton));
         settingsButton.addTouchButtonListener(new TouchButtonAdapter() {
             @Override
@@ -52,22 +53,22 @@ public class SettingsPanel extends Panel {
         this.centerAt(-650, 0);
         parent.add(this);
 
-        optionsPanel = new VFlowPanel(this, null, 255, 850);
-        optionsPanel.leftTop(0, 12);
+        optionsPanel = new VFlowPanel(this, null, 280, 900);
+        optionsPanel.leftTop(0, 0);
         this.add(optionsPanel);
 
     }
-    
+
     public void addButtonListerner(TouchButtonListener buttonListener) {
         this.settingsButton.addTouchButtonListener(buttonListener);
-        
+
     }
 
     public void openPanel() {
 
         if (!animating) {
             animating = true;
-            this.moveFromToCenter(-910, 0, -650, 0, animationSpeed, 0, new TweenCallback() {
+            this.moveFromToCenter(-930, 0, -650, 0, animationSpeed, 0, new TweenCallback() {
                 @Override
                 public void onEvent(int i, BaseTween<?> bt) {
                     animating = false;
@@ -84,7 +85,7 @@ public class SettingsPanel extends Panel {
 
         if (!animating) {
             animating = true;
-            this.moveFromToCenter(-650, 0, -910, 0, animationSpeed, 0, new TweenCallback() {
+            this.moveFromToCenter(-650, 0, -930, 0, animationSpeed, 0, new TweenCallback() {
                 @Override
                 public void onEvent(int i, BaseTween<?> bt) {
                     animating = false;
@@ -98,48 +99,54 @@ public class SettingsPanel extends Panel {
 
     }
 
-    public TouchButton addHeading(String title) {
-        TouchButton button = new TouchButton(optionsPanel, title, "Interface/panel-heading.png", 255, 30);
+    public TouchButton addHeading(String title, ColorRGBA textColor, ColorRGBA backgroundColor) {
+        TouchButton button = new TouchButton(optionsPanel, title, "Resources/editor/panel-heading.png", 280, 26);
         button.setText(title);
         button.setFontSize(16);
         button.setTextAlignment(TextAlign.LEFT);
-        
+        button.setTextVerticalAlignment(TextAlign.CENTER);
+        button.setBackgroundColor(backgroundColor);
+        button.setTextColor(textColor);
+
         optionsPanel.layout();
         return button;
 
     }
 
-    public Checkbox addCheckbox(String title, TouchButtonAdapter touchButtonAdapter) {
-        Panel panel = new Panel(optionsPanel, null, 255, 30);
+    public Checkbox addCheckbox(String title, ColorRGBA textColor, TouchButtonAdapter touchButtonAdapter) {
+        Panel panel = new Panel(optionsPanel, null, 255, 36);
         optionsPanel.add(panel);
 
-        Label label = new Label(panel, title, 16, 200, 30);
+        Label label = new Label(panel, title, 16, 200, 36);
         label.setAlignment(TextAlign.LEFT);
+        label.setTextColor(textColor);
         label.leftCenter(40, 0);
 
-        Checkbox checkbox = new Checkbox(panel, title, 28, 28, false);
+        Checkbox checkbox = new Checkbox(panel, title, 36, 36, false);
         checkbox.leftCenter(4, 0);
-        
+
         if (touchButtonAdapter != null) {
             checkbox.addTouchButtonListener(touchButtonAdapter);
-        }        
+        }
 
         optionsPanel.layout();
         return checkbox;
 
     }
-    
-    public TouchButton addButton(String title, TouchButtonAdapter touchButtonAdapter) {
-        TouchButton button = new TouchButton(optionsPanel, title, "Interface/button.png", 240, 30);
+
+    public TouchButton addButton(String title, ColorRGBA textColor, ColorRGBA backgroundColor, TouchButtonAdapter touchButtonAdapter) {
+        TouchButton button = new TouchButton(optionsPanel, title, "Resources/editor/button-shadow.png", 240, 50);
         button.setText(title);
-        button.setFontSize(16);
-        button.setTextAlignment(TextAlign.LEFT);
+        button.setFontSize(18);
+        button.setTextAlignment(TextAlign.CENTER);
+        button.setTextColor(textColor);
+        button.setBackgroundColor(backgroundColor);
         button.addEffect(new TouchEffect(button));
 
         if (touchButtonAdapter != null) {
             button.addTouchButtonListener(touchButtonAdapter);
-        }             
-        
+        }
+
         optionsPanel.layout();
         return button;
 

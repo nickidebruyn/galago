@@ -41,7 +41,9 @@ import com.jme3.scene.debug.Grid;
 public abstract class TileMapEditor extends AbstractScreen implements PickListener, KeyboardControlListener {
 
     protected TileMapGame game;
-    protected float cameraHeight = 22f;
+    protected float cameraHeight = 20f;
+    protected float cameraVerticalAngle = FastMath.DEG_TO_RAD * 45f;
+    protected float cameraDepth = 10f;
     private TouchPickListener touchPickListener;
     private KeyboardControlInputListener keyboardControlInputListener;
     protected float dragSpeed = 50f;
@@ -161,14 +163,12 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
             public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
                 if (isActive() && game != null) {
                     game.clear();
-                    float angleY = FastMath.DEG_TO_RAD * 0f;
-                    float anglePerZ = 0.2f;
-                    Vector3f centerPoint = new Vector3f((game.getMapSize() * game.getTileSize()) * 0.5f, 0, (game.getMapSize() * game.getTileSize()) * 0.5f);
-        
-                    cameraJointNode.setLocalTranslation(centerPoint);
-                    cameraJointNode.rotate(0, angleY, 0);
 
-                    cameraNode.setLocalTranslation(0, cameraHeight, cameraHeight * anglePerZ);
+                    Vector3f centerPoint = new Vector3f((game.getMapSize() * game.getTileSize()) * 0.5f, 0, (game.getMapSize() * game.getTileSize()) * 0.5f);
+                    cameraJointNode.setLocalTranslation(centerPoint);
+                    cameraJointNode.rotate(0, cameraVerticalAngle, 0);
+
+                    cameraNode.setLocalTranslation(0, cameraHeight, cameraDepth);
                     cameraNode.lookAt(centerPoint, Vector3f.UNIT_Y);
 
                 }
@@ -197,7 +197,7 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
                 }
             }
         });
-        
+
         positionLabel = new Label(hudPanel, "Point: (0, 0)", 16, 200, 30);
         positionLabel.setTextColor(ColorRGBA.LightGray);
         positionLabel.rightBottom(100, 5);
@@ -301,7 +301,7 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
             }
 
             marker.setLocalTranslation(selectedTile.getxPos() * game.getTileSize(), 0, selectedTile.getzPos() * game.getTileSize());
-            positionLabel.setText("Point: ("+marker.getLocalTranslation().x+", "+marker.getLocalTranslation().z+")");
+            positionLabel.setText("Point: (" + marker.getLocalTranslation().x + ", " + marker.getLocalTranslation().z + ")");
         }
 
     }
@@ -310,14 +310,14 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
 
     protected void initMarker() {
         Material mat = baseApplication.getAssetManager().loadMaterial("Common/Materials/RedColor.j3m");
-        WireBox box = new WireBox(game.getTileSize() * 0.5f, 0.1f, game.getTileSize() * 0.5f);
+        WireBox box = new WireBox(game.getTileSize() * 0.5f, 0.01f, game.getTileSize() * 0.5f);
         box.setLineWidth(3);
         Geometry g = new Geometry(BLANK, box);
         g.setMaterial(mat);
         marker = g;
         rootNode.attachChild(marker);
     }
-    
+
     protected void initCenter() {
         Material mat = baseApplication.getAssetManager().loadMaterial("Common/Materials/RedColor.j3m");
         mat.setColor("Color", ColorRGBA.Blue);
@@ -326,10 +326,10 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
         g.setMaterial(mat);
         centerSpatial = g;
         rootNode.attachChild(centerSpatial);
-        
-        g.setLocalTranslation(game.getMapSize()*game.getTileSize()*0.5f, 0, game.getMapSize()*game.getTileSize()*0.5f);
+
+        g.setLocalTranslation(game.getMapSize() * game.getTileSize() * 0.5f, 0, game.getMapSize() * game.getTileSize() * 0.5f);
     }
-    
+
     protected void initGrid() {
         Material mat = baseApplication.getAssetManager().loadMaterial("Common/Materials/RedColor.j3m");
         mat.setColor("Color", ColorRGBA.Gray);
@@ -338,8 +338,8 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
         g.setMaterial(mat);
         gridSpatial = g;
         rootNode.attachChild(gridSpatial);
-        
-        g.setLocalTranslation(-game.getTileSize()*0.5f, 0.01f, -game.getTileSize()*0.5f);
+
+        g.setLocalTranslation(-game.getTileSize() * 0.5f, 0.01f, -game.getTileSize() * 0.5f);
 //        g.setLocalTranslation(game.getMapSize()*game.getTileSize()*0.5f, 0, game.getMapSize()*game.getTileSize()*0.5f);
     }
 
@@ -364,7 +364,7 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
         selectedTileType = TileMapGame.BLANK;
         selectedList = game.getTileListForType(selectedTileType);
         index = 0;
-        initGrid();
+//        initGrid();
         initCenter();
         initMarker();
         updateSelection();
@@ -374,19 +374,14 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
     }
 
     protected void loadCameraSettings() {
-
-        float anglePerX = 0.5f;
-        float angleY = FastMath.DEG_TO_RAD * 0f;
-        float anglePerZ = 0.2f;
         Vector3f centerPoint = new Vector3f((game.getMapSize() * game.getTileSize()) * 0.5f, 0, (game.getMapSize() * game.getTileSize()) * 0.5f);
-
         cameraJointNode = new Node("camerajoint");
         cameraJointNode.setLocalTranslation(centerPoint);
-        cameraJointNode.rotate(0, angleY, 0);
+        cameraJointNode.rotate(0, cameraVerticalAngle, 0);
         rootNode.attachChild(cameraJointNode);
 
         cameraNode = new CameraNode("camnode", camera);
-        cameraNode.setLocalTranslation(0, cameraHeight, cameraHeight * anglePerZ);
+        cameraNode.setLocalTranslation(0, cameraHeight, cameraDepth);
         cameraNode.lookAt(Vector3f.ZERO, Vector3f.UNIT_Y);
         cameraJointNode.attachChild(cameraNode);
     }
@@ -505,13 +500,11 @@ public abstract class TileMapEditor extends AbstractScreen implements PickListen
                 cameraNode.lookAt(cameraJointNode.getWorldTranslation(), Vector3f.UNIT_Y);
 
             } else //                if (selectedSpatial != null) {
-            {
-                if (pickEvent.getContactPoint() != null) {
+             if (pickEvent.getContactPoint() != null) {
                     selectedTile = game.getTileFromContactPoint(pickEvent.getContactPoint().x, pickEvent.getContactPoint().z);
                     updateSelection();
 
                 } //                }
-            }
             if (pickEvent.isZoomUp()) {
                 log("zoom up = " + pickEvent.getAnalogValue());
                 swapTileUp();

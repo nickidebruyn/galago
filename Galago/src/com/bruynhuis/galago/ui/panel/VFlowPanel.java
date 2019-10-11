@@ -77,12 +77,12 @@ public class VFlowPanel extends Panel {
      */
     public void layout() {
 
-        float position = padding;
+        float position = 0;
         
         for (int i = 0; i < widgets.size(); i++) {            
             Widget widget = widgets.get(i);
             widget.centerTop(0, position);
-            position += (padding + widget.getHeight());
+            position += (padding + (widget.getHeight()/window.getScaleFactorHeight()));
         }
     }
     

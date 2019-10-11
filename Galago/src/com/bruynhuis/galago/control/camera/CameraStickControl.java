@@ -4,6 +4,7 @@
  */
 package com.bruynhuis.galago.control.camera;
 
+import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
@@ -18,15 +19,25 @@ import com.jme3.scene.control.Control;
 public class CameraStickControl extends AbstractControl {
     
     private Camera camera;
+    private Vector3f offset;
 
     public CameraStickControl(Camera camera1) {
         this.camera = camera1;
+        offset = new Vector3f(0, 0, 0);
     }
+
+    public CameraStickControl(Camera camera, Vector3f offset) {
+        this.camera = camera;
+        this.offset = offset;
+        if (this.offset == null) {
+            this.offset = new Vector3f(0, 0, 0);
+        }
+    }    
     
     @Override
     protected void controlUpdate(float tpf) {
         if (camera != null) {
-            spatial.setLocalTranslation(camera.getLocation().x, camera.getLocation().y, camera.getLocation().z);
+            spatial.setLocalTranslation(camera.getLocation().x + offset.x, camera.getLocation().y + offset.y, camera.getLocation().z + offset.z);
         }
 
     }

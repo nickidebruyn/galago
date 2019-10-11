@@ -36,18 +36,23 @@ public class LightningSky extends AbstractScreen {
     @Override
     protected void load() {
 //        addSkyDome(rootNode, camera);
-        SpatialUtils.addSkySphere(rootNode, 1, camera);
+        SpatialUtils.addSkySphere(rootNode, 2, camera);
         baseApplication.getViewPort().setBackgroundColor(ColorRGBA.Black);
-        
-        Spatial b = SpatialUtils.addSphere(rootNode, 20, 30, 2);
-//        SpatialUtils.addColor(b, ColorRGBA.Green, false);
-        SpatialUtils.slerp(b, 0, 360, 0, 5, 0, true);
         SpatialUtils.addSunLight(rootNode, ColorRGBA.White);
         
+        
+        Spatial b = SpatialUtils.addPlane(rootNode, 30, 30);
         b.setMaterial(assetManager.loadMaterial("Materials/lava.j3m"));
+//        SpatialUtils.addColor(b, ColorRGBA.Green, false);
+//        SpatialUtils.slerp(b, 0, 360, 0, 5, 0, true);
+        
+        Spatial plane = SpatialUtils.addPlane(rootNode, 16, 10);        
+        plane.setMaterial(assetManager.loadMaterial("Materials/lightning.j3m"));
+        SpatialUtils.rotate(plane, -90, 0, 0);
+        SpatialUtils.move(plane, 0, 15, -20);
                 
-        camera.setLocation(new Vector3f(0, 10, 20));
-        camera.lookAt(b.getWorldTranslation(), Vector3f.UNIT_Y);
+        camera.setLocation(new Vector3f(0, 2, 20));
+        camera.lookAt(new Vector3f(0, 1, 0), Vector3f.UNIT_Y);
     }
     
     public Spatial addSkyDome(Node parent, Camera camera) {

@@ -111,6 +111,8 @@ public class VPagerPanel extends Panel implements TouchButtonListener {
     
     private boolean canMove() {
         return ((getParent() instanceof PopupDialog) && this.isVisible() && window.isDialogOpen()) ||
+                (getParent().getParent() != null && (getParent().getParent() instanceof PopupDialog) && this.isVisible() && window.isDialogOpen()) ||
+                (getParent().getParent() != null && getParent().getParent().getParent() != null && (getParent().getParent().getParent() instanceof PopupDialog) && this.isVisible() && window.isDialogOpen()) ||
                 (!(getParent() instanceof PopupDialog) && this.isVisible() && !window.isDialogOpen());
     }
 

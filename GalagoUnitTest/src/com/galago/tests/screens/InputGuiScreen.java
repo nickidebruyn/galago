@@ -6,6 +6,7 @@ package com.galago.tests.screens;
 
 import com.bruynhuis.galago.screen.AbstractScreen;
 import com.bruynhuis.galago.ui.Label;
+import com.bruynhuis.galago.ui.TextAlign;
 import com.bruynhuis.galago.ui.button.TouchButton;
 import com.bruynhuis.galago.ui.field.TextField;
 import com.bruynhuis.galago.ui.panel.VPanel;
@@ -31,6 +32,8 @@ public class InputGuiScreen extends AbstractScreen {
 
         textField = new TextField(vPanel, "field1");
         textField.setBackgroundColor(ColorRGBA.Pink);
+        textField.setTextAlignment(TextAlign.LEFT);
+        textField.setTextVerticalAlignment(TextAlign.CENTER);
         textField.setTextColor(ColorRGBA.Red);
 
         button = new TouchButton(vPanel, "submitbutton", "Submit");

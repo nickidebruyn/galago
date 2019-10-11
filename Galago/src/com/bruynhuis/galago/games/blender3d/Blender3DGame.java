@@ -52,6 +52,8 @@ public abstract class Blender3DGame implements PhysicsCollisionListener {
     public static final String SHAPE_CAPSULE = "capsule";
     public static final String MASS = "mass";
     public static final String SENSOR = "sensor";
+    public static final String FRICTION = "friction";
+    public static final String RESTITUTION = "restitution";
     protected Base3DApplication baseApplication;
     protected String sceneFile;
     protected Node rootNode;
@@ -520,6 +522,18 @@ public abstract class Blender3DGame implements PhysicsCollisionListener {
             mass = massVal.floatValue();
         }
 
+        Float frictionVal = spatial.getUserData(FRICTION);
+        float friction = 0;
+        if (frictionVal != null) {
+            friction = frictionVal.floatValue();
+        }
+
+        Float restitutionVal = spatial.getUserData(RESTITUTION);
+        float restitution = 0;
+        if (restitutionVal != null) {
+            restitution = restitutionVal.floatValue();
+        }
+
         String shape = null;
         if (spatial.getUserData(SHAPE) != null) {
             shape = spatial.getUserData(SHAPE);
@@ -562,8 +576,8 @@ public abstract class Blender3DGame implements PhysicsCollisionListener {
             }
             spatial.addControl(rigidBodyControl);
             baseApplication.getBulletAppState().getPhysicsSpace().add(spatial);
-//            rigidBodyControl.setFriction(0.01f);
-//            rigidBodyControl.setRestitution(0.5f);
+            rigidBodyControl.setFriction(friction);
+            rigidBodyControl.setRestitution(restitution);
 
         }
 

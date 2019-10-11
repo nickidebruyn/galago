@@ -625,8 +625,8 @@ public class TextArea extends ImageWidget {
                         bitmapText.setText(bitmapText.getText() + "\n" + text);
                     }
                 }
-                System.out.println("===========================Max lines " + maxLines + "=========Rows " + rows.length + "============================");
-                System.out.println("" + bitmapText.getText());
+//                System.out.println("===========================Max lines " + maxLines + "=========Rows " + rows.length + "============================");
+//                System.out.println("" + bitmapText.getText());
             }
 
         } else if (stringContainer != null) {
@@ -641,8 +641,8 @@ public class TextArea extends ImageWidget {
                         stringContainer.setText(stringContainer.getText() + "\n" + text);
                     }
                 }
-                System.out.println("===========================Max lines " + maxLines + "=========Rows " + rows.length + "============================");
-                System.out.println("" + stringContainer.getText());
+//                System.out.println("===========================Max lines " + maxLines + "=========Rows " + rows.length + "============================");
+//                System.out.println("" + stringContainer.getText());
             }
 
         }

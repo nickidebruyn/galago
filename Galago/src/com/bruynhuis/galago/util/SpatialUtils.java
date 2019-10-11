@@ -10,7 +10,6 @@ import com.bruynhuis.galago.app.Base3DApplication;
 import com.bruynhuis.galago.control.camera.CameraStickControl;
 import com.bruynhuis.galago.control.tween.RigidbodyAccessor;
 import com.bruynhuis.galago.control.tween.SpatialAccessor;
-import com.bruynhuis.galago.spatial.Disk;
 import com.bruynhuis.galago.sprite.Sprite;
 import com.jme3.bounding.BoundingSphere;
 import com.jme3.bullet.collision.shapes.BoxCollisionShape;
@@ -46,6 +45,7 @@ import com.jme3.scene.shape.Sphere;
 import com.jme3.terrain.Terrain;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.texture.Texture;
+import com.jme3.util.TangentUtils;
 import com.jme3.water.SimpleWaterProcessor;
 import com.jme3.water.WaterFilter;
 import java.util.ArrayList;
@@ -67,13 +67,13 @@ public class SpatialUtils {
                 public void visit(Spatial sp) {
                     if (sp instanceof Geometry) {
                         Geometry geom = (Geometry) sp;
-                        
+
                         MatParam param = geom.getMaterial().getParam("EdgesColor");
 
                         if (param != null) {
                             geom.getMaterial().setColor("EdgesColor", edgeColor);
                             geom.getMaterial().setFloat("EdgeSize", edgeSize);
-                            geom.getMaterial().setBoolean("Fog_Edges", false);                            
+                            geom.getMaterial().setBoolean("Fog_Edges", false);
 
                         }
                     }
@@ -261,43 +261,60 @@ public class SpatialUtils {
      * @param waterDepth
      * @return
      */
-    public static SimpleWaterProcessor addSimpleWater(Node parent, float size, float yPos, float waveSpeed, boolean optimized) {
+    public static SimpleWaterProcessor addSimpleWater(Node parent, Vector3f lightPos, float size, float yPos, float waveSpeed, boolean optimized) {
 
-        // we create a water processor
+//        // we create a water processor
+//        SimpleWaterProcessor waterProcessor = new SimpleWaterProcessor(SharedSystem.getInstance().getBaseApplication().getAssetManager());
+//        waterProcessor.setReflectionScene(parent);
+//
+//        if (optimized) {
+//            waterProcessor.setRenderSize(128, 128);
+//        }
+//
+//        SharedSystem.getInstance().getBaseApplication().getViewPort().addProcessor(waterProcessor);
+//
+//        // we set the water plane
+//        Vector3f waterLocation = new Vector3f(0, yPos, 0);
+//        waterProcessor.setPlane(new Plane(Vector3f.UNIT_Y, waterLocation.dot(Vector3f.UNIT_Y)));
+//
+//        // we set wave properties
+//        waterProcessor.setWaterDepth(40);         // transparency of water
+//        waterProcessor.setDistortionScale(0.08f); // strength of waves
+//        waterProcessor.setDistortionMix(0.1f); // strength of waves
+//        waterProcessor.setWaveSpeed(waveSpeed);       // speed of waves
+////        waterProcessor.setWaterTransparency(0f);
+////        waterProcessor.setWaterColor(ColorRGBA.Blue);
+//        waterProcessor.setReflectionClippingOffset(0);
+//
+//        //creating a quad to render water to
+////        Quad quad = new Quad(size, size);
+//        Disk disk = new Disk(7, size * 0.5f);
+//        disk.scaleTextureCoordinates(new Vector2f(size / 15f, size / 15f));
+//
+//        //creating a geom to attach the water material
+//        Geometry water = new Geometry("water", disk);
+//        water.setLocalTranslation(0, yPos, 0);
+//        water.setLocalRotation(new Quaternion().fromAngleAxis(-FastMath.HALF_PI, Vector3f.UNIT_X));
+//        water.setMaterial(waterProcessor.getMaterial());
+////        water.setShadowMode(RenderQueue.ShadowMode.Receive);
+//        parent.attachChild(water);
+        //create processor
         SimpleWaterProcessor waterProcessor = new SimpleWaterProcessor(SharedSystem.getInstance().getBaseApplication().getAssetManager());
         waterProcessor.setReflectionScene(parent);
-
-        if (optimized) {
-            waterProcessor.setRenderSize(128, 128);
-        }
-
+//        waterProcessor.setDebug(true);
         SharedSystem.getInstance().getBaseApplication().getViewPort().addProcessor(waterProcessor);
+        waterProcessor.setLightPosition(lightPos);
 
-        // we set the water plane
         Vector3f waterLocation = new Vector3f(0, yPos, 0);
         waterProcessor.setPlane(new Plane(Vector3f.UNIT_Y, waterLocation.dot(Vector3f.UNIT_Y)));
 
-        // we set wave properties
-        waterProcessor.setWaterDepth(40);         // transparency of water
-        waterProcessor.setDistortionScale(0.08f); // strength of waves
-        waterProcessor.setDistortionMix(0.1f); // strength of waves
-        waterProcessor.setWaveSpeed(waveSpeed);       // speed of waves
-//        waterProcessor.setWaterTransparency(0f);
-//        waterProcessor.setWaterColor(ColorRGBA.Blue);
-        waterProcessor.setReflectionClippingOffset(0);
+        //create water quad
+        Geometry waterPlane = waterProcessor.createWaterGeometry(size, size);
+        waterPlane.setMaterial(waterProcessor.getMaterial());
+//        waterPlane.setLocalScale(40);
+        waterPlane.setLocalTranslation(-size / 2, yPos, size / 2);
 
-        //creating a quad to render water to
-//        Quad quad = new Quad(size, size);
-        Disk disk = new Disk(7, size * 0.5f);
-        disk.scaleTextureCoordinates(new Vector2f(size / 15f, size / 15f));
-
-        //creating a geom to attach the water material
-        Geometry water = new Geometry("water", disk);
-        water.setLocalTranslation(0, yPos, 0);
-        water.setLocalRotation(new Quaternion().fromAngleAxis(-FastMath.HALF_PI, Vector3f.UNIT_X));
-        water.setMaterial(waterProcessor.getMaterial());
-//        water.setShadowMode(RenderQueue.ShadowMode.Receive);
-        parent.attachChild(water);
+        parent.attachChild(waterPlane);
 
         return waterProcessor;
 
@@ -311,24 +328,30 @@ public class SpatialUtils {
      * @param yPos
      * @return
      */
-    public static FilterPostProcessor addOceanWater(Node parent, Vector3f lightDir, float yPos) {
+    public static FilterPostProcessor addOceanWater(Node parent, Vector3f lightDir, float waterHeight) {
         FilterPostProcessor fpp = new FilterPostProcessor(SharedSystem.getInstance().getBaseApplication().getAssetManager());
+
         final WaterFilter water = new WaterFilter(parent, lightDir);
-        water.setWaterHeight(yPos);
-        water.setWindDirection(new Vector2f(-0.15f, 0.15f));
-        water.setFoamHardness(0.6f);
-        water.setFoamExistence(new Vector3f(0.4f, 1f, 0.6f));
-        water.setShoreHardness(0.2f);
-        water.setMaxAmplitude(1f);
-        water.setWaveScale(0.01f);
-        water.setSpeed(0.9f);
-        water.setShininess(0.7f);
-        water.setNormalScale(0.75f);
-//        water.setRefractionConstant(0.2f);
-//        water.setReflectionDisplace(20f);
-        water.setCausticsIntensity(0.5f);
-        water.setWaterTransparency(0.8f);
-        water.setColorExtinction(new Vector3f(10f, 20f, 30f));
+        water.setWaterTransparency(0.4f);
+        water.setShoreHardness(0.3f);
+        water.setShininess(0.01f);
+        water.setSpeed(0.5f);
+//        water.setWaterColor(new ColorRGBA().setAsSrgb(0.0078f, 0.3176f, 0.5f, 1.0f));
+//        water.setDeepWaterColor(new ColorRGBA().setAsSrgb(0.0039f, 0.00196f, 0.145f, 1.0f));
+//        water.setUnderWaterFogDistance(80);
+//        water.setWaterTransparency(0.2f);
+//        water.setFoamIntensity(0.6f);        
+//        water.setFoamHardness(0.5f);
+//        water.setFoamExistence(new Vector3f(0.8f, 8f, 1f));
+//        water.setReflectionDisplace(50);
+//        water.setRefractionConstant(0.25f);
+//        water.setColorExtinction(new Vector3f(30, 50, 70));
+//        water.setCausticsIntensity(0.4f);        
+//        water.setWaveScale(0.003f);
+//        water.setMaxAmplitude(2f);
+//        water.setFoamTexture((Texture2D) SharedSystem.getInstance().getBaseApplication().getAssetManager().loadTexture("Common/MatDefs/Water/Textures/foam2.jpg"));
+//        water.setRefractionStrength(0.2f);
+        water.setWaterHeight(waterHeight);
         fpp.addFilter(water);
         SharedSystem.getInstance().getBaseApplication().getViewPort().addProcessor(fpp);
         return fpp;
@@ -558,6 +581,7 @@ public class SpatialUtils {
         Geometry geometry = new Geometry("box", box);
         parent.attachChild(geometry);
         geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+        TangentUtils.generateBindPoseTangentsIfNecessary(box);
 
         return geometry;
     }
@@ -663,6 +687,26 @@ public class SpatialUtils {
 
         return geometry;
     }
+    
+    /**
+     * Add a simple plane to the node.
+     *
+     * @param parent
+     * @param xExtend
+     * @param zExtend
+     * @return
+     */
+    public static Spatial addQuad(Node parent, float xExtend, float zExtend) {
+
+        Quad quad = new Quad(xExtend * 2, zExtend * 2);
+        Geometry geometry = new Geometry("quad", quad);
+//        geometry.rotate(-FastMath.DEG_TO_RAD * 90, 0, 0);
+//        geometry.move(-xExtend, 0, zExtend);
+        parent.attachChild(geometry);
+        geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+
+        return geometry;
+    }
 
     /**
      * Add a sprite to the scene
@@ -705,16 +749,17 @@ public class SpatialUtils {
 
         return material;
     }
-    
+
     /**
      * A helper method that will update all child spatials to the new material
+     *
      * @param spatial
      * @param image
      * @param baseColor
      * @param edgeColor
      * @param edgeSize
      * @param matCap
-     * @param unshaded 
+     * @param unshaded
      */
     public static void updateCartoonColor(Spatial spatial, final String image, final ColorRGBA baseColor, final ColorRGBA edgeColor, final float edgeSize, final boolean matCap, final boolean unshaded) {
         if (spatial != null) {
@@ -770,7 +815,7 @@ public class SpatialUtils {
             material.setColor("Diffuse", baseColor);
             material.setBoolean("UseMaterialColors", true);
             material.setBoolean("Multiply_Color", true);
-            
+
             if (texture != null) {
                 material.setTexture("DiffuseMap", texture);
 
@@ -810,6 +855,31 @@ public class SpatialUtils {
             material.setTexture("DiffuseMap", texture);
 
         }
+
+        spatial.setMaterial(material);
+
+        return material;
+    }
+
+    /**
+     * Add color to the spatial.
+     *
+     *
+     * @param colorRGBA
+     * @return
+     */
+    public static Material addTextureWithHeightmap(Spatial spatial, String texturePath, String normalPath) {
+        Material material = null;
+
+        Texture texture = SharedSystem.getInstance().getBaseApplication().getAssetManager().loadTexture(texturePath);
+        texture.setWrap(Texture.WrapMode.Repeat);
+        
+        Texture normal = SharedSystem.getInstance().getBaseApplication().getAssetManager().loadTexture(normalPath);
+        normal.setWrap(Texture.WrapMode.Repeat);
+
+        material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Common/MatDefs/Light/Lighting.j3md");
+        material.setTexture("DiffuseMap", texture);
+        material.setTexture("NormalMap", normal);
 
         spatial.setMaterial(material);
 

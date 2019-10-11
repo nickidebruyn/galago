@@ -22,6 +22,7 @@ public class SpatialAccessor implements TweenAccessor<Spatial> {
     public static final int ROTATION_Y = 4;
     public static final int ROTATION_Z = 5;
     public static final int ROTATION_XYZ = 6;
+    public static final int POS_Y = 7;
 
     @Override
     public int getValues(Spatial target, int tweenType, float[] returnValues) {
@@ -49,9 +50,12 @@ public class SpatialAccessor implements TweenAccessor<Spatial> {
                 returnValues[0] = target.getLocalRotation().toAngles(null)[0] * FastMath.RAD_TO_DEG;
                 returnValues[1] = target.getLocalRotation().toAngles(null)[1] * FastMath.RAD_TO_DEG;
                 returnValues[2] = target.getLocalRotation().toAngles(null)[2] * FastMath.RAD_TO_DEG;
-                
+
                 target.getLocalRotation().toAngles(returnValues);
-                return 3;
+                return 3;                
+            case POS_Y:
+                returnValues[0] = target.getLocalTranslation().y;
+                return 1;
 
             default:
                 assert false;
@@ -78,14 +82,17 @@ public class SpatialAccessor implements TweenAccessor<Spatial> {
                 q.fromAngleAxis(newValues[0] * FastMath.DEG_TO_RAD, Vector3f.UNIT_Y);
                 target.setLocalRotation(q);
                 break;
-              case ROTATION_Z:
+            case ROTATION_Z:
                 q = new Quaternion();
                 q.fromAngleAxis(newValues[0] * FastMath.DEG_TO_RAD, Vector3f.UNIT_Z);
                 target.setLocalRotation(q);
                 break;
-              case ROTATION_XYZ:                
+            case ROTATION_XYZ:
                 q = new Quaternion(new float[]{newValues[0] * FastMath.DEG_TO_RAD, newValues[1] * FastMath.DEG_TO_RAD, newValues[2] * FastMath.DEG_TO_RAD});
                 target.setLocalRotation(q);
+                break;
+            case POS_Y:
+                target.setLocalTranslation(target.getLocalTranslation().x, newValues[0], target.getLocalTranslation().z);
                 break;
             default:
                 assert false;

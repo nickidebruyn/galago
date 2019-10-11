@@ -1478,7 +1478,12 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     public boolean isMobileApp() {
         try {
             Platform platform = JmeSystem.getPlatform();
-            return platform.compareTo(Platform.Android_ARM5) == 0 || platform.compareTo(Platform.Android_ARM6) == 0 || platform.compareTo(Platform.Android_ARM7) == 0;
+            return platform.compareTo(Platform.Android_ARM5) == 0 || 
+                    platform.compareTo(Platform.Android_ARM6) == 0 || 
+                    platform.compareTo(Platform.Android_ARM7) == 0 ||
+                    platform.compareTo(Platform.Android_ARM8) == 0 ||
+                    platform.compareTo(Platform.Android_Other) == 0 ||
+                    platform.compareTo(Platform.Android_X86) == 0;
 
         } catch (UnsupportedOperationException e) {
             return true;

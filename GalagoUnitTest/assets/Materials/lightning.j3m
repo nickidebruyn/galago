@@ -1,0 +1,11 @@
+Material My Material : Resources/MatDefs/LightningSky.j3md {
+     MaterialParameters {
+        CloudDensity : 0.2
+        Blending : 0.12
+        CloudSpeed : 0.2
+     }
+    AdditionalRenderState {
+      Blend Alpha
+      FaceCull Off
+    }
+}

@@ -1,0 +1,31 @@
+Material MyMaterial : Common/MatDefs/Light/PBRLighting.j3md {
+    MaterialParameters {
+        EmissivePower : 3.0
+        BackfaceShadows : false
+        LightMapAsAOMap : true
+        Roughness : 1.0
+        EmissiveIntensity : 2.0
+        Glossiness : 1.0
+        BaseColor : 1.0 1.0 1.0 1.0
+        ParallaxHeight : 0.45
+        Metallic : 0.0
+        NormalType : 1.0
+        Emissive : 0.0 0.0 0.0 1.0
+        NormalMap : WrapRepeat_S WrapRepeat_T MinTrilinear "Models/organic_2/textures/Scene_-_Root_normal.png"
+        BaseColorMap : WrapRepeat_S WrapRepeat_T MinTrilinear "Models/organic_2/textures/Scene_-_Root_baseColor.jpeg"
+        MetallicRoughnessMap : WrapRepeat_S WrapRepeat_T MinTrilinear "Models/organic_2/textures/Scene_-_Root_metallicRoughness.png"
+        LightMap : WrapRepeat_S WrapRepeat_T MinTrilinear "Models/organic_2/textures/Scene_-_Root_metallicRoughness.png"
+        Specular : 1.0 1.0 1.0 1.0
+    }
+    AdditionalRenderState {
+      PointSprite On
+      FaceCull Off
+      AlphaTestFalloff 0.0
+      DepthWrite On
+      ColorWrite On
+      PolyOffset 0.0 0.0
+      DepthTest On
+      Blend Off
+      Wireframe Off
+    }
+}

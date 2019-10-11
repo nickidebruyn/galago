@@ -1141,7 +1141,7 @@ public abstract class PlatformGame implements PhysicsCollisionListener, PhysicsT
             float depth = 200f;
             float per = 0.024f;
             Material material = baseApplication.getAssetManager().loadMaterial(materialFile);
-            material.preload(baseApplication.getRenderManager());
+//            material.preload(baseApplication.getRenderManager());
             float width = 1280 * per;
             float height = 720 * per;
             Spatial layer = loadLayer(material, width, height, new Vector3f(-width * 0.5f, -height * 0.5f, -depth), 1f);
@@ -1173,7 +1173,7 @@ public abstract class PlatformGame implements PhysicsCollisionListener, PhysicsT
             float depth = 400f;
             float per = 1.2f;
             Material material = baseApplication.getAssetManager().loadMaterial(materialFile);
-            material.preload(baseApplication.getRenderManager());
+//            material.preload(baseApplication.getRenderManager());
             Spatial layer = loadLayer(material, 1280 * per, 720 * per, new Vector3f(-depth * 0.8f, -(720 * per * 0.5f), -depth), 1f);
             layer.setQueueBucket(RenderQueue.Bucket.Transparent);
 //            layer.addControl(new BillboardControl());
@@ -1217,7 +1217,7 @@ public abstract class PlatformGame implements PhysicsCollisionListener, PhysicsT
         gWater.rotate(FastMath.DEG_TO_RAD * -90, 0, 0);
         gWater.move(-width * 0.2f, 0, height * 0.5f);
         Material material = baseApplication.getAssetManager().loadMaterial(waterMaterialFile);
-        material.preload(baseApplication.getRenderManager());
+//        material.preload(baseApplication.getRenderManager());
         gWater.setMaterial(material);
         ocean.attachChild(gWater);
 //        gWater.addControl(new FlowControl());
@@ -1231,7 +1231,7 @@ public abstract class PlatformGame implements PhysicsCollisionListener, PhysicsT
         gfoam.rotate(FastMath.DEG_TO_RAD * -90, 0, 0);
         gfoam.move(-width * 0.2f, 0.02f, height * 0.5f);  //Lift the foam just a little bit above the water.
         material = baseApplication.getAssetManager().loadMaterial(foamMaterialFile);
-        material.preload(baseApplication.getRenderManager());
+//        material.preload(baseApplication.getRenderManager());
         gfoam.setMaterial(material);
         ocean.attachChild(gfoam);
 //        gfoam.addControl(new FlowControl());

@@ -2,9 +2,11 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.bruynhuis.galago.games.physics;
+package com.bruynhuis.galago.games.cubes;
 
 import com.bruynhuis.galago.app.Base3DApplication;
+import com.cubes.BlockTerrainControl;
+import com.cubes.Vector3Int;
 import com.jme3.bounding.BoundingBox;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.PhysicsTickListener;
@@ -20,6 +22,7 @@ import com.jme3.material.MatParam;
 import com.jme3.material.MatParamTexture;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
@@ -29,7 +32,7 @@ import com.jme3.texture.Texture;
  *
  * @author nidebruyn
  */
-public abstract class PhysicsGame implements PhysicsCollisionListener, PhysicsTickListener {
+public abstract class CubesGame implements PhysicsCollisionListener, PhysicsTickListener {
 
     public static final String TYPE_PLAYER = "player";
     public static final String TYPE_ENEMY = "enemy";
@@ -44,6 +47,10 @@ public abstract class PhysicsGame implements PhysicsCollisionListener, PhysicsTi
     protected Base3DApplication baseApplication;
     protected Node rootNode;
     protected Node levelNode;
+    protected Node cubesNode;
+    protected BlockTerrainControl blockTerrainControl;    
+    protected AbstractCubesTheme cubesTheme;
+    
     protected Vector3f startPosition = Vector3f.ZERO;
     protected Vector3f endPosition = Vector3f.ZERO;
     protected AmbientLight ambientLight;
@@ -52,14 +59,15 @@ public abstract class PhysicsGame implements PhysicsCollisionListener, PhysicsTi
     protected boolean gameover = false;
     protected boolean paused = false;
     protected boolean loading = false;
-    protected PhysicsPlayer player;
-    protected PhysicsGameListener gameListener;
+    protected CubesPlayer player;
+    protected CubesGameListener gameListener;
     protected Spatial lastCollidedSpatial;
     protected Spatial lastColliderSpatial;
 
-    public PhysicsGame(Base3DApplication baseApplication, Node rootNode) {
+    public CubesGame(Base3DApplication baseApplication, Node rootNode, AbstractCubesTheme abstractCubesTheme) {
         this.baseApplication = baseApplication;
         this.rootNode = rootNode;
+        this.cubesTheme = abstractCubesTheme;
 
     }
 
@@ -129,7 +137,7 @@ public abstract class PhysicsGame implements PhysicsCollisionListener, PhysicsTi
         baseApplication.getBulletAppState().setEnabled(true);
     }
 
-    public void start(PhysicsPlayer physicsPlayer) {
+    public void start(CubesPlayer physicsPlayer) {
         this.player = physicsPlayer;
         loading = false;
         started = true;
@@ -226,12 +234,18 @@ public abstract class PhysicsGame implements PhysicsCollisionListener, PhysicsTi
         this.gameover = true;
         fireGameOverListener();
     }
+    
+    public void doGameComplete() {
+        started = false;
+        this.gameover = true;
+        fireGameCompletedListener();
+    }
 
     public boolean isGameover() {
         return gameover;
     }
 
-    public void addGameListener(PhysicsGameListener gameListener) {
+    public void addGameListener(CubesGameListener gameListener) {
         this.gameListener = gameListener;
     }
 
@@ -335,7 +349,7 @@ public abstract class PhysicsGame implements PhysicsCollisionListener, PhysicsTi
         return loading;
     }
 
-    public PhysicsPlayer getPlayer() {
+    public CubesPlayer getPlayer() {
         return player;
     }
 
@@ -378,6 +392,16 @@ public abstract class PhysicsGame implements PhysicsCollisionListener, PhysicsTi
 
         levelNode = new Node("LEVEL_NODE");
         rootNode.attachChild(levelNode);
+        
+        cubesNode = new Node("cubes");
+        levelNode.attachChild(cubesNode);
+        cubesNode.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+        
+        
+        blockTerrainControl = new BlockTerrainControl(cubesTheme.getCubesSettings(), new Vector3Int(cubesTheme.getChunkCountX(), 
+                cubesTheme.getChunkCountY(), 
+                cubesTheme.getChunkCountZ()));
+        cubesNode.addControl(blockTerrainControl);
 
         init();
 
@@ -588,6 +612,14 @@ public abstract class PhysicsGame implements PhysicsCollisionListener, PhysicsTi
 
         return model;
 
+    }
+
+    public BlockTerrainControl getBlockTerrainControl() {
+        return blockTerrainControl;
+    }
+
+    public AbstractCubesTheme getCubesTheme() {
+        return cubesTheme;
     }
 
 }

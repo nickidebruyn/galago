@@ -2,6 +2,7 @@ MaterialDef Colored Lava {
 
     MaterialParameters {
         Texture2D ColorMap
+        Color BaseColor (Color)
         Float LavaSpeed: 0.03
         Vector2 TextureScale: 1 1
     }

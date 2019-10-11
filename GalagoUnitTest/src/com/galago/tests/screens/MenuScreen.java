@@ -58,7 +58,6 @@ public class MenuScreen extends AbstractScreen {
         addSceneButton(gridPanel, "fire", "Fire Particles");
         addSceneButton(gridPanel, "watermovement", "Water Movement");
         addSceneButton(gridPanel, "waterwave", "Water Wave");
-        addSceneButton(gridPanel, "rainbow", "Rainbow");
         addSceneButton(gridPanel, "postshader", "Post Shader");
         addSceneButton(gridPanel, "roadmesh", "Road Mesh");
         addSceneButton(gridPanel, "lightning", "Lightning sky");

@@ -138,7 +138,9 @@ public class TextField extends ImageWidget {
             //Init the text
             bitmapText = bitmapFont.createLabel(id);
             bitmapText.setText("Text");             // the text
-            bitmapText.setBox(new Rectangle((-getWidth() * 0.5f) + padding, (getHeight() * 0.5f) - padding, getWidth() - padding, (getHeight() * 0.5f) - padding));
+            Rectangle rectangle = new Rectangle((-getWidth() * 0.5f) + padding, (getHeight() * 0.5f) - padding, getWidth() - padding, (getHeight() * 0.5f) - padding);
+//            System.out.println("TextField Rectange = " + rectangle);
+            bitmapText.setBox(rectangle);
             bitmapText.setSize(fontStyle.getFontSize() * panel.getWindow().getScaleFactorHeight());      // font size
             bitmapText.setLineWrapMode(LineWrapMode.NoWrap);
             bitmapText.setColor(ColorRGBA.DarkGray);// font color

@@ -219,7 +219,7 @@ public class PostShaderScreen extends AbstractScreen implements PickListener {
             public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
                 if (isActive()) {
                     if (waterCheckbox.isChecked()) {
-                        simpleWaterProcessor = SpatialUtils.addSimpleWater(rootNode, 400, 0, 0.1f, true);
+                        simpleWaterProcessor = SpatialUtils.addSimpleWater(rootNode, new Vector3f(50f, 50, 50), 400, 0, 0.1f, true);
 
                     } else {
                         baseApplication.getViewPort().removeProcessor(simpleWaterProcessor);
@@ -393,7 +393,7 @@ public class PostShaderScreen extends AbstractScreen implements PickListener {
         baseApplication.getViewPort().setBackgroundColor(ColorRGBA.White);
 
 
-        SpatialUtils.addSkySphere(rootNode, 5, camera);
+        SpatialUtils.addSkySphere(rootNode, 1, camera);
 //        SpatialUtils.addSkyDome(rootNode, "Textures/skydome.jpg", camera);
         SpatialUtils.addSunLight(rootNode, ColorRGBA.White);
 

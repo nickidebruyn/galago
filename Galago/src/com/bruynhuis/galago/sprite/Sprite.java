@@ -138,6 +138,10 @@ public class Sprite extends Node {
         material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha); 
         material.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
 //        material.setFloat("AlphaDiscardThreshold", 0.5f);
+
+//        s.getMaterial().getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Custom);
+//        s.getMaterial().getAdditionalRenderState().setCustomBlendFactors(RenderState.BlendFunc.Src_Alpha, RenderState.BlendFunc.One_Minus_Src_Alpha, RenderState.BlendFunc.One, RenderState.BlendFunc.One_Minus_Src_Alpha);
+
         material.setTexture("Texture", texture);
         setMaterial(material);
         

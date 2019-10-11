@@ -80,6 +80,7 @@ public class RoadMeshScreen extends AbstractScreen implements PickListener {
 
         camera.setLocation(new Vector3f(0, 30, -50));
         camera.lookAt(new Vector3f(0, 0, 0), Vector3f.UNIT_Y);
+        
 
     }
 
@@ -100,10 +101,10 @@ public class RoadMeshScreen extends AbstractScreen implements PickListener {
             }
             
             //Generate the road from the points
-            road = new Road(1f, 1f, controlPoints);
+            road = new Road(2f, 5f, controlPoints);
             roadGeometry = new Geometry("road", road);
             Material roadMaterial = assetManager.loadMaterial("Materials/road.j3m");
-            roadMaterial.getAdditionalRenderState().setWireframe(true);
+//            roadMaterial.getAdditionalRenderState().setWireframe(true);
             roadGeometry.setMaterial(roadMaterial);
             rootNode.attachChild(roadGeometry);
 

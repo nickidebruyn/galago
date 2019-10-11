@@ -60,6 +60,7 @@ public class TouchButton extends ImageWidget implements Touchable {
     protected String textStr = "Button";
     protected float lastTouchX = 0;
     protected float lastTouchY = 0;
+    protected float padding = 0;
 
     /**
      *
@@ -136,6 +137,8 @@ public class TouchButton extends ImageWidget implements Touchable {
 
     protected boolean isClickable() {
         return ((getParent() instanceof PopupDialog) && this.isVisible() && window.isDialogOpen())
+                || (getParent().getParent() != null && (getParent().getParent() instanceof PopupDialog) && this.isVisible() && window.isDialogOpen())
+                || (getParent().getParent() != null && getParent().getParent().getParent() != null && (getParent().getParent().getParent() instanceof PopupDialog) && this.isVisible() && window.isDialogOpen())
                 || (!(getParent() instanceof PopupDialog) && this.isVisible() && !window.isDialogOpen());
     }
 
@@ -152,6 +155,8 @@ public class TouchButton extends ImageWidget implements Touchable {
 //            textStr = ".";
 //        }
 
+        this.padding = window.getScaleFactorWidth() * 0;
+
         bitmapFont = panel.getWindow().getApplication().getFontManager().getBitmapFonts(fontStyle);
 
         if (bitmapFont != null) {
@@ -159,14 +164,16 @@ public class TouchButton extends ImageWidget implements Touchable {
             bitmapText = bitmapFont.createLabel(textStr);
             bitmapText.setText(textStr);             // the text
             //The Rectangle box height value for bitmap text is not a physical height but half the height
-            bitmapText.setBox(new Rectangle(-getWidth() * 0.5f, getHeight() * 0.5f, getWidth(), getHeight() * 0.5f));
+            Rectangle rectangle = new Rectangle((-getWidth() * 0.5f) + padding, ((getHeight() * 0.6f) - padding), getWidth() - padding, (getHeight()) - padding);
+//            System.out.println("TouchButton Rectange = " + rectangle);
+            bitmapText.setBox(rectangle);
             bitmapText.setSize(fontStyle.getFontSize() * window.getScaleFactorHeight());      // font size
             bitmapText.setColor(ColorRGBA.White);// font color
             bitmapText.setLineWrapMode(LineWrapMode.Word);
             bitmapText.setAlignment(BitmapFont.Align.Center);
             bitmapText.setVerticalAlignment(BitmapFont.VAlign.Center);
 //            widgetNode.attachChild(bitmapText);
-            bitmapText.center();
+//            bitmapText.center();
 
         } else {
             //Init the text
@@ -610,5 +617,10 @@ public class TouchButton extends ImageWidget implements Touchable {
             }
 
         }
+    }
+    
+    public void setId(String id) {
+        this.id = id;
+        this.setName(id);
     }
 }

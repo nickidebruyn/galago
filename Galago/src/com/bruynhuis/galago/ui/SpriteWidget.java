@@ -4,135 +4,109 @@
  */
 package com.bruynhuis.galago.ui;
 
-import com.bruynhuis.galago.ui.window.Window;
+import com.bruynhuis.galago.sprite.Sprite;
+import com.bruynhuis.galago.ui.panel.Panel;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Node;
-import com.jme3.ui.Picture;
 
 /**
  * An image widget is a widget this will have some sort of image.
- * 
+ *
  * @author nidebruyn
  */
-public abstract class ImageWidget extends Widget {
+public class SpriteWidget extends Widget {
 
-    protected Picture picture;
-    protected String pictureFile;
-    protected String currentPictureFile;
-    protected ColorRGBA pictureColor = new ColorRGBA(1, 1, 1, 1);
-    
+    protected Sprite sprite;
+    protected String imageFile;
+    protected ColorRGBA imageColor = new ColorRGBA(1, 1, 1, 1);
+
     /**
-     * 
-     * @param window
+     *
      * @param parent
      * @param pictureFile
      * @param width
      * @param height
-     * @param lockscaling 
+     * @param lockscaling
      */
-    public ImageWidget(Window window, Widget parent, String pictureFile, float width, float height, boolean lockscaling) {
-        super(window, parent, width, height, lockscaling);
+    public SpriteWidget(Panel parent, String pictureFile, float width, float height, int columns, int rows, int colIndex, int rowIndex, boolean lockscaling) {
+        super(parent.getWindow(), parent, width, height, lockscaling);
 
-        if (pictureFile != null) {            
+        if (pictureFile != null) {
             //load picture
-            this.pictureFile = pictureFile;
-            this.currentPictureFile = pictureFile;
-            picture = new Picture("IMAGE-WIDGET");
-//            picture.setTexture(window.getAssetManager(), texture2D, true);
-            picture.setMaterial(window.getApplication().getTextureManager().getGUIMaterial(pictureFile));
-//            picture.setMaterial(window.makeGuiMaterial(texture2D));
+            this.imageFile = pictureFile;
+            sprite = new Sprite("SPRITE-WIDGET", getWidth(), getHeight(), columns, rows, colIndex, rowIndex);
+            sprite.setImage(imageFile);
 
             //adjust picture
-            picture.setWidth(getWidth());
-            picture.setHeight(getHeight());
-            picture.move(-getWidth() * 0.5f, -getHeight() *0.5f, 0);         
-            widgetNode.attachChild(picture);
+//            sprite.move(-getWidth() * 0.5f, -getHeight() *0.5f, 0);
+            widgetNode.attachChild(sprite);
             setTransparency(1);
-            
-//            window.addPictureForOptimization(picture);
+
         }
 
+        parent.add(this);
+
+    }
+
+    public void updateImage(int colIndex, int rowIndex) {
+        if (sprite != null) {
+            sprite.showIndex(colIndex, rowIndex);
+        }
     }
 
     @Override
     public void add(Node parent) {
         super.add(parent);
-        if (picture != null) {
-            picture.setWidth(width);
-            picture.setHeight(height);
-        }
+//        if (picture != null) {
+//            picture.setWidth(width);
+//            picture.setHeight(height);
+//        }
 
     }
 
-    /**
-     * 
-     * @param pictureFile 
-     */
-    public void updatePicture(String pictureFile) {
-        if (picture != null) {
-            if (!pictureFile.equals(currentPictureFile)) {
-                float alpha = pictureColor.a;
-                picture.setMaterial(window.getApplication().getTextureManager().getGUIMaterial(pictureFile));
-                currentPictureFile = pictureFile;
-                setTransparency(alpha);
-            }            
-        }        
+    public Sprite getSprite() {
+        return sprite;
     }
 
-    /**
-     * Update back to old file
-     */
-    public void updateToOriginalPicture() {
-        if (picture != null) {
-            float alpha = pictureColor.a;
-            picture.setMaterial(window.getApplication().getTextureManager().getGUIMaterial(pictureFile));
-            setTransparency(alpha);
-        }
-        
-    }
-
-    public Picture getPicture() {
-        return picture;
-    }
-//
-//    public Texture2D getTexture2D() {
-//        return texture2D;
-//    }
-    
     @Override
     public void setTransparency(float alpha) {
-        if (picture != null && picture.getMaterial() != null) {            
-            pictureColor.set(1f, 1f, 1f, alpha);
-            picture.getMaterial().setColor("Color", pictureColor);
+        if (sprite != null && sprite.getMaterial() != null) {
+            imageColor.set(1f, 1f, 1f, alpha);
+            sprite.getMaterial().setColor("Color", imageColor);
         }
     }
 
     @Override
     public float getTransparency() {
-        if (picture != null && picture.getMaterial() != null) {            
-            return pictureColor.getAlpha();
+        if (sprite != null && sprite.getMaterial() != null) {
+            return imageColor.getAlpha();
 
         }
         return 1f;
     }
-    
+
     /**
      * This method will decouple the material and clone it.
-     * @param colorRGBA 
+     *
+     * @param colorRGBA
      */
     public void setBackgroundColor(ColorRGBA colorRGBA) {
-        if (picture != null && picture.getMaterial() != null) {
-            pictureColor.set(colorRGBA.r, colorRGBA.g, colorRGBA.b, pictureColor.a);
-            Material material = picture.getMaterial().clone();
-            material.setColor("Color", pictureColor);
-            picture.setMaterial(material);
+        if (sprite != null && sprite.getMaterial() != null) {
+            imageColor.set(colorRGBA.r, colorRGBA.g, colorRGBA.b, imageColor.a);
+            Material material = sprite.getMaterial().clone();
+            material.setColor("Color", imageColor);
+            sprite.setMaterial(material);
         }
     }
 
-    public ColorRGBA getPictureColor() {
-        return pictureColor;
+    public ColorRGBA getImageColor() {
+        return imageColor;
     }
-    
-    
+
+    @Override
+    protected boolean isBatched() {
+        return false;
+    }
+
 }

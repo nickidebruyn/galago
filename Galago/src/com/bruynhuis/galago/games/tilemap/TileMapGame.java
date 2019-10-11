@@ -264,9 +264,11 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
      * @param sunDirection
      */
     protected void initLight(ColorRGBA ambientColor, Vector3f sunDirection) {
-        ambientLight = new AmbientLight();
-        ambientLight.setColor(ambientColor);
-        rootNode.addLight(ambientLight);
+        if (ambientColor != null) {
+            ambientLight = new AmbientLight();
+            ambientLight.setColor(ambientColor);
+            rootNode.addLight(ambientLight);
+        }
 
         sunLight = new DirectionalLight();
         sunLight.setColor(ColorRGBA.White);
@@ -517,7 +519,7 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
             gameListener.doCollisionObstacleWithBullet(collided, collider);
         }
     }
-    
+
     protected void fireCollisionStaticWithBulletListener(Spatial collided, Spatial collider) {
         if (gameListener != null) {
             gameListener.doCollisionStaticWithBullet(collided, collider);
@@ -647,6 +649,10 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
 
         //Load the map pack models 
         mapPack = initMapPack();
+        if (mapPack.getQuantity() == 1) {
+            mapPack = (Node) mapPack.getChild(0);
+        }
+
         surfaceMaterial = initSurfaceMaterial();
 
         List<Spatial> children = mapPack.getChildren();
@@ -809,7 +815,7 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
         return model;
 
     }
-    
+
     /**
      * Add an obstacle type spatial. If the player collides with this it dies.
      *
@@ -1646,5 +1652,5 @@ public abstract class TileMapGame implements PhysicsCollisionListener, PhysicsTi
 
         return list;
     }
-    
+
 }

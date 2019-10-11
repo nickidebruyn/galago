@@ -1,6 +1,7 @@
 varying vec2 texCoord;
 
 uniform sampler2D m_ColorMap;
+uniform vec4 m_BaseColor;
 uniform float m_LavaSpeed;
 uniform vec2 m_TextureScale;
 uniform float g_Time;
@@ -78,7 +79,7 @@ void main() {
 	//p *= 5.0;
 	//float rz = flow(p);
 	
-	vec3 col = vec3(0.2, 0.07, 0.01)/rz;
+	vec3 col = vec3(m_BaseColor.r, m_BaseColor.g, m_BaseColor.b)/rz;
 	col = pow(col,vec3(1.4));
 	gl_FragColor = vec4(col, 1.0);
 

@@ -429,7 +429,9 @@ public abstract class AbstractEditorScreen extends AbstractScreen implements Pic
         Spatial s = null;
         if (type.equals("crate")) {
             s = SpatialUtils.addBox(parent, snapSize / 2, snapSize / 2, snapSize / 2);
-            SpatialUtils.addCartoonColor(s, "Textures/crate.jpg", ColorRGBA.White, selectionColor, 0.0f, false, false);
+            Material mat = SpatialUtils.addCartoonColor(s, "Textures/crate.jpg", ColorRGBA.White, selectionColor, 0.0f, false, false);
+//            Texture nor = SharedSystem.getInstance().getBaseApplication().getAssetManager().loadTexture("Textures/crate-bump.png");
+//            mat.setTexture("NormalMap", nor);
 //            s.setMaterial(baseApplication.getAssetManager().loadMaterial("Materials/rock.j3m"));
 
             if (paint) {

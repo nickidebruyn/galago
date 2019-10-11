@@ -19,15 +19,18 @@ import com.bruynhuis.galago.sprite.physics.shape.CollisionShape;
 import com.bruynhuis.galago.sprite.physics.shape.TriCollisionShape;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
+import com.jme3.material.MatParam;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.Camera;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.scene.SceneGraphVisitor;
 import com.jme3.scene.Spatial;
 import com.jme3.texture.Texture;
 
@@ -79,7 +82,6 @@ public class SpriteUtils {
 //        
 //        material.getAdditionalRenderState().setBlendEquation(RenderState.BlendEquation.Add);
 //        material.getAdditionalRenderState().setBlendEquationAlpha(RenderState.BlendEquationAlpha.Add);
-
         //create the material with the spritesheet material definition
 //        Material material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
         Material material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Resources/MatDefs/SpriteShader.j3md");
@@ -179,6 +181,33 @@ public class SpriteUtils {
     public static void addMaterial(Spatial spatial, Material material) {
         spatial.setMaterial(material);
 
+    }
+
+    public static Sprite addBackgroundSky(Node parent, float width, float height, float depth, ColorRGBA bottomColor, ColorRGBA topColor, Camera camera) {
+
+        Sprite sky = new Sprite("sky", width, height);
+
+        Material m = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Resources/MatDefs/lineargradient.j3md");
+        m.setColor("StartColor", topColor);
+        m.setColor("EndColor", bottomColor);
+        m.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Back);
+        sky.setMaterial(m);
+
+        SpriteUtils.move(sky, 0, 0, depth);
+
+        parent.attachChild(sky);
+
+        return sky;
+
+    }
+
+    public static Material addGradientColor(Spatial spatial, ColorRGBA bottomColor, ColorRGBA topColor) {
+        Material material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Resources/MatDefs/lineargradient.j3md");
+        material.setColor("StartColor", topColor);
+        material.setColor("EndColor", bottomColor);
+        material.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Back);
+        spatial.setMaterial(material);
+        return material;
     }
 
     public static void addImage(Sprite sprite, String image) {
@@ -518,4 +547,49 @@ public class SpriteUtils {
 
     }
 
+    public static float angleBetweenPoints(float pointAx, float pointAy, float pointBx, float pointBy) {
+        float deltaY = pointBy - pointAy;
+        float deltaX = pointBx - pointAx;
+        return (float) (Math.atan2(deltaY, deltaX));
+    }
+
+    public static Vector3f directionBetweenPointsNormalized(float pointAx, float pointAy, float pointBx, float pointBy) {
+        Vector3f direction = new Vector3f(pointAx, pointAy, 0).subtractLocal(pointBx,
+                pointBy, 0).normalizeLocal().negate();
+
+        return direction;
+    }
+
+    public static Vector3f directionBetweenPoints(float pointAx, float pointAy, float pointBx, float pointBy) {
+        Vector3f direction = new Vector3f(pointAx, pointAy, 0).subtractLocal(pointBx,
+                pointBy, 0).negate();
+
+        return direction;
+    }
+
+    public static void updateColor(Sprite sprite, ColorRGBA color) {
+        if (sprite != null) {
+            SceneGraphVisitor sgv = new SceneGraphVisitor() {
+                @Override
+                public void visit(Spatial sp) {
+                    if (sp instanceof Geometry) {
+                        Geometry geom = (Geometry) sp;
+                        MatParam diffuseParam = geom.getMaterial().getParam("Diffuse");
+
+                        if (diffuseParam == null) {
+                            diffuseParam = geom.getMaterial().getParam("Color");
+                        }
+
+                        if (diffuseParam != null) {
+                            diffuseParam.setValue(color);
+                        }
+
+                    }
+                }
+            };
+
+            sprite.depthFirstTraversal(sgv);
+        }
+
+    }
 }

@@ -25,6 +25,10 @@ public class MessageManager {
     public void destroy() {
         messageListeners.clear();
     }
+    
+    public void clear() {
+        messageListeners.clear();
+    }
 
     public void addMessageListener(MessageListener messageListener) {
         this.messageListeners.add(messageListener);
