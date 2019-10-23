@@ -81,7 +81,7 @@ import java.util.Random;
 public abstract class AbstractGooglePlayActivity extends AndroidHarness
         implements KeyboardInputListener, RemoteActionListener, EscapeListener,
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SensorEventListener, SelectionActionListener {
-
+    
     private static final String TAG = "TAG";
     protected SensorManager sensorManager = null;
     protected Sensor accelerometer;
@@ -856,8 +856,13 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
      * @param text
      */
     protected void showAlert(String text) {
-        Toast toast = Toast.makeText(this, text, Toast.LENGTH_LONG);
-        toast.show();
+        runOnUiThread(new Runnable() {
+            public void run() {
+                Toast toast = Toast.makeText(AbstractGooglePlayActivity.this, text, Toast.LENGTH_SHORT);
+                toast.show();
+            }
+        });
+
     }
 
     @Override
@@ -1205,7 +1210,7 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
             rewardedVideoAd.loadAd(ADMOB_REWARDS_ID, new AdRequest.Builder().build());
         }
     }
-    
+
     /**
      * Gets a string error reason from an error code.
      */
@@ -1254,7 +1259,7 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
     @Override
     public void onBackPressed() {
         // If an interstitial is on screen, close it. Otherwise continue as normal.
-        super.onBackPressed();
+        ((BaseApplication) getJmeApplication()).fireAllEscapeListeners(true);
 
     }
 

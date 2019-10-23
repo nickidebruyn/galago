@@ -335,6 +335,7 @@ public abstract class AbstractScreen extends AbstractAppState implements EscapeL
 
             //Exit the application if no previuos screen was set.
             if (previousScreen == null) {
+                baseApplication.fireAndroidEscapeListener();
                 baseApplication.stop();
                 System.exit(0);
 
