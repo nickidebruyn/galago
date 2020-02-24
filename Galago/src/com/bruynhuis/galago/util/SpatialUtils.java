@@ -45,7 +45,6 @@ import com.jme3.scene.shape.Sphere;
 import com.jme3.terrain.Terrain;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.texture.Texture;
-import com.jme3.util.TangentUtils;
 import com.jme3.water.SimpleWaterProcessor;
 import com.jme3.water.WaterFilter;
 import java.util.ArrayList;
@@ -114,6 +113,33 @@ public class SpatialUtils {
 
             spatial.depthFirstTraversal(sgv);
         }
+
+    }
+
+    public static float getSpatialTransparency(Spatial spatial) {
+        float alpha = 1;
+        if (spatial != null) {
+
+            if (spatial instanceof Node) {
+                Node node = (Node) spatial;
+                return SpatialUtils.getSpatialTransparency(node.getChild(0));
+
+            } else if (spatial instanceof Geometry) {
+                Geometry geom = (Geometry) spatial;
+                MatParam diffuseParam = geom.getMaterial().getParam("Diffuse");
+
+                if (diffuseParam == null) {
+                    diffuseParam = geom.getMaterial().getParam("Color");
+                }
+
+                if (diffuseParam != null) {
+                    ColorRGBA col = (ColorRGBA) diffuseParam.getValue();
+                    alpha = col.a;
+                }
+            }
+        }
+
+        return alpha;
 
     }
 
@@ -581,7 +607,7 @@ public class SpatialUtils {
         Geometry geometry = new Geometry("box", box);
         parent.attachChild(geometry);
         geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
-        TangentUtils.generateBindPoseTangentsIfNecessary(box);
+//        TangentUtils.generateBindPoseTangentsIfNecessary(box);
 
         return geometry;
     }
@@ -647,6 +673,13 @@ public class SpatialUtils {
         return marker;
     }
 
+    public static Spatial addDebugSphere(Node parent, float size, ColorRGBA color, Vector3f position) {
+        Spatial marker = addSphere(parent, 10, 10, size);
+        addColor(marker, color, true);
+        marker.setLocalTranslation(position.x, position.y, position.z);
+        return marker;
+    }
+
     /**
      * Add a cyclinder to the scene.
      *
@@ -687,7 +720,7 @@ public class SpatialUtils {
 
         return geometry;
     }
-    
+
     /**
      * Add a simple plane to the node.
      *
@@ -873,7 +906,7 @@ public class SpatialUtils {
 
         Texture texture = SharedSystem.getInstance().getBaseApplication().getAssetManager().loadTexture(texturePath);
         texture.setWrap(Texture.WrapMode.Repeat);
-        
+
         Texture normal = SharedSystem.getInstance().getBaseApplication().getAssetManager().loadTexture(normalPath);
         normal.setWrap(Texture.WrapMode.Repeat);
 

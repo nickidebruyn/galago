@@ -6,6 +6,7 @@ package com.bruynhuis.galago.util;
 
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenCallback;
+import aurelienribon.tweenengine.TweenEquation;
 import aurelienribon.tweenengine.equations.Bounce;
 import aurelienribon.tweenengine.equations.Circ;
 import com.bruynhuis.galago.app.Base2DApplication;
@@ -14,6 +15,7 @@ import com.bruynhuis.galago.control.tween.SpatialAccessor;
 import com.bruynhuis.galago.sprite.Sprite;
 import com.bruynhuis.galago.sprite.physics.RigidBodyControl;
 import com.bruynhuis.galago.sprite.physics.shape.BoxCollisionShape;
+import com.bruynhuis.galago.sprite.physics.shape.CapsuleCollisionShape;
 import com.bruynhuis.galago.sprite.physics.shape.CircleCollisionShape;
 import com.bruynhuis.galago.sprite.physics.shape.CollisionShape;
 import com.bruynhuis.galago.sprite.physics.shape.TriCollisionShape;
@@ -83,20 +85,42 @@ public class SpriteUtils {
 //        material.getAdditionalRenderState().setBlendEquation(RenderState.BlendEquation.Add);
 //        material.getAdditionalRenderState().setBlendEquationAlpha(RenderState.BlendEquationAlpha.Add);
         //create the material with the spritesheet material definition
-//        Material material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-        Material material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Resources/MatDefs/SpriteShader.j3md");
+        Material material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+//        Material material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Resources/MatDefs/SpriteShader.j3md");
         //set the spritesheet png built with TexturePacker
-        material.setTexture("Texture", texture);
-        //your sprites most likely contain transparency, so it's probably better to set Alpha otherwise you'll see artefacts
-        material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        material.setTexture("ColorMap", texture);
 
+        //your sprites most likely contain transparency, so it's probably better to set Alpha otherwise you'll see artefacts
+//        material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        //Codota test
+//        material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Custom);
+//        material.getAdditionalRenderState().setBlendEquation(RenderState.BlendEquation.Subtract);
+//        material.getAdditionalRenderState().setBlendEquationAlpha(RenderState.BlendEquationAlpha.Subtract);
+//        material.getAdditionalRenderState().setCustomBlendFactors(
+//                RenderState.BlendFunc.Src_Alpha, RenderState.BlendFunc.Src_Alpha,
+//                RenderState.BlendFunc.Zero, RenderState.BlendFunc.One);
+//        material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Custom);
+//        material.getAdditionalRenderState().setBlendEquation(RenderState.BlendEquation.Add);
+//        material.getAdditionalRenderState().setBlendEquationAlpha(RenderState.BlendEquationAlpha.Add);
+//        material.getAdditionalRenderState().setCustomBlendFactors(RenderState.BlendFunc.Src_Alpha, 
+//                RenderState.BlendFunc.One_Minus_Src_Alpha, 
+//                RenderState.BlendFunc.One, 
+//                RenderState.BlendFunc.One_Minus_Src_Alpha);
+        material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        material.getAdditionalRenderState().setBlendEquation(RenderState.BlendEquation.Add);
+        material.getAdditionalRenderState().setBlendEquationAlpha(RenderState.BlendEquationAlpha.Max);
+
+        material.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+        material.setFloat("AlphaDiscardThreshold", 0.7f);
         Sprite sprite = new Sprite("sprite", width, height);
         sprite.setMaterial(material);
         sprite.flipCoords(true);
-//        sprite.flipHorizontal(true);
-//        sprite.setQueueBucket(RenderQueue.Bucket.Transparent);
-        sprite.setLocalTranslation(x, y, z);
+        sprite.flipHorizontal(true);
+        sprite.setQueueBucket(RenderQueue.Bucket.Transparent);
+        sprite.setOffset(x, y, z);
         parent.attachChild(sprite);
+
+        SpatialUtils.addDebugSphere(sprite, 0.1f, ColorRGBA.Blue, new Vector3f(0, 0, 0));
 
         return sprite;
     }
@@ -203,8 +227,8 @@ public class SpriteUtils {
 
     public static Material addGradientColor(Spatial spatial, ColorRGBA bottomColor, ColorRGBA topColor) {
         Material material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Resources/MatDefs/lineargradient.j3md");
-        material.setColor("StartColor", topColor);
-        material.setColor("EndColor", bottomColor);
+        material.setColor("StartColor", bottomColor);
+        material.setColor("EndColor", topColor);
         material.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Back);
         spatial.setMaterial(material);
         return material;
@@ -273,6 +297,37 @@ public class SpriteUtils {
      * @param mass
      * @return
      */
+    public static RigidBodyControl addCapsuleMass(Spatial sprite, float width, float height, float mass) {
+
+        if (SharedSystem.getInstance().getBaseApplication() instanceof Base2DApplication) {
+            Base2DApplication base2DApplication = (Base2DApplication) SharedSystem.getInstance().getBaseApplication();
+
+            RigidBodyControl rigidBodyControl = sprite.getControl(RigidBodyControl.class);
+
+            if (rigidBodyControl == null) {
+                CollisionShape collisionShape = new CapsuleCollisionShape(width, height);
+                rigidBodyControl = new RigidBodyControl(collisionShape, mass);
+                sprite.addControl(rigidBodyControl);
+                base2DApplication.getDyn4jAppState().getPhysicsSpace().add(sprite);
+            }
+            rigidBodyControl.setMass(mass);
+
+            return rigidBodyControl;
+
+        } else {
+            throw new RuntimeException("Requires a Base2DApplication implementations with physics enabled.");
+
+        }
+
+    }
+
+    /**
+     * Add mass to the spatial.
+     *
+     * @param spatial
+     * @param mass
+     * @return
+     */
     public static RigidBodyControl addCircleMass(Sprite sprite, float radius, float mass) {
 
         if (SharedSystem.getInstance().getBaseApplication() instanceof Base2DApplication) {
@@ -305,7 +360,7 @@ public class SpriteUtils {
      * @param y
      * @param z
      */
-    public static void translate(Sprite sprite, float x, float y, float z) {
+    public static void translate(Spatial sprite, float x, float y, float z) {
 
         if (sprite.getControl(RigidBodyControl.class) != null) {
             sprite.setLocalTranslation(x, y, z);
@@ -324,7 +379,7 @@ public class SpriteUtils {
      * @param y
      * @param z
      */
-    public static void move(Sprite sprite, float xAmount, float yAmount, float zAmount) {
+    public static void move(Spatial sprite, float xAmount, float yAmount, float zAmount) {
 
         if (sprite.getControl(RigidBodyControl.class) != null) {
             sprite.setLocalTranslation(new Vector3f(
@@ -592,4 +647,261 @@ public class SpriteUtils {
         }
 
     }
+
+    public static void setTransparency(Sprite sprite, float alpha) {
+        SpatialUtils.updateSpatialTransparency(sprite, true, alpha);
+
+    }
+
+    void fadeFromTo(Sprite sprite, float from, float to, float duration, float delay) {
+        SpriteUtils.setTransparency(sprite, from);
+        Tween.to(this, SpatialAccessor.OPACITY, duration)
+                .target(to)
+                .delay(delay);
+
+    }
+
+    public static Tween fadeFromTo(Sprite sprite, float from, float to, float duration, float delay, TweenCallback callback) {
+        SpriteUtils.setTransparency(sprite, from);
+        return Tween.to(sprite, SpatialAccessor.OPACITY, duration)
+                .target(to)
+                .delay(delay)
+                .setCallback(callback);
+
+    }
+
+    public static Tween fadeFromTo(Sprite sprite, float from, float to, float duration, float delay, TweenEquation tweenEquation, int count, boolean yoyo) {
+        SpriteUtils.setTransparency(sprite, from);
+
+        if (yoyo) {
+            return Tween.to(sprite, SpatialAccessor.OPACITY, duration)
+                    .target(to)
+                    .delay(delay)
+                    .ease(tweenEquation)
+                    .repeatYoyo(count, 0);
+        } else {
+            return Tween.to(sprite, SpatialAccessor.OPACITY, duration)
+                    .target(to)
+                    .delay(delay)
+                    .ease(tweenEquation)
+                    .repeat(count, 0);
+        }
+
+    }
+
+    public static Tween fadeFromTo(Sprite sprite, float from, float to, float duration, float delay, int count, boolean yoyo, float repeatDelay) {
+        SpriteUtils.setTransparency(sprite, from);
+
+        if (yoyo) {
+            return Tween.to(sprite, SpatialAccessor.OPACITY, duration)
+                    .target(to)
+                    .delay(delay)
+                    .repeatYoyo(count, repeatDelay);
+        } else {
+            return Tween.to(sprite, SpatialAccessor.OPACITY, duration)
+                    .target(to)
+                    .delay(delay)
+                    .repeat(count, repeatDelay);
+        }
+
+    }
+
+    public static Tween moveFromToCenter(Sprite sprite, float fromX, float fromY, float toX, float toY, float duration, float delay) {
+        SpriteUtils.translate(sprite, fromX, fromY, sprite.getLocalTranslation().z);
+
+        return Tween.to(sprite, SpatialAccessor.POS_XYZ, duration)
+                .target(toX, toY, sprite.getLocalTranslation().z)
+                .delay(delay);
+    }
+
+    public static Tween moveFromToCenter(Sprite sprite, float fromX, float fromY, float toX, float toY, float duration, float delay, int count, boolean yoyo, float repeatDelay) {
+        SpriteUtils.translate(sprite, fromX, fromY, sprite.getLocalTranslation().z);
+
+        if (yoyo) {
+            return Tween.to(sprite, SpatialAccessor.POS_XYZ, duration)
+                    .target(toX, toY, sprite.getLocalTranslation().z)
+                    .delay(delay)
+                    .repeatYoyo(count, repeatDelay);
+        } else {
+            return Tween.to(sprite, SpatialAccessor.POS_XYZ, duration)
+                    .target(toX, toY, sprite.getLocalTranslation().z)
+                    .delay(delay)
+                    .repeat(count, repeatDelay);
+        }
+
+    }
+
+    public static Tween moveFromToCenter(Sprite sprite, float fromX, float fromY, float toX, float toY, float duration, float delay, TweenCallback callback) {
+        SpriteUtils.translate(sprite, fromX, fromY, sprite.getLocalTranslation().z);
+
+        return Tween.to(sprite, SpatialAccessor.POS_XYZ, duration)
+                .target(toX, toY, sprite.getLocalTranslation().z)
+                .delay(delay);
+
+    }
+
+    public static Tween moveFromToCenter(Sprite sprite, float fromX, float fromY, float toX, float toY, float duration, float delay, TweenEquation tweenEquation) {
+        SpriteUtils.translate(sprite, fromX, fromY, sprite.getLocalTranslation().z);
+
+        return Tween.to(sprite, SpatialAccessor.POS_XYZ, duration)
+                .target(toX, toY, sprite.getLocalTranslation().z)
+                .delay(delay)
+                .ease(tweenEquation);
+
+    }
+
+    public static Tween moveFromToCenter(Sprite sprite, float fromX, float fromY, float toX, float toY, float duration, float delay, TweenEquation tweenEquation, TweenCallback callback) {
+        SpriteUtils.translate(sprite, fromX, fromY, sprite.getLocalTranslation().z);
+
+        return Tween.to(sprite, SpatialAccessor.POS_XYZ, duration)
+                .target(toX, toY, sprite.getLocalTranslation().z)
+                .delay(delay)
+                .ease(tweenEquation)
+                .setCallback(callback);
+
+    }
+
+    public static Tween moveFromToCenter(Sprite sprite, float fromX, float fromY, float toX, float toY, float duration, float delay, TweenEquation tweenEquation, int count, boolean yoyo, float repeatDelay) {
+        SpriteUtils.translate(sprite, fromX, fromY, sprite.getLocalTranslation().z);
+
+        if (yoyo) {
+            return Tween.to(sprite, SpatialAccessor.POS_XYZ, duration)
+                    .target(toX, toY, sprite.getLocalTranslation().z)
+                    .delay(delay)
+                    .ease(tweenEquation)
+                    .repeatYoyo(count, repeatDelay);
+        } else {
+            return Tween.to(sprite, SpatialAccessor.POS_XYZ, duration)
+                    .target(toX, toY, sprite.getLocalTranslation().z)
+                    .delay(delay)
+                    .ease(tweenEquation)
+                    .repeat(count, repeatDelay);
+        }
+
+    }
+
+    public static Tween moveFromToCenter(Sprite sprite, float fromX, float fromY, float toX, float toY, float duration, float delay, TweenEquation tweenEquation, int count, boolean yoyo, TweenCallback callback) {
+
+        SpriteUtils.translate(sprite, fromX, fromY, sprite.getLocalTranslation().z);
+
+        if (yoyo) {
+            return Tween.to(sprite, SpatialAccessor.POS_XYZ, duration)
+                    .target(toX, toY, sprite.getLocalTranslation().z)
+                    .delay(delay)
+                    .ease(tweenEquation)
+                    .repeatYoyo(count, 0)
+                    .setCallback(callback);
+        } else {
+            return Tween.to(sprite, SpatialAccessor.POS_XYZ, duration)
+                    .target(toX, toY, sprite.getLocalTranslation().z)
+                    .delay(delay)
+                    .ease(tweenEquation)
+                    .repeat(count, 0)
+                    .setCallback(callback);
+        }
+
+    }
+
+    public static Tween scaleFromTo(Sprite sprite, float fromX, float fromY, float toX, float toY, float duration, float delay) {
+        sprite.setLocalScale(fromX, fromY, 1);
+
+        return Tween.to(sprite, SpatialAccessor.SCALE_XYZ, duration)
+                .target(toX, toY, 1)
+                .delay(delay);
+
+    }
+
+    public static Tween scaleFromTo(Sprite sprite, float fromX, float fromY, float toX, float toY, float duration, float delay, int count, boolean yoyo, float repeatDelay) {
+        sprite.setLocalScale(fromX, fromY, 1);
+
+        if (yoyo) {
+            return Tween.to(sprite, SpatialAccessor.SCALE_XYZ, duration)
+                    .target(toX, toY, 1)
+                    .delay(delay)
+                    .repeatYoyo(count, repeatDelay);
+
+        } else {
+            return Tween.to(sprite, SpatialAccessor.SCALE_XYZ, duration)
+                    .target(toX, toY, 1)
+                    .delay(delay)
+                    .repeat(count, repeatDelay);
+
+        }
+
+    }
+
+    public static Tween scaleFromTo(Sprite sprite, float fromX, float fromY, float toX, float toY, float duration, float delay, TweenCallback callback) {
+        sprite.setLocalScale(fromX, fromY, 1);
+
+        return Tween.to(sprite, SpatialAccessor.SCALE_XYZ, duration)
+                .target(toX, toY, 1)
+                .delay(delay)
+                .setCallback(callback);
+
+    }
+
+    public static Tween scaleFromTo(Sprite sprite, float fromX, float fromY, float toX, float toY, float duration, float delay, TweenEquation tweenEquation) {
+        sprite.setLocalScale(fromX, fromY, 1);
+
+        return Tween.to(sprite, SpatialAccessor.SCALE_XYZ, duration)
+                .target(toX, toY, 1)
+                .delay(delay)
+                .ease(tweenEquation);
+    }
+
+    public static Tween scaleFromTo(Sprite sprite, float fromX, float fromY, float toX, float toY, float duration, float delay, TweenEquation tweenEquation, TweenCallback callback) {
+        sprite.setLocalScale(fromX, fromY, 1);
+
+        return Tween.to(sprite, SpatialAccessor.SCALE_XYZ, duration)
+                .target(toX, toY, 1)
+                .delay(delay)
+                .ease(tweenEquation)
+                .setCallback(callback);
+    }
+
+    public static Tween rotateFromTo(Sprite sprite, float fromAngle, float toAngle, float duration, float delay) {
+        SpriteUtils.rotateTo(sprite, fromAngle);
+
+        return Tween.to(sprite, SpatialAccessor.ROTATION_Z, duration)
+                .target(toAngle)
+                .delay(delay);
+
+    }
+
+    public static Tween rotateFromTo(Sprite sprite, float fromAngle, float toAngle, float duration, float delay, int count, boolean yoyo, float repeatDelay) {
+        SpriteUtils.rotateTo(sprite, fromAngle);
+
+        if (yoyo) {
+            return Tween.to(sprite, SpatialAccessor.ROTATION_Z, duration)
+                    .target(toAngle)
+                    .delay(delay)
+                    .repeatYoyo(count, repeatDelay);
+        } else {
+            return Tween.to(sprite, SpatialAccessor.ROTATION_Z, duration)
+                    .target(toAngle)
+                    .delay(delay)
+                    .repeat(count, repeatDelay);
+        }
+
+    }
+
+    public static Tween rotateFromTo(Sprite sprite, float fromAngle, float toAngle, float duration, float delay, TweenEquation tweenEquation) {
+        SpriteUtils.rotateTo(sprite, fromAngle);
+
+        return Tween.to(sprite, SpatialAccessor.ROTATION_Z, duration)
+                .target(toAngle)
+                .delay(delay)
+                .ease(tweenEquation);
+    }
+
+    public static Tween rotateFromTo(Sprite sprite, float fromAngle, float toAngle, float duration, float delay, TweenEquation tweenEquation, TweenCallback callback) {
+        SpriteUtils.rotateTo(sprite, fromAngle);
+
+        return Tween.to(sprite, SpatialAccessor.ROTATION_Z, duration)
+                .target(toAngle)
+                .delay(delay)
+                .ease(tweenEquation)
+                .setCallback(callback);
+    }
+
 }

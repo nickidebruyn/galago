@@ -47,6 +47,9 @@ import com.jme3.scene.Spatial;
 import com.bruynhuis.galago.ui.effect.Effect;
 import com.bruynhuis.galago.util.Debug;
 import com.jme3.font.LineWrapMode;
+import com.jme3.renderer.RenderManager;
+import com.jme3.renderer.ViewPort;
+import com.jme3.scene.control.AbstractControl;
 import java.util.Properties;
 
 /**
@@ -54,7 +57,7 @@ import java.util.Properties;
  *
  * @author nidebruyn
  */
-public class TextField extends ImageWidget {
+public class TextField extends ImageWidget implements InputType {
 
     protected Panel panel;
     protected InputManager inputManager;
@@ -82,6 +85,7 @@ public class TextField extends ImageWidget {
     protected FocusListener focusListener;
     protected KeyNames keyNames = new KeyNames();
     protected TouchKeyNames touchKeyNames = new TouchKeyNames();
+    private String textToUpdate;
 
     /**
      *
@@ -159,6 +163,21 @@ public class TextField extends ImageWidget {
             widgetNode.attachChild(trueTypeContainer);
         }
 
+        widgetNode.addControl(new AbstractControl() {
+            @Override
+            protected void controlUpdate(float tpf) {
+                if (textToUpdate != null) {
+                    setText(textToUpdate);
+                    textToUpdate = null;
+                }
+            }
+
+            @Override
+            protected void controlRender(RenderManager rm, ViewPort vp) {
+
+            }
+        });
+
 //        //Init the text
 //        float xP = -getWidth() * 0.5f;
 //        float yP = getHeight() * 0.5f;
@@ -176,7 +195,6 @@ public class TextField extends ImageWidget {
 //        bitmapText.setVerticalAlignment(BitmapFont.VAlign.Center);
 //        bitmapText.setLineWrapMode(LineWrapMode.NoWrap);
 //        widgetNode.attachChild(bitmapText);
-
         this.inputManager = window.getInputManager();
         this.cam = window.getApplication().getCamera();
         this.results = new CollisionResults();
@@ -250,7 +268,8 @@ public class TextField extends ImageWidget {
 
                 if (enabled && focus && evt.isReleased()) {
                     String keyChar = keyNames.getName(evt.getKeyCode());
-//                    System.out.println("Keyinput ***************** Char = " + keyChar);
+//                    System.out.println("Keyinput ***************** code = " + evt.getKeyCode());
+//                    System.out.println("Keyinput ***************** char = " + evt.getKeyChar());
 
                     if (evt.getKeyCode() == 14) {
                         if (getText().length() > 0) {
@@ -265,6 +284,9 @@ public class TextField extends ImageWidget {
                     } else if (keyChar != null && evt.getKeyCode() == 58) {
                         caps = !caps;
 
+                    } else if (keyChar != null && (evt.getKeyCode() == 42 || evt.getKeyCode() == 54)) {
+                        caps = false;
+
                     } else if (keyChar != null && keyChar.length() == 1) {
                         if (!caps) {
                             keyChar = keyChar.toLowerCase();
@@ -278,6 +300,18 @@ public class TextField extends ImageWidget {
 
                     fireKeyboardListener(evt);
 
+                } else if (enabled && focus && !evt.isReleased()) {
+                    String keyChar = keyNames.getName(evt.getKeyCode());
+//                    System.out.println("Keyinput ***************** code = " + evt.getKeyCode());
+//                    System.out.println("Keyinput ***************** char = " + evt.getKeyChar());
+
+                    if (keyChar != null && (evt.getKeyCode() == 42 || evt.getKeyCode() == 54)) {
+                        caps = true;
+
+                    }
+
+                    fireKeyboardListener(evt);
+
                 }
 
             }
@@ -285,54 +319,54 @@ public class TextField extends ImageWidget {
             public void onTouchEvent(TouchEvent evt) {
 //                System.out.println("Touchinput ***************** Keycode = " + evt.getKeyCode());
 
-                if (enabled && focus && evt.getType().equals(TouchEvent.Type.KEY_DOWN)) {
-                    String keyChar = touchKeyNames.getName(evt.getKeyCode());
-                    System.out.println("\n\n\nTouchinput ***************** KeyCode = " + evt.getKeyCode());
-
-                    if (evt.getKeyCode() == 67) { //backspace
-                        if (getText().length() > 0) {
-                            setText(getText().substring(0, getText().length() - 1));
-                        }
-
-                    } else if (keyChar != null && evt.getKeyCode() == 62) { //space
-                        setText(getText() + " ");
-
-                    } else if (keyChar != null && evt.getKeyCode() == 59) { //shift
-                        caps = !caps;
-
-                    } else if (keyChar != null && keyChar.length() == 1) {
-                        //TODO:
-//                        if (!caps) {
-                        keyChar = keyChar.toLowerCase();
+//                if (enabled && focus && evt.getType().equals(TouchEvent.Type.KEY_DOWN)) {
+//                    String keyChar = touchKeyNames.getName(evt.getKeyCode());
+//                    System.out.println("\n\n\nTouchinput ***************** KeyCode = " + evt.getKeyCode());
+//
+//                    if (evt.getKeyCode() == 67) { //backspace
+//                        if (getText().length() > 0) {
+//                            setText(getText().substring(0, getText().length() - 1));
 //                        }
-                        setText(getText() + keyChar);
-                    }
-
-                    if (getText().length() > maxLength) {
-                        setText(getText().substring(0, maxLength));
-                    }
-
-//                    if (evt.getKeyCode() == 67) {
-//                        if (getText().length() > 0) {
-//                            setText(getText().substring(0, getText().length()-1));
-//                        }                        
-//                        
-//                    } else if (evt.getKeyCode() == 59) {
-//                        if (getText().length() > 0) {
-//                            setText(getText().substring(0, getText().length()-1));
-//                        }                        
-//                        
+//
+//                    } else if (keyChar != null && evt.getKeyCode() == 62) { //space
+//                        setText(getText() + " ");
+//
+//                    } else if (keyChar != null && evt.getKeyCode() == 59) { //shift
+//                        caps = !caps;
+//
 //                    } else if (keyChar != null && keyChar.length() == 1) {
+//                        //TODO:
+////                        if (!caps) {
+//                        keyChar = keyChar.toLowerCase();
+////                        }
 //                        setText(getText() + keyChar);
 //                    }
-//                    
+//
 //                    if (getText().length() > maxLength) {
 //                        setText(getText().substring(0, maxLength));
 //                    }
-
-                }
-
-
+//                    
+//                    
+//
+////                    if (evt.getKeyCode() == 67) {
+////                        if (getText().length() > 0) {
+////                            setText(getText().substring(0, getText().length()-1));
+////                        }                        
+////                        
+////                    } else if (evt.getKeyCode() == 59) {
+////                        if (getText().length() > 0) {
+////                            setText(getText().substring(0, getText().length()-1));
+////                        }                        
+////                        
+////                    } else if (keyChar != null && keyChar.length() == 1) {
+////                        setText(getText() + keyChar);
+////                    }
+////                    
+////                    if (getText().length() > maxLength) {
+////                        setText(getText().substring(0, maxLength));
+////                    }
+//
+//                }
             }
         });
 
@@ -340,13 +374,12 @@ public class TextField extends ImageWidget {
         panel.add(this);
 
 //        bitmapText.setLocalTranslation(bitmapText.getLocalTranslation().x, bitmapText.getLocalTranslation().y, 0.001f);
-
         if (window.getApplication().isMobileApp()) {
             addFocusListener(new FocusListener() {
                 public void doFocus(String id) {
                     Properties p = new Properties();
                     p.setProperty(BaseApplication.NAME, getText());
-                    window.getApplication().fireKeyboardInputListener(p);
+                    window.getApplication().fireKeyboardInputListener(p, TextField.this);
                 }
             });
         }
@@ -474,17 +507,19 @@ public class TextField extends ImageWidget {
                 this.trueTypeContainer.removeFromParent();
 
             }
-        } else {
-            if (bitmapText != null) {
-                this.bitmapText.setText(text);
-                if (this.bitmapText.getParent() == null) widgetNode.attachChild(this.bitmapText);
-
-            } else if (stringContainer != null) {
-                this.stringContainer.setText(text);
-                if (this.trueTypeContainer.getParent() == null) widgetNode.attachChild(this.trueTypeContainer);
-                this.trueTypeContainer.updateGeometry();
-
+        } else if (bitmapText != null) {
+            this.bitmapText.setText(text);
+            if (this.bitmapText.getParent() == null) {
+                widgetNode.attachChild(this.bitmapText);
             }
+
+        } else if (stringContainer != null) {
+            this.stringContainer.setText(text);
+            if (this.trueTypeContainer.getParent() == null) {
+                widgetNode.attachChild(this.trueTypeContainer);
+            }
+            this.trueTypeContainer.updateGeometry();
+
         }
 
     }
@@ -495,14 +530,14 @@ public class TextField extends ImageWidget {
                 return "";
             } else {
                 return this.bitmapText.getText();
-            }            
+            }
 
         } else if (stringContainer != null) {
             if (this.trueTypeContainer.getParent() == null) {
                 return "";
             } else {
                 return this.stringContainer.getText();
-            }            
+            }
 
         } else {
             return null;
@@ -626,4 +661,10 @@ public class TextField extends ImageWidget {
     public void blur() {
         focus = false;
     }
+
+    @Override
+    public void updateText(String text) {
+        this.textToUpdate = text;
+    }
+
 }

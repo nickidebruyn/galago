@@ -26,7 +26,7 @@ public class NameField extends TextField {
             public void doFocus(String id) {
                 Properties p = new Properties();
                 p.setProperty(BaseApplication.NAME, getText());
-                window.getApplication().fireKeyboardInputListener(p);
+                window.getApplication().fireKeyboardInputListener(p, NameField.this);
             }
         });
         

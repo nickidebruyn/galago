@@ -31,6 +31,7 @@ import com.galago.tests.screens.PhysicsScreen;
 import com.galago.tests.screens.PostShaderScreen;
 import com.galago.tests.screens.RagdollScreen;
 import com.galago.tests.screens.RoadMeshScreen;
+import com.galago.tests.screens.SplatMarkerScreen;
 import com.galago.tests.screens.TextWriterScreen;
 import com.galago.tests.screens.TextureMaskingScreen;
 import com.galago.tests.screens.WorldEditorScreen;
@@ -110,6 +111,7 @@ public class MainApplication extends Base3DApplication {
         screenManager.loadScreen(EggScreen.NAME, new EggScreen());
         screenManager.loadScreen(RagdollScreen.NAME, new RagdollScreen());
         screenManager.loadScreen(CombatScreen.NAME, new CombatScreen());
+        screenManager.loadScreen(SplatMarkerScreen.NAME, new SplatMarkerScreen());
 
     }
 

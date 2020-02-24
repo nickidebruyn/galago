@@ -1,22 +1,28 @@
-MaterialDef Default GUI {
+MaterialDef SimpleBloom {
 
     MaterialParameters {
         Int NumSamples
         Int NumSamplesDepth
         Texture2D Texture
-        Float Scale
-        Float Threshold
-
+        Float BloomType;
+        Float Strength;
+        Float Size;
+        Int Samples;
+      
+ 
     }
-
 
     Technique {
-        VertexShader GLSL100:   Common/MatDefs/Post/Post.vert
-        FragmentShader GLSL100: Resources/filters/simple-bloom.frag
+        VertexShader  GLSL100:   Resources/filters/simple-bloom.vert
+        FragmentShader  GLSL100: Resources/filters/simple-bloom.frag
 
         WorldParameters {
-            WorldViewProjectionMatrix
+          Resolution
         }
 
+        Defines {
+            BLOOM : BloomType
+         }
     }
+
 }

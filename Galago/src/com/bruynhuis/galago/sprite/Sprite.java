@@ -132,17 +132,17 @@ public class Sprite extends Node {
         texture.setMagFilter(Texture.MagFilter.Nearest);
         texture.setWrap(Texture.WrapMode.Repeat);
 
-//        Material material = new Material(baseApplication.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-        Material material = new Material(baseApplication.getAssetManager(), "Resources/MatDefs/SpriteShader.j3md");
+        Material material = new Material(baseApplication.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+//        Material material = new Material(baseApplication.getAssetManager(), "Resources/MatDefs/SpriteShader.j3md");
 //        material.setColor("Color", ColorRGBA.White);
         material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha); 
         material.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
 //        material.setFloat("AlphaDiscardThreshold", 0.5f);
 
-//        s.getMaterial().getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Custom);
-//        s.getMaterial().getAdditionalRenderState().setCustomBlendFactors(RenderState.BlendFunc.Src_Alpha, RenderState.BlendFunc.One_Minus_Src_Alpha, RenderState.BlendFunc.One, RenderState.BlendFunc.One_Minus_Src_Alpha);
+        material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Custom);
+        material.getAdditionalRenderState().setCustomBlendFactors(RenderState.BlendFunc.Src_Alpha, RenderState.BlendFunc.One_Minus_Src_Alpha, RenderState.BlendFunc.One, RenderState.BlendFunc.One_Minus_Src_Alpha);
 
-        material.setTexture("Texture", texture);
+        material.setTexture("ColorMap", texture);
         setMaterial(material);
         
         flipCoords(true);
@@ -200,8 +200,8 @@ public class Sprite extends Node {
         return horizontalFlipped;
     }
     
-    public void setCenterPoint(float x, float y) {
-        geometry.setLocalTranslation(-x, -y, 0);
+    public void setOffset(float x, float y, float z) {
+        geometry.setLocalTranslation(x, y, z);
         
     }
     

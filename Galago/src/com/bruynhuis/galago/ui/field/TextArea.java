@@ -42,8 +42,11 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
+import com.jme3.renderer.RenderManager;
+import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.control.AbstractControl;
 import java.util.Properties;
 
 /**
@@ -51,7 +54,7 @@ import java.util.Properties;
  *
  * @author nidebruyn
  */
-public class TextArea extends ImageWidget {
+public class TextArea extends ImageWidget implements InputType {
 
     protected Panel panel;
     protected String id;
@@ -80,6 +83,7 @@ public class TextArea extends ImageWidget {
     protected FocusListener focusListener;
     protected KeyNames keyNames = new KeyNames();
     protected TouchKeyNames touchKeyNames = new TouchKeyNames();
+    private String textToUpdate;
 
     /**
      *
@@ -168,6 +172,22 @@ public class TextArea extends ImageWidget {
             widgetNode.attachChild(trueTypeContainer);
         }
         
+        widgetNode.addControl(new AbstractControl() {
+            @Override
+            protected void controlUpdate(float tpf) {
+                if (textToUpdate != null) {
+                    setText(textToUpdate);
+                    textToUpdate = null;
+                }
+            }
+
+            @Override
+            protected void controlRender(RenderManager rm, ViewPort vp) {
+
+            }
+        });
+
+        
         this.inputManager = window.getInputManager();
         this.cam = window.getApplication().getCamera();
         this.results = new CollisionResults();
@@ -245,37 +265,53 @@ public class TextArea extends ImageWidget {
 
             public void onKeyEvent(KeyInputEvent evt) {
 //                System.out.println("Keyinput ***************** Key = " + evt.getKeyCode());
-                
+
                 if (enabled && focus && evt.isReleased()) {
                     String keyChar = keyNames.getName(evt.getKeyCode());
-//                    System.out.println("Keyinput ***************** Char = " + keyChar);
-                    
+//                    System.out.println("Keyinput ***************** code = " + evt.getKeyCode());
+//                    System.out.println("Keyinput ***************** char = " + evt.getKeyChar());
+
                     if (evt.getKeyCode() == 14) {
                         if (getText().length() > 0) {
-                            setText(getText().substring(0, getText().length()-1));
-                        }                        
+                            setText(getText().substring(0, getText().length() - 1));
+                        }
                     } else if (evt.getKeyCode() == 15) {
                         focus = false;
-                        
+
                     } else if (keyChar != null && evt.getKeyCode() == 57) {
                         setText(getText() + " ");
-                        
+
                     } else if (keyChar != null && evt.getKeyCode() == 58) {
                         caps = !caps;
                         
+                    } else if (keyChar != null && (evt.getKeyCode() == 42 || evt.getKeyCode() == 54)) {
+                        caps = false;
+
                     } else if (keyChar != null && keyChar.length() == 1) {
                         if (!caps) {
                             keyChar = keyChar.toLowerCase();
                         }
                         setText(getText() + keyChar);
                     }
-                    
+
                     if (getText().length() > maxLength) {
                         setText(getText().substring(0, maxLength));
                     }
-                    
+
                     fireKeyboardListener(evt);
-                    
+
+                } else if (enabled && focus && !evt.isReleased()) {
+                    String keyChar = keyNames.getName(evt.getKeyCode());
+//                    System.out.println("Keyinput ***************** code = " + evt.getKeyCode());
+//                    System.out.println("Keyinput ***************** char = " + evt.getKeyChar());
+
+                    if (keyChar != null && (evt.getKeyCode() == 42 || evt.getKeyCode() == 54)) {
+                        caps = true;
+
+                    }
+
+                    fireKeyboardListener(evt);
+
                 }
 
             }
@@ -283,53 +319,53 @@ public class TextArea extends ImageWidget {
             public void onTouchEvent(TouchEvent evt) {
 //                System.out.println("Touchinput ***************** Keycode = " + evt.getKeyCode());
                 
-                if (enabled && focus && evt.getType().equals(TouchEvent.Type.KEY_DOWN)) {
-                    String keyChar = touchKeyNames.getName(evt.getKeyCode());
-                    System.out.println("\n\n\nTouchinput ***************** KeyCode = " + evt.getKeyCode());
-                    
-                    if (evt.getKeyCode() == 67) { //backspace
-                        if (getText().length() > 0) {
-                            setText(getText().substring(0, getText().length()-1));
-                        }                        
-                        
-                    } else if (keyChar != null && evt.getKeyCode() == 62) { //space
-                        setText(getText() + " ");
-                        
-                    } else if (keyChar != null && evt.getKeyCode() == 59) { //shift
-                        caps = !caps;
-                        
-                    } else if (keyChar != null && keyChar.length() == 1) {
-                        //TODO:
-//                        if (!caps) {
-                            keyChar = keyChar.toLowerCase();                            
-//                        }
-                        setText(getText() + keyChar);
-                    }
-                    
-                    if (getText().length() > maxLength) {
-                        setText(getText().substring(0, maxLength));
-                    }
-                    
-//                    if (evt.getKeyCode() == 67) {
+//                if (enabled && focus && evt.getType().equals(TouchEvent.Type.KEY_DOWN)) {
+//                    String keyChar = touchKeyNames.getName(evt.getKeyCode());
+//                    System.out.println("\n\n\nTouchinput ***************** KeyCode = " + evt.getKeyCode());
+//                    
+//                    if (evt.getKeyCode() == 67) { //backspace
 //                        if (getText().length() > 0) {
 //                            setText(getText().substring(0, getText().length()-1));
 //                        }                        
 //                        
-//                    } else if (evt.getKeyCode() == 59) {
-//                        if (getText().length() > 0) {
-//                            setText(getText().substring(0, getText().length()-1));
-//                        }                        
+//                    } else if (keyChar != null && evt.getKeyCode() == 62) { //space
+//                        setText(getText() + " ");
+//                        
+//                    } else if (keyChar != null && evt.getKeyCode() == 59) { //shift
+//                        caps = !caps;
 //                        
 //                    } else if (keyChar != null && keyChar.length() == 1) {
+//                        //TODO:
+////                        if (!caps) {
+//                            keyChar = keyChar.toLowerCase();                            
+////                        }
 //                        setText(getText() + keyChar);
 //                    }
 //                    
 //                    if (getText().length() > maxLength) {
 //                        setText(getText().substring(0, maxLength));
 //                    }
-                    
-                }
-
+//                    
+////                    if (evt.getKeyCode() == 67) {
+////                        if (getText().length() > 0) {
+////                            setText(getText().substring(0, getText().length()-1));
+////                        }                        
+////                        
+////                    } else if (evt.getKeyCode() == 59) {
+////                        if (getText().length() > 0) {
+////                            setText(getText().substring(0, getText().length()-1));
+////                        }                        
+////                        
+////                    } else if (keyChar != null && keyChar.length() == 1) {
+////                        setText(getText() + keyChar);
+////                    }
+////                    
+////                    if (getText().length() > maxLength) {
+////                        setText(getText().substring(0, maxLength));
+////                    }
+//                    
+//                }
+//
 
             }
         });
@@ -341,7 +377,7 @@ public class TextArea extends ImageWidget {
                 public void doFocus(String id) {
                     Properties p = new Properties();
                     p.setProperty(BaseApplication.NAME, getText());
-                    window.getApplication().fireKeyboardInputListener(p);
+                    window.getApplication().fireKeyboardInputListener(p, TextArea.this);
                 }
             });
         }
@@ -704,5 +740,10 @@ public class TextArea extends ImageWidget {
 
     public void blur() {
         focus = false;
+    }
+
+    @Override
+    public void updateText(String text) {
+        this.textToUpdate = text;
     }
 }

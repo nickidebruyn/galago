@@ -5,6 +5,7 @@
 package com.galago.example.platformer2d.ui;
 
 import com.bruynhuis.galago.app.BaseApplication;
+import com.bruynhuis.galago.ui.field.InputType;
 import com.bruynhuis.galago.ui.field.TextField;
 import com.bruynhuis.galago.ui.listener.FocusListener;
 import com.bruynhuis.galago.ui.panel.Panel;
@@ -26,7 +27,7 @@ public class NameField extends TextField {
             public void doFocus(String id) {
                 Properties p = new Properties();
                 p.setProperty(BaseApplication.NAME, getText());
-                window.getApplication().fireKeyboardInputListener(p);
+//                window.getApplication().fireKeyboardInputListener(p, );
             }
         });
         

@@ -37,9 +37,11 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.util.Log;
+import android.widget.EditText;
 import com.bruynhuis.galago.listener.SelectionActionListener;
 import com.bruynhuis.galago.sound.AndroidMidiPlayer;
 import com.bruynhuis.galago.sound.MidiPlayer;
+import com.bruynhuis.galago.ui.field.InputType;
 import com.google.android.gms.ads.reward.RewardItem;
 import com.google.android.gms.ads.reward.RewardedVideoAd;
 import com.google.android.gms.ads.reward.RewardedVideoAdListener;
@@ -81,7 +83,7 @@ import java.util.Random;
 public abstract class AbstractGooglePlayActivity extends AndroidHarness
         implements KeyboardInputListener, RemoteActionListener, EscapeListener,
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SensorEventListener, SelectionActionListener {
-    
+
     private static final String TAG = "TAG";
     protected SensorManager sensorManager = null;
     protected Sensor accelerometer;
@@ -118,7 +120,11 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
     protected String APP_PATH = "";
     protected String PLAYSTORE_URL = "";
     protected String MOREAPPS_URL = "";
-    protected String ADMOB_APP_ID = "";
+
+    //NB: ADMOB_APP_ID was removed because google changed the way it is initialized.
+    //Please use the <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy"/> tag
+    //Link: https://developers.google.com/admob/android/quick-start#update_your_androidmanifestxml
+//    protected String ADMOB_APP_ID = "";
     protected String ADMOB_BANNER_ID = "";
     protected String ADMOB_INTERSTITIALS_ID = "";
     protected String ADMOB_REWARDS_ID = "";
@@ -199,16 +205,28 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
      * @param prprts
      * @return
      */
-    public String doInput(Properties prprts) {
-        //TODO: Fire the input keyboard focus
-//        System.out.println("Fired some focus input...");
-
+    public String doInput(Properties prprts, InputType inputType) {
         this.runOnUiThread(new Runnable() {
             public void run() {
-//                Toast toast = Toast.makeText(getApplicationContext(), "You fired some input!!", Toast.LENGTH_SHORT);
-//                toast.show();
 
-                showTextInputDialog();
+                final EditText txtUrl = new EditText(AbstractGooglePlayActivity.this);
+                txtUrl.setText(inputType.getText());
+                new AlertDialog.Builder(AbstractGooglePlayActivity.this)
+                        .setTitle("Enter text:")
+                        .setView(txtUrl)
+                        .setPositiveButton("Submit", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int whichButton) {
+                                String txt = txtUrl.getText().toString();
+                                inputType.updateText(txt);
+
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int whichButton) {
+                            }
+                        })
+                        .show();
+
             }
         });
 
@@ -884,11 +902,11 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
         }
 
         if (useAdmob || useAdmobInterstitials || useAdmobRewards) {
-            if (ADMOB_APP_ID == null || ADMOB_APP_ID.equals("")) {
-                throw new RuntimeException("You need to specify the admob app id...");
-            }
+//            if (ADMOB_APP_ID == null || ADMOB_APP_ID.equals("")) {
+//                throw new RuntimeException("You need to specify the admob app id...");
+//            }
 
-            MobileAds.initialize(this, ADMOB_APP_ID);
+            MobileAds.initialize(this);
         }
 
         if (useAnalytics) {

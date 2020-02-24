@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Vibrator;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 import com.jme3.app.AndroidHarness;
 import java.util.Properties;
@@ -28,9 +27,11 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.util.Log;
+import android.widget.EditText;
 import com.bruynhuis.galago.listener.SelectionActionListener;
 import com.bruynhuis.galago.sound.AndroidMidiPlayer;
 import com.bruynhuis.galago.sound.MidiPlayer;
+import com.bruynhuis.galago.ui.field.InputType;
 import com.jme3.audio.AudioRenderer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -133,21 +134,34 @@ public abstract class AbstractGameActivity extends AndroidHarness
      * @param prprts
      * @return
      */
-    public String doInput(Properties prprts) {
-        //TODO: Fire the input keyboard focus
-//        System.out.println("Fired some focus input...");
-
+    public String doInput(Properties prprts, InputType inputType) {
         this.runOnUiThread(new Runnable() {
             public void run() {
-//                Toast toast = Toast.makeText(getApplicationContext(), "You fired some input!!", Toast.LENGTH_SHORT);
-//                toast.show();
 
-                showTextInputDialog();
+                final EditText txtUrl = new EditText(AbstractGameActivity.this);
+                txtUrl.setText(inputType.getText());
+                new AlertDialog.Builder(AbstractGameActivity.this)
+                        .setTitle("Enter text:")
+                        .setView(txtUrl)
+                        .setPositiveButton("Submit", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int whichButton) {
+                                String txt = txtUrl.getText().toString();
+                                inputType.updateText(txt);
+
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int whichButton) {
+                            }
+                        })
+                        .show();
+
             }
         });
 
         return null;
     }
+
 
     /**
      * Show a selection dialog
@@ -192,13 +206,10 @@ public abstract class AbstractGameActivity extends AndroidHarness
     /**
      * Gives a soft keyboard
      */
-    private void showTextInputDialog() {
-        InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (inputMethodManager != null) {
-            inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-        }
-    }
-
+//    protected void showTextInputDialog(String text) {
+//
+//
+//    }
     /**
      * Called from the jME side when some action must be performed.
      *
@@ -355,8 +366,12 @@ public abstract class AbstractGameActivity extends AndroidHarness
      * @param text
      */
     protected void showAlert(String text) {
-        Toast toast = Toast.makeText(this, text, Toast.LENGTH_LONG);
-        toast.show();
+        runOnUiThread(new Runnable() {
+            public void run() {
+                Toast toast = Toast.makeText(AbstractGameActivity.this, text, Toast.LENGTH_SHORT);
+                toast.show();
+            }
+        });
     }
 
     @Override
@@ -525,6 +540,13 @@ public abstract class AbstractGameActivity extends AndroidHarness
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    }
+
+    @Override
+    public void onBackPressed() {
+        // If an interstitial is on screen, close it. Otherwise continue as normal.
+        ((BaseApplication) getJmeApplication()).fireAllEscapeListeners(true);
+
     }
 
     @Override

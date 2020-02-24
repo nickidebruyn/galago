@@ -34,8 +34,21 @@ public class HingeJoint extends PhysicsJoint {
         
     }
     
+    public void setMaximumMotorTorque(float torque) {
+        ((org.dyn4j.dynamics.joint.RevoluteJoint)joint).setMaximumMotorTorque(torque);
+        
+    }
+    
     public void setLimitsEnabled(boolean enable) {
         ((org.dyn4j.dynamics.joint.RevoluteJoint)joint).setLimitEnabled(enable);        
+    }
+    
+    public void setMotorEnabled(boolean enable) {
+        ((org.dyn4j.dynamics.joint.RevoluteJoint)joint).setMotorEnabled(enable);
+    }
+    
+    public void setCollisionAllowed(boolean allowed) {
+        ((org.dyn4j.dynamics.joint.RevoluteJoint)joint).setCollisionAllowed(allowed);
     }
     
     public float getUpperLimit() {
@@ -45,4 +58,14 @@ public class HingeJoint extends PhysicsJoint {
     public float getLowerLimit() {
         return (float)((org.dyn4j.dynamics.joint.RevoluteJoint)joint).getLowerLimit();
     }
+
+    public Vector3f getAnchor() {
+        return anchor;
+    }
+
+    public void setAnchor(Vector3f anchor) {
+        this.anchor = anchor;
+    }
+    
+    
 }

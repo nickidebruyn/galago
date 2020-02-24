@@ -5,6 +5,7 @@
 package com.bruynhuis.galago.control.tween;
 
 import aurelienribon.tweenengine.TweenAccessor;
+import com.bruynhuis.galago.util.SpatialUtils;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
@@ -23,6 +24,7 @@ public class SpatialAccessor implements TweenAccessor<Spatial> {
     public static final int ROTATION_Z = 5;
     public static final int ROTATION_XYZ = 6;
     public static final int POS_Y = 7;
+    public static final int OPACITY = 8;
 
     @Override
     public int getValues(Spatial target, int tweenType, float[] returnValues) {
@@ -55,6 +57,10 @@ public class SpatialAccessor implements TweenAccessor<Spatial> {
                 return 3;                
             case POS_Y:
                 returnValues[0] = target.getLocalTranslation().y;
+                return 1;
+                
+            case OPACITY:
+                returnValues[0] = SpatialUtils.getSpatialTransparency(target);
                 return 1;
 
             default:
@@ -93,6 +99,9 @@ public class SpatialAccessor implements TweenAccessor<Spatial> {
                 break;
             case POS_Y:
                 target.setLocalTranslation(target.getLocalTranslation().x, newValues[0], target.getLocalTranslation().z);
+                break;
+            case OPACITY:
+                SpatialUtils.updateSpatialTransparency(target, true, newValues[0]);
                 break;
             default:
                 assert false;

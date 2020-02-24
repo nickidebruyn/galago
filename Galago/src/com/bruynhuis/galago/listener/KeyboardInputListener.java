@@ -4,6 +4,7 @@
  */
 package com.bruynhuis.galago.listener;
 
+import com.bruynhuis.galago.ui.field.InputType;
 import java.util.Properties;
 
 /**
@@ -17,6 +18,6 @@ public interface KeyboardInputListener {
      * @param properties
      * @return 
      */
-    public String doInput(Properties properties);
-    
+    public String doInput(Properties properties, InputType inputType);
+        
 }

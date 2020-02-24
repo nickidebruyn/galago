@@ -47,6 +47,7 @@ import com.jme3.util.TempVars;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.dyn4j.collision.Filter;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.geometry.Mass;
 import org.dyn4j.geometry.Vector2;
@@ -82,6 +83,7 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
         this.bodyFixture.setFriction((double) friction);
         this.bodyFixture.setDensity((double) density);
         this.bodyFixture.setUserData(collisionShape);
+        this.bodyFixture.setFilter(new DefaultFilter());
         this.body.addFixture(bodyFixture);
 
         if (mass != 0) {
@@ -110,6 +112,7 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
         this.bodyFixture.setFriction((double) friction);
         this.bodyFixture.setDensity((double) density);
         this.bodyFixture.setUserData(collisionShape);
+        this.bodyFixture.setFilter(new DefaultFilter());
         this.body.addFixture(bodyFixture);
 
     }
@@ -121,6 +124,7 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
         this.bodyFixture.setRestitution((double) restitution);
         this.bodyFixture.setFriction((double) friction);
         this.bodyFixture.setDensity((double) density);
+        this.bodyFixture.setFilter(new DefaultFilter());
         this.body.addFixture(bodyFixture);
     }
 
@@ -387,6 +391,21 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
             }
         }
         return false;
+    }
+    
+    /**
+     * This method will make a rigidbody detect collision but whose collisions
+     * will not be resolved.
+     *
+     * @param isSensor
+     */
+    public void setFilter(Filter filter) {
+        if (this.body.getFixtures() != null && this.body.getFixtures().size() > 0) {
+            for (int i = 0; i < this.body.getFixtures().size(); i++) {
+                BodyFixture bodyFixture1 = this.body.getFixtures().get(i);
+                bodyFixture1.setFilter(filter);
+            }
+        }
     }
 
     public void setAngularDamping(float damping) {

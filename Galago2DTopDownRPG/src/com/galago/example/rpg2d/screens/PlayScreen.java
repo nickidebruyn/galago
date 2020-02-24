@@ -15,7 +15,9 @@ import com.bruynhuis.galago.listener.PickEvent;
 import com.bruynhuis.galago.listener.PickListener;
 import com.bruynhuis.galago.listener.TouchPickListener;
 import com.bruynhuis.galago.screen.AbstractScreen;
+import com.bruynhuis.galago.sprite.Sprite;
 import com.bruynhuis.galago.ui.Label;
+import com.bruynhuis.galago.util.SpriteUtils;
 import com.galago.example.rpg2d.MainApplication;
 import com.galago.example.rpg2d.game.Game;
 import com.galago.example.rpg2d.game.Player;
@@ -35,6 +37,7 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Key
     private Player player;
     private KeyboardControlInputListener keyboardControlInputListener;
     private TouchPickListener touchPickListener;
+    private Sprite marker;
 
     @Override
     protected void init() {
@@ -64,6 +67,9 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Key
         game.addGameListener(this);
         
         camera.setLocation(new Vector3f(0, 0, 10));
+        
+        marker = SpriteUtils.addSprite(rootNode, "Textures/marker.png", 0.02f, 0, 0, 0);
+        
     }
 
     @Override
@@ -86,6 +92,7 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Key
     protected void exit() {
         keyboardControlInputListener.unregisterInput();
         touchPickListener.unregisterInput();
+        marker.removeFromParent();
         game.close();
     }
 
@@ -147,14 +154,22 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Key
 
     @Override
     public void picked(PickEvent pickEvent, float tpf) {
+        
+        if (isActive()) {            
+            
+            if (pickEvent.isKeyDown()) {
+                player.setTargetPosition(pickEvent.getContactPoint());
+            }            
+            
+        }
+        
     }
 
     @Override
     public void drag(PickEvent pickEvent, float tpf) {
         
         if (isActive()) {            
-            player.setTargetPosition(pickEvent.getContactPoint());
-            
+            marker.setLocalTranslation(pickEvent.getContactPoint());            
         }
         
     }

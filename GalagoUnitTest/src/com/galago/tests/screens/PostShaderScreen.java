@@ -418,7 +418,7 @@ public class PostShaderScreen extends AbstractScreen implements PickListener {
         fpp.addFilter(chromaticAberrationFilter);
 
         simpleBloomFilter = new SimpleBloomFilter();
-        simpleBloomFilter.setScale(0.2f);
+//        simpleBloomFilter.setScale(0.2f);
 //        simpleBloomFilter.setThreshold(1f);
         simpleBloomFilter.setEnabled(false);
         fpp.addFilter(simpleBloomFilter);

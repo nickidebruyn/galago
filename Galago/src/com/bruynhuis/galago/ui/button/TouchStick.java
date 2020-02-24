@@ -111,6 +111,10 @@ public class TouchStick extends Panel {
         
         panel.add(this);
     }    
+    
+    public void reset() {
+        topCircle.center();
+    }
 
     public float getSpacing() {
         return spacing;

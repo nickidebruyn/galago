@@ -67,6 +67,7 @@ public class MenuScreen extends AbstractScreen {
         addSceneButton(gridPanel, EggScreen.NAME, "Egg test");
         addSceneButton(gridPanel, RagdollScreen.NAME, "Ragdoll");
         addSceneButton(gridPanel, CombatScreen.NAME, "Combat");
+        addSceneButton(gridPanel, SplatMarkerScreen.NAME, "Splat Mask");
 
         gridPanel.layout(8, 3);
 

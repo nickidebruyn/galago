@@ -58,6 +58,7 @@ import com.bruynhuis.galago.ui.tween.WidgetAccessor;
 import com.bruynhuis.galago.util.ByteArrayInfo;
 import com.bruynhuis.galago.util.SharedSystem;
 import com.bruynhuis.galago.ttf.TrueTypeLoader;
+import com.bruynhuis.galago.ui.field.InputType;
 import com.bruynhuis.galago.ui.field.ProgressBar;
 import com.bruynhuis.galago.util.Timer;
 import com.jme3.input.MouseInput;
@@ -107,7 +108,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     private boolean loading = false;
     private int loadingTotalCount = 20;
     private Timer loadingTimer = new Timer(1f);
-    private Timer soundLoadingTimer = new Timer(0.1f); 
+    private Timer soundLoadingTimer = new Timer(0.1f);
     protected GameSaves gameSaves;
     protected KeyboardInputListener keyboardInputListener;
     protected RemoteActionListener remoteActionListener;
@@ -372,7 +373,6 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 //            }
 //
 //        }
-
         if (loading) {
 
             loadingTimer.update(tpf);
@@ -443,15 +443,15 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
                 soundLoadingTimer.start();
 
             }
-            
+
             if (loadingCounter > 8) {
                 updateProgress("Loading music...", loadingCounter);
                 loadingTimer.stop();
-                
+
                 soundLoadingTimer.update(tpf);
-                
+
                 if (soundLoadingTimer.finished()) {
-                    
+
                     int count = getSoundManager().getCompletedPreloadedSoundFXCount();
                     if (count < getSoundManager().getSoundFx().size()) {
                         getSoundManager().preloadNextSoundFX();
@@ -479,8 +479,6 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 //                window.getFader().fadeOut();
 //
 //            }
-
-
         } else {
             //Set the font size for the stats
             if (statsAppState != null) {
@@ -503,10 +501,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
                 fireResumeAction = false;
             }
 
-
         }
-
-
 
     }
 
@@ -538,8 +533,8 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         //Initialize the inputs
         if (isMobileApp()) {
             //Touch events
-//            inputManager.addMapping(TOUCH_ESCAPE_EVENT, new TouchTrigger(TouchInput.KEYCODE_BACK));
-//            inputManager.addListener(this, new String[]{TOUCH_ESCAPE_EVENT});
+            inputManager.addMapping(TOUCH_ESCAPE_EVENT, new TouchTrigger(TouchInput.KEYCODE_BACK));
+            inputManager.addListener(this, new String[]{TOUCH_ESCAPE_EVENT});
 
             inputManager.addMapping(TOUCH_EVENT, new TouchTrigger(TouchInput.ALL));
             inputManager.addListener(this, new String[]{TOUCH_EVENT});
@@ -729,7 +724,6 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
             }
         }
 
-
     }
 
     /**
@@ -745,10 +739,10 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         }
 
 //        doAlert("Clicked on touch: " + name + "; type=" + event.getType().name());
-//        if (name.equals(TOUCH_ESCAPE_EVENT)) {
-//            fireAllEscapeListeners(true);
-//        }
-        
+        if (name.equals(TOUCH_ESCAPE_EVENT)) {
+            fireAllEscapeListeners(true);
+        }
+
         if (name.equals(TOUCH_EVENT)) {
             if (getCurrentScreen() != null) {
 
@@ -1198,7 +1192,6 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         scoreStr = scoreStr.replace(",", "");
 
 //        log("Score formated = " + scoreStr);
-
         Properties properties = new Properties();
         properties.put(ACTION, ACTION_ADD_SCORE);
         properties.put(SCORE, scoreStr);
@@ -1344,9 +1337,9 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
      *
      * @param properties
      */
-    public void fireKeyboardInputListener(Properties properties) {
+    public void fireKeyboardInputListener(Properties properties, InputType inputType) {
         if (keyboardInputListener != null) {
-            keyboardInputListener.doInput(properties);
+            keyboardInputListener.doInput(properties, inputType);
         }
     }
 
@@ -1478,12 +1471,12 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     public boolean isMobileApp() {
         try {
             Platform platform = JmeSystem.getPlatform();
-            return platform.compareTo(Platform.Android_ARM5) == 0 || 
-                    platform.compareTo(Platform.Android_ARM6) == 0 || 
-                    platform.compareTo(Platform.Android_ARM7) == 0 ||
-                    platform.compareTo(Platform.Android_ARM8) == 0 ||
-                    platform.compareTo(Platform.Android_Other) == 0 ||
-                    platform.compareTo(Platform.Android_X86) == 0;
+            return platform.compareTo(Platform.Android_ARM5) == 0
+                    || platform.compareTo(Platform.Android_ARM6) == 0
+                    || platform.compareTo(Platform.Android_ARM7) == 0
+                    || platform.compareTo(Platform.Android_ARM8) == 0
+                    || platform.compareTo(Platform.Android_Other) == 0
+                    || platform.compareTo(Platform.Android_X86) == 0;
 
         } catch (UnsupportedOperationException e) {
             return true;
