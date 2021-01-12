@@ -14,7 +14,7 @@ import com.bruynhuis.galago.ui.panel.Panel;
  */
 public class ButtonWide extends TouchButton {
     
-    private static float scale = 0.6f;
+    private static float scale = 0.5f;
 
     public ButtonWide(Panel panel, String id, String text) {
         super(panel, id, "Resources/largebutton.png", 340*scale, 100*scale, true);

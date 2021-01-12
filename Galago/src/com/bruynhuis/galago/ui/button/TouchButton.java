@@ -33,6 +33,7 @@ import com.bruynhuis.galago.ttf.util.StringContainer;
 import com.bruynhuis.galago.util.Debug;
 import com.jme3.font.LineWrapMode;
 import com.jme3.material.MatParam;
+import com.jme3.math.Vector3f;
 import java.util.ArrayList;
 
 /**
@@ -51,6 +52,7 @@ public class TouchButton extends ImageWidget implements Touchable {
     protected ActionListener actionListener;
     private boolean enabled = true;
     private boolean wasDown = false;
+    private boolean wasHovered = false;
     protected BitmapFont bitmapFont;
     protected BitmapText bitmapText;
     protected TrueTypeFont trueTypeFont;
@@ -84,7 +86,7 @@ public class TouchButton extends ImageWidget implements Touchable {
         this.panel = panel;
         this.addEffect(new TouchEffect(this));
         this.setText(text);
-        this.setTextColor(ColorRGBA.DarkGray);
+        this.setTextColor(ColorRGBA.LightGray);
     }
 
     public TouchButton(Panel panel, String id, String pictureFile, float width, float height) {
@@ -154,7 +156,6 @@ public class TouchButton extends ImageWidget implements Touchable {
 //        if (textStr == null || textStr.length() == 0 || textStr.equals(" ")) {
 //            textStr = ".";
 //        }
-
         this.padding = window.getScaleFactorWidth() * 0;
 
         bitmapFont = panel.getWindow().getApplication().getFontManager().getBitmapFonts(fontStyle);
@@ -164,7 +165,7 @@ public class TouchButton extends ImageWidget implements Touchable {
             bitmapText = bitmapFont.createLabel(textStr);
             bitmapText.setText(textStr);             // the text
             //The Rectangle box height value for bitmap text is not a physical height but half the height
-            Rectangle rectangle = new Rectangle((-getWidth() * 0.5f) + padding, ((getHeight() * 0.6f) - padding), getWidth() - padding, (getHeight()) - padding);
+            Rectangle rectangle = new Rectangle((-getWidth() * 0.5f) + padding, ((getHeight() * 0.55f) - padding), getWidth() - padding, (getHeight()) - padding);
 //            System.out.println("TouchButton Rectange = " + rectangle);
             bitmapText.setBox(rectangle);
             bitmapText.setSize(fontStyle.getFontSize() * window.getScaleFactorHeight());      // font size
@@ -208,14 +209,12 @@ public class TouchButton extends ImageWidget implements Touchable {
 //                        touchMoveTimer.stop();
 //                    }
 //                }
-
             }
 
             @Override
             protected void controlRender(RenderManager rm, ViewPort vp) {
             }
         });
-
 
         panel.add(this);
 
@@ -311,24 +310,27 @@ public class TouchButton extends ImageWidget implements Touchable {
                 this.trueTypeContainer.removeFromParent();
 
             }
-        } else {
-            if (bitmapText != null) {
-                this.bitmapText.setText(text);
-                if (this.bitmapText.getParent() == null) widgetNode.attachChild(this.bitmapText);
-
-            } else if (stringContainer != null) {
-                this.stringContainer.setText(text);
-                if (this.trueTypeContainer.getParent() == null) widgetNode.attachChild(this.trueTypeContainer);
-                this.trueTypeContainer.updateGeometry();
-
+        } else if (bitmapText != null) {
+            this.bitmapText.setText(text);
+            if (this.bitmapText.getParent() == null) {
+                widgetNode.attachChild(this.bitmapText);
             }
+
+        } else if (stringContainer != null) {
+            this.stringContainer.setText(text);
+            if (this.trueTypeContainer.getParent() == null) {
+                widgetNode.attachChild(this.trueTypeContainer);
+            }
+            this.trueTypeContainer.updateGeometry();
+
         }
 
     }
 
     /**
      * Return the text value of this button
-     * @return 
+     *
+     * @return
      */
     public String getText() {
         if (bitmapText != null) {
@@ -336,14 +338,14 @@ public class TouchButton extends ImageWidget implements Touchable {
                 return "";
             } else {
                 return this.bitmapText.getText();
-            }            
+            }
 
         } else if (stringContainer != null) {
             if (this.trueTypeContainer.getParent() == null) {
                 return "";
             } else {
                 return this.stringContainer.getText();
-            }            
+            }
 
         } else {
             return null;
@@ -417,7 +419,6 @@ public class TouchButton extends ImageWidget implements Touchable {
                 effect.fireTouchDown();
             }
 
-
             for (int i = 0; i < touchButtonListeners.size(); i++) {
                 TouchButtonListener touchButtonListener = touchButtonListeners.get(i);
                 touchButtonListener.doTouchDown(x, y, tpf, id);
@@ -468,6 +469,48 @@ public class TouchButton extends ImageWidget implements Touchable {
     }
 
     @Override
+    public void fireHoverOver(float x, float y, float tpf) {
+        if (enabled && isClickable() && !isHovered()) {
+            
+            wasHovered = true;
+            lastTouchX = x;
+            lastTouchY = y;
+
+            for (Effect effect : effects) {
+                effect.fireHoverOver();
+            }
+            for (int i = 0; i < touchButtonListeners.size(); i++) {
+                TouchButtonListener touchButtonListener = touchButtonListeners.get(i);
+                touchButtonListener.doHoverOver(x, y, tpf, id);
+            }
+
+
+        }
+
+    }
+    
+    @Override
+    public void fireHoverOff(float x, float y, float tpf) {
+        if (enabled && isClickable() && isHovered()) {
+                       
+            lastTouchX = x;
+            lastTouchY = y;
+
+            for (Effect effect : effects) {
+                effect.fireHoverOff();
+            }
+            for (int i = 0; i < touchButtonListeners.size(); i++) {
+                TouchButtonListener touchButtonListener = touchButtonListeners.get(i);
+                touchButtonListener.doHoverOff(x, y, tpf, id);
+            }
+
+            wasHovered = false;
+
+        }
+
+    }    
+
+    @Override
     public void fireTouchMove(float x, float y, float tpf) {
         if (enabled && isTouched() && isClickable()) {
             lastTouchX = x;
@@ -480,6 +523,11 @@ public class TouchButton extends ImageWidget implements Touchable {
     public boolean isTouched() {
         return wasDown;
     }
+    
+    @Override
+    public boolean isHovered() {
+        return wasHovered;
+    }    
 
     /**
      * Use this method to set the TouchButtonListener
@@ -567,7 +615,6 @@ public class TouchButton extends ImageWidget implements Touchable {
 
         }
 
-
     }
 
     @Override
@@ -618,9 +665,16 @@ public class TouchButton extends ImageWidget implements Touchable {
 
         }
     }
-    
+
     public void setId(String id) {
         this.id = id;
         this.setName(id);
+    }
+
+    public void setTextOffset(Vector3f offset) {
+        if (bitmapText != null) {
+            bitmapText.move(offset.x, offset.y, offset.z);
+        }
+
     }
 }

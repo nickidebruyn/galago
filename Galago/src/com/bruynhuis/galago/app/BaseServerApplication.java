@@ -9,6 +9,7 @@ import com.bruynhuis.galago.network.game.NetworkGame;
 import com.bruynhuis.galago.network.game.NetworkObject;
 import com.bruynhuis.galago.network.game.NetworkPlayer;
 import com.bruynhuis.galago.network.messages.AddObjectMessage;
+import com.bruynhuis.galago.network.messages.ChangePlayerStateMessage;
 import com.bruynhuis.galago.network.messages.NetworkGameMessage;
 import com.bruynhuis.galago.network.messages.CreateGameMessage;
 import com.bruynhuis.galago.network.messages.ExitGameMessage;
@@ -17,8 +18,10 @@ import com.bruynhuis.galago.network.messages.GameCreatedMessage;
 import com.bruynhuis.galago.network.messages.GameListMessage;
 import com.bruynhuis.galago.network.messages.GameNotAvailableMessage;
 import com.bruynhuis.galago.network.messages.GamePlayerLimitReachedMessage;
+import com.bruynhuis.galago.network.messages.GameStateMessage;
 import com.bruynhuis.galago.network.messages.JoinGameMessage;
 import com.bruynhuis.galago.network.messages.ObjectCollisionMessage;
+import com.bruynhuis.galago.network.messages.ObjectDamageMessage;
 import com.bruynhuis.galago.network.messages.ObjectDestroyMessage;
 import com.bruynhuis.galago.network.messages.ObjectForceMessage;
 import com.bruynhuis.galago.network.messages.ObjectLifeTimerMessage;
@@ -31,15 +34,19 @@ import com.bruynhuis.galago.network.messages.PlayerJumpMessage;
 import com.bruynhuis.galago.network.messages.PlayerLeftGameMessage;
 import com.bruynhuis.galago.network.messages.PlayerMoveMessage;
 import com.bruynhuis.galago.network.messages.PlayerRespawnMessage;
+import com.bruynhuis.galago.network.messages.PlayerScoreMessage;
 import com.bruynhuis.galago.network.messages.PlayerStateMessage;
 import com.bruynhuis.galago.network.messages.PlayerWalkMessage;
 import com.bruynhuis.galago.network.messages.PlayerWithPlayerCollisionMessage;
 import com.bruynhuis.galago.network.messages.RequestGameListMessage;
+import com.bruynhuis.galago.network.messages.StartGameMessage;
+import com.bruynhuis.galago.network.messages.StopGameMessage;
 import com.bruynhuis.galago.util.Timer;
 import com.jme3.app.SimpleApplication;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.jme3.network.AbstractMessage;
 import com.jme3.network.ConnectionListener;
 import com.jme3.network.Filters;
 import com.jme3.network.HostedConnection;
@@ -48,6 +55,7 @@ import com.jme3.network.MessageListener;
 import com.jme3.network.Network;
 import com.jme3.network.Server;
 import com.jme3.network.serializing.Serializer;
+import com.jme3.network.service.serializer.ServerSerializerRegistrationsService;
 import com.jme3.system.JmeContext;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -81,41 +89,57 @@ public abstract class BaseServerApplication extends SimpleApplication implements
         this.portUdp = portUdp;
         this.version = version;
         start(JmeContext.Type.Headless);
+
     }
 
     protected void registerMessages() {
-        Serializer.registerClasses(CreateGameMessage.class,
-                JoinGameMessage.class,
-                GameListMessage.class,
-                RequestGameListMessage.class,
-                NetworkGameMessage.class,
-                GameClosedMessage.class,
-                GameCreatedMessage.class,
-                ExitGameMessage.class,
-                GameNotAvailableMessage.class,
-                PlayerStateMessage.class,
-                PlayerLeftGameMessage.class,
-                PlayerMoveMessage.class,
-                GamePlayerLimitReachedMessage.class,
-                AddObjectMessage.class,
-                ObjectStateMessage.class,
-                PlayerForceMessage.class,
-                PlayerJumpMessage.class,
-                PlayerWalkMessage.class,
-                PlayerDamageMessage.class,
-                PlayerRespawnMessage.class,
-                ObjectForceMessage.class,
-                ObjectLifeTimerMessage.class,
-                ObjectCollisionMessage.class,
-                PlayerCollisionMessage.class,
-                PlayerWithPlayerCollisionMessage.class,
-                ObjectDestroyMessage.class,
-                PlayerDisableMessage.class);
-        log("Registering messages");
+        try {
+
+            Serializer.registerClasses(CreateGameMessage.class,
+                    JoinGameMessage.class,
+                    GameListMessage.class,
+                    GameStateMessage.class,
+                    StopGameMessage.class,
+                    StartGameMessage.class,
+                    RequestGameListMessage.class,
+                    NetworkGameMessage.class,
+                    GameClosedMessage.class,
+                    GameCreatedMessage.class,
+                    ExitGameMessage.class,
+                    GameNotAvailableMessage.class,
+                    PlayerStateMessage.class,
+                    PlayerLeftGameMessage.class,
+                    PlayerMoveMessage.class,
+                    GamePlayerLimitReachedMessage.class,
+                    AddObjectMessage.class,
+                    ObjectStateMessage.class,
+                    PlayerForceMessage.class,
+                    PlayerJumpMessage.class,
+                    PlayerWalkMessage.class,
+                    PlayerDamageMessage.class,
+                    PlayerScoreMessage.class,
+                    PlayerRespawnMessage.class,
+                    ObjectForceMessage.class,
+                    ObjectLifeTimerMessage.class,
+                    ObjectCollisionMessage.class,
+                    PlayerCollisionMessage.class,
+                    PlayerWithPlayerCollisionMessage.class,
+                    ObjectDestroyMessage.class,
+                    ObjectDamageMessage.class,
+                    PlayerDisableMessage.class,
+                    ChangePlayerStateMessage.class);
+            log("Registering messages");
+        } catch (Exception e) {
+            log("Messages already registered : " + e.getMessage());
+        }
+
     }
 
     protected void createServer() throws IOException {
         server = Network.createServer(title, version, portTcp, portUdp);
+        //This is a fix for a known bug
+        server.getServices().removeService(server.getServices().getService(ServerSerializerRegistrationsService.class));
+        //start the server
         server.start();
         log("Started and waiting clients");
 
@@ -126,6 +150,9 @@ public abstract class BaseServerApplication extends SimpleApplication implements
             server.addConnectionListener(this);
             server.addMessageListener(this,
                     CreateGameMessage.class,
+                    GameStateMessage.class,
+                    StopGameMessage.class,
+                    StartGameMessage.class,
                     JoinGameMessage.class,
                     GameListMessage.class,
                     NetworkGameMessage.class,
@@ -138,14 +165,17 @@ public abstract class BaseServerApplication extends SimpleApplication implements
                     PlayerJumpMessage.class,
                     PlayerWalkMessage.class,
                     PlayerDamageMessage.class,
+                    PlayerScoreMessage.class,
                     PlayerRespawnMessage.class,
                     ObjectForceMessage.class,
                     ObjectLifeTimerMessage.class,
                     PlayerWithPlayerCollisionMessage.class,
-                    ObjectDestroyMessage.class);
+                    ObjectDestroyMessage.class,
+                    ObjectDamageMessage.class,
+                    ChangePlayerStateMessage.class);
             log("Listeners registered");
         } else {
-            System.err.println("Failed to reigster listeners");
+            System.err.println("Failed to register listeners");
         }
     }
 
@@ -212,6 +242,7 @@ public abstract class BaseServerApplication extends SimpleApplication implements
                     networkGame.setRandomSpawnPoint(gameMessage.isRandomSpawnPoint());
                     networkGame.setSpawnPoints(gameMessage.getSpawnPoints());
                     networkGame.setGravity(gameMessage.getGravity());
+                    networkGame.setKeepOpen(gameMessage.isKeepOpen());
                     networkGame.load();
 
                     games.put(networkGame.getGameId(), networkGame);
@@ -227,8 +258,28 @@ public abstract class BaseServerApplication extends SimpleApplication implements
         } else if (m instanceof ExitGameMessage) {
             ExitGameMessage exitGameMessage = (ExitGameMessage) m;
 
-            removeCreatorGame(source.getId());
-            removePlayerFromGame(games.get(exitGameMessage.getGameId()), source.getId());
+            removeCreatorGame(exitGameMessage.getPlayerId());
+            removePlayerFromGame(games.get(exitGameMessage.getGameId()), exitGameMessage.getPlayerId());
+
+        } else if (m instanceof StartGameMessage) {
+            StartGameMessage startGameMessage = (StartGameMessage) m;
+
+            NetworkGame game = games.get(startGameMessage.getGameId());
+            if (game == null) {
+                source.send(new GameNotAvailableMessage(startGameMessage.getGameId()));
+            } else {
+                game.start();
+            }
+
+        } else if (m instanceof StopGameMessage) {
+            StopGameMessage stopGameMessage = (StopGameMessage) m;
+
+            NetworkGame game = games.get(stopGameMessage.getGameId());
+            if (game == null) {
+                source.send(new GameNotAvailableMessage(stopGameMessage.getGameId()));
+            } else {
+                game.stop();
+            }
 
         } else if (m instanceof JoinGameMessage) {
             JoinGameMessage joinGameMessage = (JoinGameMessage) m;
@@ -251,17 +302,18 @@ public abstract class BaseServerApplication extends SimpleApplication implements
                     Vector3f randomPosition = null;
                     if (game.isRandomSpawnPoint()) {
                         randomPosition = game.getSpawnPoints().get(FastMath.nextRandomInt(0, game.getSpawnPoints().size() - 1)).clone();
-                        
+
                     } else {
                         randomPosition = game.getSpawnPoints().get(game.getPlayers().size()).clone();
-                        
+
                     }
-                    
+
                     Quaternion rotation = Quaternion.IDENTITY.clone();
 
-                    //2. Add the player to the network game
-                    NetworkPlayer networkPlayer = new NetworkPlayer(game, source.getId(), joinGameMessage.getPlayerName(), randomPosition, rotation);
+                    //2. Add the player to the network game                    
+                    NetworkPlayer networkPlayer = new NetworkPlayer(game, joinGameMessage.getPlayerId(), joinGameMessage.getPlayerName(), randomPosition, rotation);
                     networkPlayer.setPlayerType(joinGameMessage.getPlayerType());
+                    networkPlayer.setNetworkClient(joinGameMessage.isNetworkClient());
                     networkPlayer.setCollisionType(joinGameMessage.getCollisionType());
                     networkPlayer.setHalfExtends(joinGameMessage.getHalfExtends());
                     networkPlayer.setMass(joinGameMessage.getMass());
@@ -272,9 +324,12 @@ public abstract class BaseServerApplication extends SimpleApplication implements
                     networkPlayer.setRotationLock(joinGameMessage.getRotationLock());
                     networkPlayer.setInitialForce(joinGameMessage.getInitialForce());
                     networkPlayer.setInitialGravity(joinGameMessage.getInitialGravity());
+                    networkPlayer.setInitialViewDirection(joinGameMessage.getInitialViewDirection());
                     networkPlayer.setHealth(joinGameMessage.getHealth());
                     networkPlayer.setScore(joinGameMessage.getScore());
                     networkPlayer.setLoot(joinGameMessage.getLoot());
+                    networkPlayer.setCollisionGroup(joinGameMessage.getCollisionGroup());
+                    networkPlayer.setCollideWithGroups(joinGameMessage.getCollideWithGroups());
                     game.addPlayer(networkPlayer);
 
                     return null;
@@ -308,6 +363,10 @@ public abstract class BaseServerApplication extends SimpleApplication implements
                     networkObject.setInitialGravity(addObjectMessage.getInitialGravity());
                     networkObject.setFriction(addObjectMessage.getFriction());
                     networkObject.setRestitution(addObjectMessage.getRestitution());
+                    networkObject.setHealth(addObjectMessage.getHealth());
+                    networkObject.setSensor(addObjectMessage.isSensor());
+                    networkObject.setCollisionGroup(addObjectMessage.getCollisionGroup());
+                    networkObject.setCollideWithGroups(addObjectMessage.getCollideWithGroups());
                     game.addObject(networkObject);
                     return null;
                 }
@@ -321,28 +380,44 @@ public abstract class BaseServerApplication extends SimpleApplication implements
 
             NetworkGame networkGame = games.get(playerMoveMessage.getGameId());
             if (networkGame != null) {
-                NetworkPlayer networkPlayer = networkGame.getPlayers().get(playerMoveMessage.getPlayerId());
+                final NetworkPlayer networkPlayer = networkGame.getPlayers().get(playerMoveMessage.getPlayerId());
                 if (networkPlayer != null) {
+//                    log("SERVER: Move player >>>> " + playerMoveMessage.getPlayerId());
 
                     enqueue(new Callable<Void>() {
                         @Override
                         public Void call() throws Exception {
-                            if (networkPlayer.getPhysicsRigidBody() == null) {
+//                            log("SERVER: Move character control player on server...pos = " + playerMoveMessage.getPosition());
+
+                            if (networkPlayer.getNetworkCharacterControl() != null) {
+//                                log("SERVER: Move character with character control, " + networkPlayer.getNetworkCharacterControl());
+//                        networkPlayer.getPhysicsRigidBody().setLinearVelocity(new Vector3f(0, 0, 0));
+//                        networkPlayer.getPhysicsRigidBody().setAngularVelocity(new Vector3f(0, 0, 0));
+                                if (playerMoveMessage.isClearForces()) {
+                                    log("CLEARING FORCES\n\n\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+                                    networkPlayer.getNetworkCharacterControl().getPhysicsRigidBody().clearForces();
+                                    networkPlayer.getNetworkCharacterControl().getPhysicsRigidBody().setLinearVelocity(new Vector3f(0, 0, 0));
+                                    networkPlayer.getNetworkCharacterControl().getPhysicsRigidBody().setAngularVelocity(new Vector3f(0, 0, 0));
+                                }
+
+                                networkPlayer.getNetworkCharacterControl().warp(playerMoveMessage.getPosition().clone());
+
+                            } else if (networkPlayer.getPhysicsRigidBody() == null) {
+//                                log("SERVER: Move character no rigid body");
                                 networkPlayer.setPosition(playerMoveMessage.getPosition());
                                 networkPlayer.setRotation(playerMoveMessage.getRotation());
 
                             } else if (networkPlayer.getPhysicsRigidBody() != null) {
+//                                log("SERVER: Move character with rigid body, " + networkPlayer.getPhysicsRigidBody());
                                 networkPlayer.getPhysicsRigidBody().setLinearVelocity(new Vector3f(0, 0, 0));
                                 networkPlayer.getPhysicsRigidBody().setAngularVelocity(new Vector3f(0, 0, 0));
-                                networkPlayer.getPhysicsRigidBody().clearForces();
+                                if (playerMoveMessage.isClearForces()) {
+                                    networkPlayer.getPhysicsRigidBody().clearForces();
+                                    networkPlayer.getPhysicsRigidBody().setLinearVelocity(new Vector3f(0, 0, 0));
+                                    networkPlayer.getPhysicsRigidBody().setAngularVelocity(new Vector3f(0, 0, 0));
+                                }
                                 networkPlayer.getPhysicsRigidBody().setPhysicsLocation(playerMoveMessage.getPosition().clone());
                                 networkPlayer.getPhysicsRigidBody().setPhysicsRotation(playerMoveMessage.getRotation().clone());
-
-                            } else if (networkPlayer.getNetworkCharacterControl() != null) {
-//                        networkPlayer.getPhysicsRigidBody().setLinearVelocity(new Vector3f(0, 0, 0));
-//                        networkPlayer.getPhysicsRigidBody().setAngularVelocity(new Vector3f(0, 0, 0));
-//                        networkPlayer.getPhysicsRigidBody().clearForces();
-                                networkPlayer.getNetworkCharacterControl().warp(playerMoveMessage.getPosition().clone());
 
                             }
 
@@ -378,6 +453,8 @@ public abstract class BaseServerApplication extends SimpleApplication implements
                     });
 
                 }
+
+                broadcastNetworkMessage(networkGame, playerJumpMessage);
 
             }
 
@@ -436,6 +513,7 @@ public abstract class BaseServerApplication extends SimpleApplication implements
 //                    broadcastAllPlayerStates(networkGame, false);
                 }
 
+                broadcastNetworkMessage(networkGame, playerForceMessage);
             }
 
         } else if (m instanceof PlayerDamageMessage) {
@@ -457,6 +535,52 @@ public abstract class BaseServerApplication extends SimpleApplication implements
                     });
 
                 }
+                broadcastNetworkMessage(networkGame, playerDamageMessage);
+
+            }
+
+        } else if (m instanceof ChangePlayerStateMessage) {
+
+            ChangePlayerStateMessage changePlayerStateMessage = (ChangePlayerStateMessage) m;
+            log("Found ChangePlayerStateMessage");
+
+            NetworkGame networkGame = games.get(changePlayerStateMessage.getGameId());
+            if (networkGame != null) {
+                NetworkPlayer networkPlayer = networkGame.getPlayers().get(changePlayerStateMessage.getPlayerId());
+                if (networkPlayer != null) {
+
+                    enqueue(new Callable<Void>() {
+                        @Override
+                        public Void call() throws Exception {
+                            networkPlayer.setState(changePlayerStateMessage.getState());
+                            return null;
+                        }
+                    });
+
+                }
+                broadcastNetworkMessage(networkGame, changePlayerStateMessage);
+
+            }
+
+        } else if (m instanceof PlayerScoreMessage) {
+
+            PlayerScoreMessage playerScoreMessage = (PlayerScoreMessage) m;
+
+            NetworkGame networkGame = games.get(playerScoreMessage.getGameId());
+            if (networkGame != null) {
+                NetworkPlayer networkPlayer = networkGame.getPlayers().get(playerScoreMessage.getPlayerId());
+                if (networkPlayer != null) {
+
+                    enqueue(new Callable<Void>() {
+                        @Override
+                        public Void call() throws Exception {
+                            networkPlayer.addScore(playerScoreMessage.getScore());
+                            return null;
+                        }
+                    });
+
+                }
+                broadcastNetworkMessage(networkGame, playerScoreMessage);
 
             }
 
@@ -472,7 +596,13 @@ public abstract class BaseServerApplication extends SimpleApplication implements
                     enqueue(new Callable<Void>() {
                         @Override
                         public Void call() throws Exception {
-                            Vector3f randomPosition = networkGame.getSpawnPoints().get(FastMath.nextRandomInt(0, networkGame.getSpawnPoints().size() - 1)).clone();
+                            Vector3f randomPosition = null;
+                            if (networkGame.isRandomSpawnPoint()) {
+                                randomPosition = networkGame.getSpawnPoints().get(FastMath.nextRandomInt(0, networkGame.getSpawnPoints().size() - 1)).clone();
+                            } else {
+                                randomPosition = networkPlayer.getInitialPosition().clone();
+                            }
+
                             Quaternion rotation = Quaternion.IDENTITY.clone();
 
                             networkPlayer.setPosition(randomPosition);
@@ -487,6 +617,8 @@ public abstract class BaseServerApplication extends SimpleApplication implements
                     });
 
                 }
+
+                broadcastNetworkMessage(networkGame, playerRespawnMessage);
 
             }
 
@@ -562,6 +694,26 @@ public abstract class BaseServerApplication extends SimpleApplication implements
                 }
 
             }
+
+        } else if (m instanceof ObjectDamageMessage) {
+
+            ObjectDamageMessage objectDamageMessage = (ObjectDamageMessage) m;
+
+            NetworkGame networkGame = games.get(objectDamageMessage.getGameId());
+            if (networkGame != null) {
+                NetworkObject networkObject = networkGame.getObjects().get(objectDamageMessage.getObjectId());
+                if (networkObject != null) {
+                    enqueue(new Callable<Void>() {
+                        @Override
+                        public Void call() throws Exception {
+                            networkObject.addDamage(objectDamageMessage.getDamage());
+                            return null;
+                        }
+                    });
+
+                }
+
+            }
         }
 
     }
@@ -576,6 +728,7 @@ public abstract class BaseServerApplication extends SimpleApplication implements
                     if (player.isActive()) {
                         PlayerStateMessage playerStateMessage = new PlayerStateMessage(player.getPlayerId(), player.getPlayerName(), networkGame.getGameId());
                         playerStateMessage.setPlayerType(player.getPlayerType());
+                        playerStateMessage.setState(player.getState());
 
                         if (player.getNetworkCharacterControl() != null) {
                             playerStateMessage.setPosition(player.getNetworkCharacterControl().getPhysicsRigidBody().getPhysicsLocation().clone());
@@ -594,7 +747,7 @@ public abstract class BaseServerApplication extends SimpleApplication implements
                         playerStateMessage.setLoot(player.getLoot());
 
                         playerStateMessage.setReliable(reliable);
-                        
+
                         if (player.isKilled()) {
                             player.setActive(false);
                             playerStateMessage.setReliable(true);
@@ -618,9 +771,12 @@ public abstract class BaseServerApplication extends SimpleApplication implements
                     NetworkObject object = networkGame.getObjects().get(key);
                     ObjectStateMessage objectStateMessage = new ObjectStateMessage(object.getId(), object.getName(), networkGame.getGameId());
                     objectStateMessage.setObjectType(object.getType());
-                    objectStateMessage.setPosition(object.getRigidBodyControl() == null ? object.getPosition() : object.getRigidBodyControl().getPhysicsLocation().clone());
-                    objectStateMessage.setRotation(object.getRigidBodyControl() == null ? object.getRotation() : object.getRigidBodyControl().getPhysicsRotation().clone());
+                    objectStateMessage.setPosition(object.getPosition().clone());
+                    objectStateMessage.setRotation(object.getRotation().clone());
                     objectStateMessage.setReliable(reliable);
+                    objectStateMessage.setHealth(object.getHealth());
+                    objectStateMessage.setHalfExtends(object.getHalfExtends());
+                    objectStateMessage.setRadius(object.getRadius());
 
                     if (object.isDestroyed()) {
                         log("Destroy object on server " + object.getId());
@@ -640,6 +796,27 @@ public abstract class BaseServerApplication extends SimpleApplication implements
                     networkGame.getObjects().keySet().removeAll(objectsToRemove);
 
                 }
+                return null;
+            }
+        });
+
+    }
+
+    public void broadcastGameStates(NetworkGame networkGame, final boolean reliable) {
+
+        enqueue(new Callable<Void>() {
+            public Void call() throws Exception {
+                GameStateMessage gameStateMessage = new GameStateMessage(networkGame.getGameId(), networkGame.getGameName());
+                gameStateMessage.setReliable(reliable);
+                gameStateMessage.setGameOver(networkGame.isGameover());
+                gameStateMessage.setGameStarted(networkGame.isStarted());
+                if (networkGame.isStarted()) {
+                    gameStateMessage.setElapsedTime(System.currentTimeMillis() - networkGame.getStartTime());
+                } else {
+                    gameStateMessage.setElapsedTime(0);
+                }
+
+                server.broadcast(Filters.in(getGameConnections(networkGame)), gameStateMessage);
                 return null;
             }
         });
@@ -683,7 +860,7 @@ public abstract class BaseServerApplication extends SimpleApplication implements
     }
 
     private void removeCreatorGame(int creatorId) {
-        
+
         if (games != null && games.size() > 0) {
             log("Remove game that was created by player, " + creatorId);
             enqueue(new Callable<Void>() {
@@ -691,7 +868,7 @@ public abstract class BaseServerApplication extends SimpleApplication implements
                 public Void call() throws Exception {
                     for (Iterator<NetworkGame> iterator = games.values().iterator(); iterator.hasNext();) {
                         NetworkGame game = iterator.next();
-                        if (game.getGameCreatorId() == creatorId) {
+                        if (game.getGameCreatorId() == creatorId && !game.isKeepOpen()) {
                             game.close();
                             games.remove(game.getGameId());
                             server.broadcast(Filters.in(getGameConnections(game)), new GameClosedMessage(game.getGameId()));
@@ -709,11 +886,16 @@ public abstract class BaseServerApplication extends SimpleApplication implements
         List<HostedConnection> conns = new ArrayList<>();
         for (Iterator<NetworkPlayer> iterator = game.getPlayers().values().iterator(); iterator.hasNext();) {
             NetworkPlayer player = iterator.next();
-            HostedConnection con = server.getConnection(player.getPlayerId());
-            if (con != null) {
-                conns.add(con);
 
+            //Only send to players that is a network client
+            if (player.isNetworkClient()) {
+                HostedConnection con = server.getConnection(player.getPlayerId());
+                if (con != null) {
+                    conns.add(con);
+
+                }
             }
+
         }
         return conns;
     }
@@ -738,12 +920,34 @@ public abstract class BaseServerApplication extends SimpleApplication implements
 
     }
 
+    public void broadcastNetworkMessage(NetworkGame networkGame, AbstractMessage message) {
+        if (networkGame != null && message != null) {
+
+            enqueue(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    server.broadcast(Filters.in(getGameConnections(networkGame)), message);
+                    return null;
+                }
+            });
+
+        }
+    }
+
     @Override
     public void destroy() {
         if (server != null) {
             server.close();
         }
         super.destroy();
+    }
+
+    public Server getServer() {
+        return server;
+    }
+
+    public Map<String, NetworkGame> getGames() {
+        return games;
     }
 
 }

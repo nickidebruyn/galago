@@ -95,5 +95,14 @@ public class VScrollPanel extends VPanel implements TouchButtonListener {
 
     }
     
+    @Override
+    public void doHoverOver(float touchX, float touchY, float tpf, String uid) {
+     
+    }
 
+    @Override
+    public void doHoverOff(float touchX, float touchY, float tpf, String uid) {
+        
+    }
+    
 }

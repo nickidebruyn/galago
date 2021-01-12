@@ -970,7 +970,7 @@ public abstract class Physics2DGame implements PhysicsCollisionListener {
         try {
             Platform platform = JmeSystem.getPlatform();
 
-            if (platform.compareTo(Platform.Android_ARM5) == 0 || platform.compareTo(Platform.Android_ARM6) == 0 || platform.compareTo(Platform.Android_ARM7) == 0) {
+            if (baseApplication.isMobileApp()) {
                 levelInputStream = JmeSystem.getResourceAsStream("/assets/Levels/" + levelfile);
 
             } else {

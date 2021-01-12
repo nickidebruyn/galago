@@ -32,6 +32,7 @@ import com.galago.example.platformer2d.game.controls.PlatformVerticalControl;
 import com.galago.example.platformer2d.game.controls.PortalControl;
 import com.galago.example.platformer2d.game.terrain.CrateControl;
 import com.galago.example.platformer2d.game.terrain.GlassControl;
+import com.jme3.material.RenderState;
 import com.jme3.system.JmeSystem;
 import com.jme3.system.Platform;
 import java.io.File;
@@ -78,7 +79,7 @@ public class Game extends Platform2DGame {
         try {
             Platform platform = JmeSystem.getPlatform();
 
-            if (platform.compareTo(Platform.Android_ARM5) == 0 || platform.compareTo(Platform.Android_ARM6) == 0 || platform.compareTo(Platform.Android_ARM7) == 0) {
+            if (baseApplication.isMobileApp()) {
                 url = JmeSystem.getResource("/assets/Textures/terrain/");
 
             } else {
@@ -282,7 +283,8 @@ public class Game extends Platform2DGame {
 
         sprite = new Sprite(item, size, size);
         sprite.setImage("Textures/" + item + ".png");
-        sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//        sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.55f);
+        sprite.getMaterial().getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
 
         BoxCollisionShape collisionShape = new BoxCollisionShape(sprite.getWidth(), sprite.getHeight());
 
@@ -299,7 +301,7 @@ public class Game extends Platform2DGame {
             terrainRigidBodyControl.addCollisionShape(collisionShape);
         }
 
-        sprite.setQueueBucket(RenderQueue.Bucket.Transparent);
+//        sprite.setQueueBucket(RenderQueue.Bucket.Transparent);
 
         return sprite;
     }
@@ -316,7 +318,7 @@ public class Game extends Platform2DGame {
         if (item.endsWith("glass")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/terrain/terrain-glass.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
 //            sprite.getMaterial().getAdditionalRenderState().setBlendMode(RenderState.BlendMode.PremultAlphas); 
             RigidBodyControl rigidBodyControl = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth(), sprite.getHeight()), 0);
             rigidBodyControl.setRestitution(0);
@@ -329,7 +331,7 @@ public class Game extends Platform2DGame {
         if (item.endsWith("ice")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/terrain/terrain-ice.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
 //            sprite.getMaterial().getAdditionalRenderState().setBlendMode(RenderState.BlendMode.PremultAlphas); 
             RigidBodyControl rigidBodyControl = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth(), sprite.getHeight()), 0);
             rigidBodyControl.setRestitution(0);
@@ -342,7 +344,7 @@ public class Game extends Platform2DGame {
         if (item.endsWith("crate")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/terrain/terrain-crate2.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             RigidBodyControl rigidBodyControl = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth(), sprite.getHeight()), 0);
             rigidBodyControl.setRestitution(0);
             rigidBodyControl.setFriction(1f);
@@ -354,7 +356,7 @@ public class Game extends Platform2DGame {
         if (item.endsWith("platform-horizontal")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/static/metal-platform.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             RigidBodyControl body = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth() * 0.95f, sprite.getHeight() * 0.95f), 0);
             body.setRestitution(0);
             body.setFriction(1f);
@@ -367,7 +369,7 @@ public class Game extends Platform2DGame {
         if (item.endsWith("platform-vertical")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/static/metal-platform.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             RigidBodyControl body = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth() * 0.95f, sprite.getHeight() * 0.95f), 0);
             body.setRestitution(0);
             body.setFriction(1f);
@@ -380,7 +382,7 @@ public class Game extends Platform2DGame {
         if (item.endsWith("mushroom")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/static/mushroom.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             RigidBodyControl body = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth(), sprite.getHeight() * 0.4f), 0);
             body.setRestitution(0);
             body.setFriction(1f);
@@ -394,7 +396,7 @@ public class Game extends Platform2DGame {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setUserData("target", "blue-out");
             sprite.setImage("Textures/static/portal-blue.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             RigidBodyControl body = new RigidBodyControl(new CircleCollisionShape(TILE_SIZE * 0.4f), 0);
             body.setRestitution(0);
             body.setFriction(1f);
@@ -414,7 +416,7 @@ public class Game extends Platform2DGame {
             sprite.setUserData("type", "blue-out");
             sprite.setImage("Textures/static/portal-blue.png");
             sprite.setLocalTranslation(0, 0, 0.01f);
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             RigidBodyControl body = new RigidBodyControl(new CircleCollisionShape(TILE_SIZE * 0.4f), 0);
             body.setRestitution(0);
             body.setFriction(1f);
@@ -432,7 +434,7 @@ public class Game extends Platform2DGame {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setUserData("target", "yellow-out");
             sprite.setImage("Textures/static/portal-yellow.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             RigidBodyControl body = new RigidBodyControl(new CircleCollisionShape(TILE_SIZE * 0.4f), 0);
             body.setRestitution(0);
             body.setFriction(1f);
@@ -452,7 +454,7 @@ public class Game extends Platform2DGame {
             sprite.setUserData("type", "yellow-out");
             sprite.setImage("Textures/static/portal-yellow.png");
             sprite.setLocalTranslation(0, 0, 0.01f);
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             RigidBodyControl body = new RigidBodyControl(new CircleCollisionShape(TILE_SIZE * 0.4f), 0);
             body.setRestitution(0);
             body.setFriction(1f);
@@ -470,7 +472,7 @@ public class Game extends Platform2DGame {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setUserData("target", "purple-out");
             sprite.setImage("Textures/static/portal-purple.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             RigidBodyControl body = new RigidBodyControl(new CircleCollisionShape(TILE_SIZE * 0.4f), 0);
             body.setRestitution(0);
             body.setFriction(1f);
@@ -490,7 +492,7 @@ public class Game extends Platform2DGame {
             sprite.setUserData("type", "purple-out");
             sprite.setImage("Textures/static/portal-purple.png");
             sprite.setLocalTranslation(0, 0, 0.01f);
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             RigidBodyControl body = new RigidBodyControl(new CircleCollisionShape(TILE_SIZE * 0.4f), 0);
             body.setRestitution(0);
             body.setFriction(1f);
@@ -507,7 +509,7 @@ public class Game extends Platform2DGame {
         if (item.endsWith("mover-right")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/static/mover.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
 
             sprite.addControl(new MoverControl(this, new Vector3f(1, 0, 0)));
 
@@ -523,7 +525,7 @@ public class Game extends Platform2DGame {
         if (item.endsWith("mover-left")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/static/mover.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             sprite.addControl(new MoverControl(this, new Vector3f(-1, 0, 0)));
             sprite.rotate(0, 0, 180 * FastMath.DEG_TO_RAD);
 
@@ -539,7 +541,7 @@ public class Game extends Platform2DGame {
         if (item.endsWith("mover-up")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/static/mover.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             sprite.addControl(new MoverControl(this, new Vector3f(0, 1, 0)));
             sprite.rotate(0, 0, 90 * FastMath.DEG_TO_RAD);
 
@@ -555,7 +557,7 @@ public class Game extends Platform2DGame {
         if (item.endsWith("mover-down")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/static/mover.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             sprite.addControl(new MoverControl(this, new Vector3f(0, -1, 0)));
             sprite.rotate(0, 0, 270 * FastMath.DEG_TO_RAD);
 
@@ -583,7 +585,7 @@ public class Game extends Platform2DGame {
         if (item.endsWith("spike-up")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/obstacle/spikes.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             RigidBodyControl terrainBody = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth(), TILE_SIZE * 0.15f), 0);
             terrainBody.setRestitution(0);
             terrainBody.setFriction(1f);
@@ -595,7 +597,7 @@ public class Game extends Platform2DGame {
         if (item.endsWith("spike-down")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/obstacle/spikes.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             RigidBodyControl terrainBody = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth(), TILE_SIZE * 0.15f), 0);
             terrainBody.setRestitution(0);
             terrainBody.setFriction(1f);
@@ -609,7 +611,7 @@ public class Game extends Platform2DGame {
         if (item.endsWith("spike-left")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/obstacle/spikes.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             RigidBodyControl terrainBody = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth(), TILE_SIZE * 0.15f), 0);
             terrainBody.setRestitution(0);
             terrainBody.setFriction(1f);
@@ -623,7 +625,7 @@ public class Game extends Platform2DGame {
         if (item.endsWith("spike-right")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/obstacle/spikes.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             RigidBodyControl terrainBody = new RigidBodyControl(new BoxCollisionShape(sprite.getWidth(), TILE_SIZE * 0.15f), 0);
             terrainBody.setRestitution(0);
             terrainBody.setFriction(1f);
@@ -637,7 +639,7 @@ public class Game extends Platform2DGame {
         if (item.endsWith("blade-vertical")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/obstacle/blade.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             RigidBodyControl body = new RigidBodyControl(new CircleCollisionShape(sprite.getWidth() * 0.5f), 0);
             body.setRestitution(0);
             body.setFriction(1f);
@@ -651,7 +653,7 @@ public class Game extends Platform2DGame {
         if (item.endsWith("blade-horizontal")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/obstacle/blade.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             RigidBodyControl body = new RigidBodyControl(new CircleCollisionShape(sprite.getWidth() * 0.5f), 0);
             body.setRestitution(0);
             body.setFriction(1f);
@@ -667,7 +669,7 @@ public class Game extends Platform2DGame {
         if (item.endsWith("spike-ball")) {
             sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
             sprite.setImage("Textures/obstacle/spike-ball.png");
-            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//            sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
             RigidBodyControl body = new RigidBodyControl(new CircleCollisionShape(sprite.getWidth() * 0.5f), 1);
             body.setRestitution(0.2f);
             body.setFriction(0.5f);
@@ -709,7 +711,7 @@ public class Game extends Platform2DGame {
     private Sprite getStart(String item) {
         Sprite sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
         sprite.setMaterial(baseApplication.getAssetManager().loadMaterial("Materials/other/start.j3m"));
-        sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//        sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
         sprite.setLocalTranslation(0, 0, 0.01f);
         sprite.setQueueBucket(RenderQueue.Bucket.Transparent);
         return sprite;
@@ -724,7 +726,7 @@ public class Game extends Platform2DGame {
     private Sprite getEnd(String item) {
         Sprite sprite = new Sprite(item, TILE_SIZE, TILE_SIZE);
         sprite.setMaterial(baseApplication.getAssetManager().loadMaterial("Materials/other/end.j3m"));
-        sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//        sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
         sprite.setLocalTranslation(0, 0, 0.01f);
         RigidBodyControl rigidBodyControl = new RigidBodyControl(new CircleCollisionShape(TILE_SIZE * 0.4f), 0);
         rigidBodyControl.setRestitution(0);
@@ -758,7 +760,7 @@ public class Game extends Platform2DGame {
     private Sprite getPickup(String item) {
         Sprite sprite = new Sprite(item, TILE_SIZE * 0.8f, TILE_SIZE * 0.8f);
         sprite.setMaterial(baseApplication.getAssetManager().loadMaterial("Materials/pickup/star.j3m"));
-        sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
+//        sprite.getMaterial().setFloat("AlphaDiscardThreshold", 0.5f);
         sprite.setLocalTranslation(0, 0, 0.01f);
 //        RigidBodyControl rigidBodyControl = new RigidBodyControl(new CircleCollisionShape(0.4f), 0);
 //        rigidBodyControl.setRestitution(0);

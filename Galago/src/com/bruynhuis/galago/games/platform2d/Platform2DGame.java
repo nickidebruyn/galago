@@ -18,6 +18,8 @@ import com.bruynhuis.galago.sprite.Sprite;
 import com.bruynhuis.galago.sprite.physics.PhysicsCollisionListener;
 import com.bruynhuis.galago.sprite.physics.RigidBodyControl;
 import com.bruynhuis.galago.sprite.physics.shape.CollisionShape;
+import com.jme3.math.FastMath;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector2f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
@@ -94,6 +96,7 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
     protected ArrayList<String> backLayer2List = new ArrayList<>();
     protected ArrayList<String> startList = new ArrayList<>();
     protected ArrayList<String> endList = new ArrayList<>();
+    protected boolean batch = true;
 
     public Platform2DGame(Base2DApplication baseApplication, Node rootNode) {
         this.baseApplication = baseApplication;
@@ -153,20 +156,35 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
 //                log("First shape: " + tile.getxPos() + ", " + tile.getyPos());
                 CollisionShape collisionShape = (CollisionShape) tile.getSpatial().getUserData(SHAPE);
                 collisionShape.setLocation(tile.getxPos(), tile.getyPos());
+                collisionShape.setRotation(tile.getAngle() * FastMath.DEG_TO_RAD);
+
                 tile.getSpatial().setLocalTranslation(new Vector3f(tile.getxPos(), tile.getyPos(), tile.getzPos()));
+                float angles[] = {0, 0, tile.getAngle() * FastMath.DEG_TO_RAD};
+                tile.getSpatial().setLocalRotation(new Quaternion(angles));
+
             } else {
-                tile.getSpatial().getControl(RigidBodyControl.class).setPhysicLocation(new Vector3f(tile.getxPos(), tile.getyPos(), tile.getzPos()));
+                RigidBodyControl rbc = tile.getSpatial().getControl(RigidBodyControl.class);
+                rbc.setPhysicLocation(new Vector3f(tile.getxPos(), tile.getyPos(), tile.getzPos()));
+                rbc.setPhysicRotation(tile.getAngle() * FastMath.DEG_TO_RAD);
             }
 
         } else if (tile.getSpatial().getUserData(SHAPE) != null && !edit) {
 //            log("Combined shape: " + tile.getxPos() + ", " + tile.getyPos());
             CollisionShape collisionShape = (CollisionShape) tile.getSpatial().getUserData(SHAPE);
             collisionShape.setLocation(tile.getxPos(), tile.getyPos());
+            collisionShape.setRotation(tile.getAngle() * FastMath.DEG_TO_RAD);
+
             tile.getSpatial().setLocalTranslation(new Vector3f(tile.getxPos(), tile.getyPos(), tile.getzPos()));
+
+            float angles[] = {0, 0, tile.getAngle() * FastMath.DEG_TO_RAD};
+            tile.getSpatial().setLocalRotation(new Quaternion(angles));
 
         } else {
 //            log("First shape: " + tile.getxPos() + ", " + tile.getyPos());
             tile.getSpatial().setLocalTranslation(new Vector3f(tile.getxPos(), tile.getyPos(), tile.getzPos()));
+
+            float angles[] = {0, 0, tile.getAngle() * FastMath.DEG_TO_RAD};
+            tile.getSpatial().setLocalRotation(new Quaternion(angles));
         }
 
         //Add to the world
@@ -212,11 +230,24 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
 
         }
 
-        log("Tile count = " + tileMap.getTiles().size());
+//        log("Tile count = " + tileMap.getTiles().size());
     }
 
     private String getTileAsText(Tile tile) {
         return "Tile{" + "xPos=" + tile.getxPos() + ", yPos=" + tile.getyPos() + ", zPos=" + tile.getzPos() + ", uid=" + tile.getUid() + ", spatial=" + tile.getSpatial() + '}';
+    }
+
+    public void rotateTile(Tile tile) {
+        if (tile.getSpatial() != null) {
+            float angle = tile.getAngle();
+            angle += 90;
+            if (angle == 360) {
+                angle = 0;
+            }
+            tile.setAngle(angle);
+            tile.getSpatial().rotate(0, 0, 90 * FastMath.DEG_TO_RAD);
+
+        }
     }
 
     /**
@@ -310,12 +341,13 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
         }
         return selectedTile;
     }
-    
+
     /**
      * This method will return true if a tile type is at a position
+     *
      * @param position
      * @param tiletype
-     * @return 
+     * @return
      */
     public boolean hasTileAtPosition(Vector3f position, String tiletype) {
         boolean hasTile = false;
@@ -393,7 +425,6 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
         if (player != null) {
 
 //            log("Collision: " + spatialA.getName() + " with " + spatialB.getName());
-
             if (checkCollisionWithType(spatialA, spatialB, TYPE_PLAYER, TYPE_STATIC)) {
                 fireCollisionPlayerWithStaticListener(lastCollidedSpatial, lastColliderSpatial);
 
@@ -428,6 +459,9 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
 
             } else if (checkCollisionWithType(spatialA, spatialB, TYPE_ENEMY, TYPE_PICKUP)) {
                 fireCollisionEnemyWithPickupListener(lastCollidedSpatial, lastColliderSpatial);
+                
+            } else if (checkCollisionWithType(spatialA, spatialB, TYPE_BULLET, TYPE_PICKUP)) {
+                fireCollisionBulletWithPickupListener(lastCollidedSpatial, lastColliderSpatial);
 
             } else if (checkCollisionWithType(spatialA, spatialB, TYPE_TERRAIN, TYPE_BULLET)) {
                 fireCollisionTerrainWithBulletListener(lastCollidedSpatial, lastColliderSpatial);
@@ -461,12 +495,10 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
                 && ((sA.getName().startsWith(collider) && sB.getName().startsWith(type))
                 || (sA.getName().startsWith(type) && sB.getName().startsWith(collider)));
 
-
         if (collision && sB.getName().startsWith(type)) {
             lastCollidedSpatial = sB;
             lastColliderSpatial = sA;
             return true;
-
 
         } else if (collision && sA.getName().startsWith(type)) {
             lastCollidedSpatial = sA;
@@ -561,6 +593,12 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
     protected void fireCollisionEnemyWithPickupListener(Spatial collided, Spatial collider) {
         if (gameListener != null) {
             gameListener.doCollisionEnemyWithPickup(collided, collider);
+        }
+    }
+    
+    protected void fireCollisionBulletWithPickupListener(Spatial collided, Spatial collider) {
+        if (gameListener != null) {
+            gameListener.doCollisionBulletWithPickup(collided, collider);
         }
     }
 
@@ -726,7 +764,7 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
         if (baseApplication.isMobileApp()) {
 //            SpatialUtils.makeUnshaded(rootNode);
         }
-        if (!edit) {
+        if (!edit && batch) {
             ((BatchNode) terrainNode).batch();
             ((BatchNode) vegetationNode).batch();
         }
@@ -788,7 +826,7 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
      */
     public Spatial addStatic(Sprite sprite) {
         sprite.setName(TYPE_STATIC);
-        
+
         //Add it as a physics object
         if (sprite.getControl(RigidBodyControl.class) != null) {
             if (!edit) {
@@ -816,7 +854,7 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
             });
             levelNode.attachChild(sprite);
         }
-        
+
         return sprite;
 
     }
@@ -932,7 +970,6 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
         }
 
         return sprite;
-
 
     }
 
@@ -1071,6 +1108,7 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
      */
     public void edit(String levelfile) {
 //        setOptimize(false);
+        log("Level file: " + levelfile);
         edit = true;
         readEditFile(levelfile);
     }
@@ -1103,7 +1141,8 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
         try {
             Platform platform = JmeSystem.getPlatform();
 
-            if (platform.compareTo(Platform.Android_ARM5) == 0 || platform.compareTo(Platform.Android_ARM6) == 0 || platform.compareTo(Platform.Android_ARM7) == 0) {
+//            if (platform.compareTo(Platform.Android_ARM5) == 0 || platform.compareTo(Platform.Android_ARM6) == 0 || platform.compareTo(Platform.Android_ARM7) == 0) {
+            if (baseApplication.isMobileApp()) {
                 levelInputStream = JmeSystem.getResourceAsStream("/assets/Levels/" + levelfile);
 
             } else {
@@ -1215,7 +1254,6 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
                             }
                         }
 
-
                     }
 
                 }
@@ -1226,5 +1264,9 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
 
     public boolean isEdit() {
         return edit;
+    }
+
+    public void unlockDiamonds() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

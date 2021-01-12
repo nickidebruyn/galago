@@ -33,6 +33,7 @@ import com.bruynhuis.galago.ui.panel.Panel;
 import com.bruynhuis.galago.ui.window.Window;
 import com.bruynhuis.galago.listener.KeyboardInputListener;
 import com.bruynhuis.galago.listener.LiveCameraListener;
+import com.bruynhuis.galago.listener.AndroidInputEvent;
 import com.bruynhuis.galago.listener.PauseListener;
 import com.bruynhuis.galago.listener.RemoteActionListener;
 import com.bruynhuis.galago.listener.RewardAdListener;
@@ -70,7 +71,9 @@ import com.jme3.texture.Image;
 import com.jme3.texture.Texture2D;
 import com.jme3.texture.plugins.AndroidNativeImageLoader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import com.bruynhuis.galago.listener.AndroidInputEventListener;
 
 /**
  * When using this Galago game library you need to extend the BaseApplication.
@@ -83,7 +86,7 @@ import java.util.HashMap;
  * @author nickidebruyn
  */
 public abstract class BaseApplication extends SimpleApplication implements TouchListener, ActionListener, AnalogListener, FadeListener, PauseListener {
-
+    
     public static final String KEYBOARD_ESCAPE_EVENT = "KEYBOARD_ESCAPE_EVENT";
     public static final String MOUSE_CLICK_EVENT = "MOUSE_CLICK_EVENT";
     public static final String MOUSE_MOVE_EVENT = "MOUSE_MOVE_EVENT";
@@ -105,6 +108,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     protected MessageManager messageManager;
     protected FontManager fontManager;
     private int loadingCounter = 0;
+    private int completedCounter = 0;
     private boolean loading = false;
     private int loadingTotalCount = 20;
     private Timer loadingTimer = new Timer(1f);
@@ -118,6 +122,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     protected SavedGameListener savedGameListener;
     protected PauseListener pauseListener;
     protected SensorListener sensorListener;
+    protected ArrayList<AndroidInputEventListener> androidInputEventListeners = new ArrayList<>();
     protected LiveCameraListener liveCameraListener;
     protected RewardAdListener rewardAdListener;
     public static final String TYPE = "TYPE";
@@ -211,11 +216,11 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         if (gameFont == null) {
             gameFont = "Fonts/OpenSans.fnt";
         }
-
+        
         FontManager.DEFAULT_FONT = gameFont;
-
+        
         this.SPLASH_IMAGE = splashImage;
-
+        
         AppSettings settings = new AppSettings(true);
         settings.setTitle(title);
         if (widthSample == 0 || heightSample == 0) {
@@ -225,7 +230,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
             settings.setWidth((int) widthSample);
             settings.setHeight((int) heightSample);
         }
-
+        
         settings.setVSync(true);
         settings.setUseJoysticks(true);
         settings.setSettingsDialogImage(null);
@@ -235,14 +240,14 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 //        settings.setSettingsDialogImage(splashImage);
         setSettings(settings);
         setPauseOnLostFocus(false);
-
+        
         if (resizable) {
             start();
         } else {
             start(JmeContext.Type.Display);
         }
     }
-
+    
     public BaseApplication(String title, float width, float height, String gameSaveFileName, String gameFont, String splashImage, boolean resizable) {
         this(title, width, height, gameSaveFileName, gameFont, splashImage, resizable, 0, 0);
     }
@@ -264,28 +269,28 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         flyCam.setEnabled(false);
         viewPort.setBackgroundColor(BACKGROUND_COLOR);
     }
-
+    
     @Override
     public void simpleInitApp() {
-
+        
         Tween.registerAccessor(Widget.class, new WidgetAccessor());
         Tween.registerAccessor(Spatial.class, new SpatialAccessor());
         Tween.registerAccessor(ColorRGBA.class, new ColorAccessor());
         Tween.registerAccessor(Vector3f.class, new Vector3fAccessor());
-
+        
         tweenManager = new TweenManager();
         tweenManagerPhysics = new TweenManager();
         messageManager = new MessageManager(this);
-
+        
         addPauseListener(this);
-
+        
         assetManager.registerLoader(TrueTypeLoader.class, "ttf");
         if (isMobileApp()) {
 //            assetManager.registerLoader(AndroidImageLoader.class, "jpg", "bmp", "gif", "png", "jpeg");            
         }
-
+        
         preInitApp();
-
+        
         initCamera();
 
         //Needs to happen here because the splash image uses it.
@@ -299,21 +304,21 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         fontManager.loadFont(new FontStyle(18));
         fontManager.loadFont(new FontStyle(20));
         fontManager.loadFont(new FontStyle(22));
-
+        
         initSplash();
-
+        
         loading = true;
         loadingTimer.start();
-
+        
         if (record) {
             recorderAppState = new VideoRecorderAppState();
             stateManager.attach(recorderAppState);
         }
-
+        
         if (stateManager.getState(StatsAppState.class) != null) {
             StatsAppState statsAppState = stateManager.getState(StatsAppState.class);
             stateManager.detach(statsAppState);
-
+            
         }
     }
 
@@ -329,7 +334,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
      * normally call to showScreen("menu").
      */
     protected abstract void postInitApp();
-
+    
     @Override
     public void doPause(boolean pause) {
         if (pause) {
@@ -346,12 +351,12 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         gameSaves = new GameSaves(this.gameSaveFileName);
         gameSaves.read();
     }
-
+    
     private void updateProgress(String text, int progress) {
         info.setText(text);
         loadingBar.setProgress((float) progress / (float) loadingTotalCount);
     }
-
+    
     @Override
     public void simpleUpdate(float tpf) {
         tweenManager.update(tpf);
@@ -374,100 +379,108 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 //
 //        }
         if (loading) {
-
+            
             loadingTimer.update(tpf);
             if (loadingTimer.finished()) {
                 loadingCounter++;
                 loadingTimer.reset();
             }
-
-            if (loadingCounter == 1) {
+            
+            if (loadingCounter == 1 && completedCounter != 1) {
                 updateProgress("Loading save data...", loadingCounter);
                 initGameSaves();
                 SharedSystem.getInstance().setBaseApplication(this);
+                completedCounter = 1;
             }
-
-            if (loadingCounter == 2) {
+            
+            if (loadingCounter == 2 && completedCounter != 2) {
                 updateProgress("Loading input...", loadingCounter);
                 initInput();
+                completedCounter = 2;
             }
-
-            if (loadingCounter == 3) {
+            
+            if (loadingCounter == 3 && completedCounter != 3) {
                 updateProgress("Loading models...", loadingCounter);
                 modelManager = new ModelManager(this);
                 initModelManager(modelManager);
+                completedCounter = 3;
             }
-
-            if (loadingCounter == 4) {
+            
+            if (loadingCounter == 4 && completedCounter != 4) {
                 updateProgress("Loading fonts...", loadingCounter);
                 //Load any fonts to be used                
                 initFonts(fontManager);
-
+                completedCounter = 4;
+                
             }
-
-            if (loadingCounter == 5) {
+            
+            if (loadingCounter == 5 && completedCounter != 5) {
                 updateProgress("Loading fx...", loadingCounter);
                 effectManager = new EffectManager(this);
                 initEffect(effectManager);
-
+                completedCounter = 5;
+                
             }
-
-            if (loadingCounter == 6) {
+            
+            if (loadingCounter == 6 && completedCounter != 6) {
                 if (isPhysicsEnabled()) {
                     updateProgress("Loading physics...", loadingCounter);
                     initPhysics();
                 }
+                completedCounter = 6;
             }
-
-            if (loadingCounter == 7) {
+            
+            if (loadingCounter == 7 && completedCounter != 7) {
+                log("Loading screens");
                 updateProgress("Loading screens...", loadingCounter);
                 screenManager = new ScreenManager(this);
                 initScreens(screenManager);
+                completedCounter = 7;
             }
-
+            
             if (loadingCounter == 8) {
                 updateProgress("Loading sounds...", loadingCounter);
                 soundNode = new Node("Sound Node");
                 rootNode.attachChild(soundNode);
                 soundManager = new SoundManager(this, soundNode);
                 initSound(soundManager);
-
+                
                 if (getGameSaves() != null && getGameSaves().getGameData() != null) {
                     soundManager.muteMusic(!getGameSaves().getGameData().isMusicOn());
                     soundManager.muteSound(!getGameSaves().getGameData().isSoundOn());
                 } else {
                     info.setText("");
                 }
-
+                
                 loadingTotalCount = 8 + getSoundManager().getSoundFx().size();
                 soundLoadingTimer.start();
-
+                
             }
-
+            
             if (loadingCounter > 8) {
                 updateProgress("Loading music...", loadingCounter);
                 loadingTimer.stop();
-
+                
                 soundLoadingTimer.update(tpf);
-
+                
                 if (soundLoadingTimer.finished()) {
-
+                    
                     int count = getSoundManager().getCompletedPreloadedSoundFXCount();
                     if (count < getSoundManager().getSoundFx().size()) {
                         getSoundManager().preloadNextSoundFX();
                         loadingCounter++;
                         soundLoadingTimer.reset();
-
+                        
                     } else {
                         updateProgress("Loading done...", loadingTotalCount);
                         loading = false;
                         soundLoadingTimer.stop();
                         window.getFader().setVisible(true);
                         window.getFader().fadeOut();
-
+                        
                     }
                 }
-
+                
             }
 
 //            if (loadingCounter == 9) {
@@ -486,23 +499,23 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 //                statsAppState.getFpsText().setBox(new Rectangle(600f*0.5f, 50f*0.5f, 600f, 50f*0.5f));
 //                statsAppState.getFpsText().setVerticalAlignment(BitmapFont.VAlign.Bottom);
             }
-
+            
             if (firePauseAction) {
                 if (screenManager != null && currentScreen != null) {
                     currentScreen.firePauseAction();
                 }
                 firePauseAction = false;
             }
-
+            
             if (fireResumeAction) {
                 if (screenManager != null && currentScreen != null) {
                     currentScreen.fireResumeAction();
                 }
                 fireResumeAction = false;
             }
-
+            
         }
-
+        
     }
 
 //    @Override
@@ -527,26 +540,33 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
      * Generic way of handling the input events.
      */
     protected void initInput() {
+        log("initInput() - BaseApplication");
         //Clear all input options that was created by default        
         inputManager.clearMappings();
+        inputManager.clearRawInputListeners();
+        inputManager.clearJoystickConnectionListeners();
+        
+        if (joystickInputListener != null) {
+            joystickInputListener.unregisterInput();
+        }
 
         //Initialize the inputs
         if (isMobileApp()) {
             //Touch events
             inputManager.addMapping(TOUCH_ESCAPE_EVENT, new TouchTrigger(TouchInput.KEYCODE_BACK));
             inputManager.addListener(this, new String[]{TOUCH_ESCAPE_EVENT});
-
+            
             inputManager.addMapping(TOUCH_EVENT, new TouchTrigger(TouchInput.ALL));
             inputManager.addListener(this, new String[]{TOUCH_EVENT});
-
+            
         } else {
             //PC events
             inputManager.addMapping(KEYBOARD_ESCAPE_EVENT, new KeyTrigger(KeyInput.KEY_ESCAPE));
             inputManager.addListener(this, new String[]{KEYBOARD_ESCAPE_EVENT});
-
+            
             inputManager.addMapping(MOUSE_CLICK_EVENT, new MouseButtonTrigger(0));
             inputManager.addListener(this, MOUSE_CLICK_EVENT);
-
+            
             inputManager.addMapping(MOUSE_MOVE_EVENT,
                     new MouseAxisTrigger(MouseInput.AXIS_X, false),
                     new MouseAxisTrigger(MouseInput.AXIS_Y, false),
@@ -554,16 +574,16 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
                     new MouseAxisTrigger(MouseInput.AXIS_Y, true));
             inputManager.addListener(this, MOUSE_MOVE_EVENT);
         }
-
+        
         joystickInputListener = new JoystickInputListener();
         joystickInputListener.registerWithInput(inputManager);
-
+        
     }
-
+    
     protected void setLoadingScreenVisible(boolean visible) {
         loadingBarVisible = visible;
     }
-
+    
     protected void initSplash() {
         window = new Window(this, getGuiNode(), SCREEN_WIDTH, SCREEN_HEIGHT, getBitmapFont());
 
@@ -571,14 +591,14 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         splash = new Panel(window, SPLASH_IMAGE, true);
         window.add(splash);
         splash.center();
-
+        
         info = new Label(splash, splashInfoMessage, 14, 500, 40);
         info.centerAt(0, -100);
         info.setTextColor(ColorRGBA.DarkGray);
-
+        
         loadingBar = new ProgressBar(splash, "Resources/progressbar-border.png", "Resources/progressbar.png", 256, 10);
         loadingBar.centerAt(0, -150);
-
+        
         splash.add(loadingBar);
 
         //Add the fade over the other gui's
@@ -586,7 +606,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         fader.addFadeListener(this);
         window.setFader(fader);
         fader.setVisible(false);
-
+        
         info.setVisible(loadingBarVisible);
         loadingBar.setVisible(loadingBarVisible);
     }
@@ -607,11 +627,11 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 //
 //    }
     protected abstract void initPhysics();
-
+    
     public abstract void showDebuging();
-
+    
     protected abstract boolean isPhysicsEnabled();
-
+    
     protected abstract void initScreens(ScreenManager screenManager);
 
     /**
@@ -673,7 +693,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
             postInitApp();
             window.setVisible(false);
             doInitAds();
-
+            
         }
     }
 
@@ -685,37 +705,37 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
      * @param tpf
      */
     public void onAction(String name, boolean isPressed, float tpf) {
-
+        
         if (KEYBOARD_ESCAPE_EVENT.equals(name)) {
 //            System.out.println("^^^^^^^^^^^^^^^^^^^^ KEYBOARD ESCAPE ^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
             if (isPressed) {
                 fireAllEscapeListeners(false);
             }
-
+            
         }
         if (MOUSE_CLICK_EVENT.equals(name)) {
-
+            
             if (getCurrentScreen() != null) {
-
+                
                 if (isPressed) {
                     getCurrentScreen().getWindow().fireButtonCollision(true, false,
                             inputManager.getCursorPosition().x,
                             inputManager.getCursorPosition().y, tpf);
-
+                    
                 } else {
                     getCurrentScreen().getWindow().fireButtonCollision(false, false,
                             inputManager.getCursorPosition().x,
                             inputManager.getCursorPosition().y, tpf);
-
+                    
                 }
             }
         }
-
+        
     }
-
+    
     @Override
     public void onAnalog(String name, float value, float tpf) {
-
+        
         if (MOUSE_MOVE_EVENT.equals(name)) {
             if (getCurrentScreen() != null) {
                 getCurrentScreen().getWindow().fireButtonCollision(false, true,
@@ -723,7 +743,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
                         inputManager.getCursorPosition().y, tpf);
             }
         }
-
+        
     }
 
     /**
@@ -742,24 +762,24 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         if (name.equals(TOUCH_ESCAPE_EVENT)) {
             fireAllEscapeListeners(true);
         }
-
+        
         if (name.equals(TOUCH_EVENT)) {
             if (getCurrentScreen() != null) {
-
+                
                 if (TouchEvent.Type.DOWN.equals(event.getType())) {
                     getCurrentScreen().getWindow().fireButtonCollision(true, false,
                             event.getX(), event.getY(), tpf);
-
+                    
                 }
                 if (TouchEvent.Type.UP.equals(event.getType())) {
                     getCurrentScreen().getWindow().fireButtonCollision(false, false,
                             event.getX(), event.getY(), tpf);
-
+                    
                 }
                 if (TouchEvent.Type.MOVE.equals(event.getType())) {
                     getCurrentScreen().getWindow().fireButtonCollision(false, true,
                             event.getX(), event.getY(), tpf);
-
+                    
                 }
             }
         }
@@ -779,7 +799,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
                 abstractScreenState.doEscape(touch);
             }
         }
-
+        
     }
 
     /**
@@ -844,15 +864,15 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     public BitmapFont getBitmapFont() {
         return guiFont;
     }
-
+    
     @Override
     public void destroy() {
-
+        
         if (joystickInputListener != null) {
             joystickInputListener.unregisterInput();
 //            joystickInputListener = null;
         }
-
+        
         if (midiPlayer != null) {
             midiPlayer.stop();
             midiPlayer.release();
@@ -866,19 +886,19 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         if (effectManager != null) {
             effectManager.destroy();
         }
-
+        
         if (modelManager != null) {
             modelManager.destroy();
         }
-
+        
         if (messageManager != null) {
             messageManager.destroy();
         }
-
+        
         if (fontManager != null) {
             fontManager.destroy();
         }
-
+        
         super.destroy();
     }
 
@@ -921,7 +941,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
             selectionActionListener.doSelectionOption(options);
         }
     }
-
+    
     public void setDropdownSelectedIndex(int selectedIndex) {
         if (getCurrentScreen() != null) {
             getCurrentScreen().getWindow().setValueForDropdown(selectedIndex);
@@ -961,17 +981,30 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     public void doResumeGame() {
         firePauseListener(false);
     }
-
+    
     public void addSensorListener(SensorListener sensorListener) {
         this.sensorListener = sensorListener;
     }
-
+    
     public void addLiveCameraListener(LiveCameraListener liveCameraListener) {
         this.liveCameraListener = liveCameraListener;
     }
-
+    
     public void addRewardAdListener(RewardAdListener rewardAdListener) {
         this.rewardAdListener = rewardAdListener;
+    }
+
+    /**
+     * Use this method to add androidMotionListener
+     *
+     * @param androidMotionListener
+     */
+    public void addAndroidMotionListener(AndroidInputEventListener androidMotionListener) {
+        this.androidInputEventListeners.add(androidMotionListener);
+    }
+    
+    public void removeAndroidMotionListener(AndroidInputEventListener touchButtonListener1) {
+        this.androidInputEventListeners.remove(touchButtonListener1);
     }
 
     /**
@@ -982,6 +1015,14 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     public void fireSensorListener(float fisting, float tilting, float twisting) {
         if (sensorListener != null) {
             sensorListener.doSensorAction(fisting, tilting, twisting);
+        }
+    }
+    
+    public void fireAndroidInputEvents(AndroidInputEvent motionEvent) {
+        if (androidInputEventListeners != null) {
+            for (AndroidInputEventListener androidMotionListener : androidInputEventListeners) {
+                androidMotionListener.doMotionAction(motionEvent);
+            }
         }
     }
 
@@ -1035,16 +1076,16 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
                 androidImageLoader = new AndroidNativeImageLoader();
                 cameraTexture = new Texture2D();
             }
-
+            
             try {
                 Image image = (Image) androidImageLoader.load(new ByteArrayInfo(assetManager, data));
                 cameraTexture.setImage(image);
                 liveCameraListener.setTexture(cameraTexture);
-
+                
             } catch (IOException e) {
                 System.out.println("IMAGE LOAD FAILED");
             }
-
+            
         }
     }
 
@@ -1310,7 +1351,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         properties.put(SAVED_GAME_NAME, name);
         properties.put(SAVED_GAME_DESCRIPTION, description);
         properties.put(SAVED_GAME_DATA, data);
-
+        
         fireRemoteActionListener(properties);
     }
 
@@ -1369,7 +1410,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     public void setGoogleAPIErrorListener(GoogleAPIErrorListener googleAPIErrorListener) {
         this.googleAPIErrorListener = googleAPIErrorListener;
     }
-
+    
     public void setSavedGameListener(SavedGameListener savedGameListener) {
         this.savedGameListener = savedGameListener;
     }
@@ -1406,7 +1447,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
             savedGameListener.onSavedGameOpened(name, data);
         }
     }
-
+    
     public void fireSavedGameSavedListener() {
         if (savedGameListener != null) {
             savedGameListener.onSavedGameSaved();
@@ -1477,11 +1518,11 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
                     || platform.compareTo(Platform.Android_ARM8) == 0
                     || platform.compareTo(Platform.Android_Other) == 0
                     || platform.compareTo(Platform.Android_X86) == 0;
-
+            
         } catch (UnsupportedOperationException e) {
             return true;
         }
-
+        
     }
 
     /**
@@ -1504,16 +1545,16 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         if (stateManager.getState(StatsAppState.class) != null) {
             StatsAppState statsAppState = stateManager.getState(StatsAppState.class);
             stateManager.detach(statsAppState);
-
+            
         } else if (statsAppState != null) {
             stateManager.detach(statsAppState);
         }
     }
-
+    
     public float getSCREEN_WIDTH() {
         return SCREEN_WIDTH;
     }
-
+    
     public float getSCREEN_HEIGHT() {
         return SCREEN_HEIGHT;
     }
@@ -1589,13 +1630,13 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
      */
     public AbstractScreen showScreen(String screenName) {
         AbstractScreen screen = screenManager.getScreen(screenName);
-
+        
         if (screen == null) {
             throw new RuntimeException("Screen " + screenName + " does not exist!");
         }
-
+        
         screen.setEnabled(true);
-
+        
         return screen;
     }
 
@@ -1639,19 +1680,19 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     public TextureManager getTextureManager() {
         return textureManager;
     }
-
+    
     public AbstractScreen getCurrentScreen() {
         return currentScreen;
     }
-
+    
     public void setCurrentScreen(AbstractScreen currentScreen) {
         this.currentScreen = currentScreen;
     }
-
+    
     public JoystickInputListener getJoystickInputListener() {
         return joystickInputListener;
     }
-
+    
     public int getFPS() {
         secondCounter += getTimer().getTimePerFrame();
         frameCounter++;
@@ -1660,14 +1701,14 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
             secondCounter = 0.0f;
             frameCounter = 0;
         }
-
+        
         return fps;
     }
-
+    
     public boolean isRewardAdLoaded() {
         return rewardAdLoaded;
     }
-
+    
     public void setRewardAdLoaded(boolean rewardAdLoaded) {
         this.rewardAdLoaded = rewardAdLoaded;
     }

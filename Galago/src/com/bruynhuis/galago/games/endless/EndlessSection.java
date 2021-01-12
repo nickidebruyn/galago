@@ -124,9 +124,9 @@ public abstract class EndlessSection {
         spatial.setName(EndlessGame.TYPE_PICKUP);        
          
         //Physics movement        
-        GhostControl rigidBodyControl = new GhostControl();
-        spatial.addControl(rigidBodyControl);
-        endlessGame.getBaseApplication().getBulletAppState().getPhysicsSpace().add(rigidBodyControl);
+//        GhostControl rigidBodyControl = new GhostControl();
+//        spatial.addControl(rigidBodyControl);
+//        endlessGame.getBaseApplication().getBulletAppState().getPhysicsSpace().add(rigidBodyControl);
         
         //NB: Add to the rootNode
         sectionNode.attachChild(spatial);        

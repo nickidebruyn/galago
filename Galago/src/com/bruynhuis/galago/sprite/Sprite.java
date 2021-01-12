@@ -8,6 +8,7 @@ import com.bruynhuis.galago.app.BaseApplication;
 import com.bruynhuis.galago.util.SharedSystem;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector2f;
@@ -44,7 +45,7 @@ public class Sprite extends Node {
         this(name, width, height, 1, 1, 0, 0);
 
     }
-    
+
     public Sprite(String name, float width, float height, int columns, int rows, int index) {
         this(name, width, height, columns, rows, index % columns, index / columns);
     }
@@ -58,7 +59,7 @@ public class Sprite extends Node {
         this.columns = columns;
         this.rows = rows;
         this.currentColumn = currentColumn;
-        this.currentRow = currentRow;
+        this.currentRow = (rows-1)-currentRow;
 
         initializeSprite();
     }
@@ -69,47 +70,49 @@ public class Sprite extends Node {
 //        geometry.setQueueBucket(RenderQueue.Bucket.Gui);
         attachChild(geometry);
     }
-    
+
     /**
      * Scale the vector texture
-     * @param scaleVector 
+     *
+     * @param scaleVector
      */
     public void scaleTextureCoords(Vector2f scaleVector) {
         if (quad != null) {
             quad.scaleTextureCoordinates(scaleVector);
         }
     }
-    
+
     /**
      * This method can be called if the user wants to flip the coordinates.
-     * @param flip 
+     *
+     * @param flip
      */
     public void flipCoords(boolean flip) {
         quad.flipCoords(flip);
     }
-    
+
     public boolean isFlipCoords() {
         return quad.isFlipCoords();
     }
-    
+
     public void flipHorizontal(boolean flip) {
         this.horizontalFlipped = flip;
         if (flip) {
-            quaternion.fromAngleAxis(FastMath.DEG_TO_RAD*180f, Vector3f.UNIT_Y);
+            quaternion.fromAngleAxis(FastMath.DEG_TO_RAD * 180f, Vector3f.UNIT_Y);
         } else {
-            quaternion.fromAngleAxis(FastMath.DEG_TO_RAD*0f, Vector3f.UNIT_Y);
+            quaternion.fromAngleAxis(FastMath.DEG_TO_RAD * 0f, Vector3f.UNIT_Y);
         }
         geometry.setLocalRotation(quaternion);
     }
-    
+
     public void showIndex(int index) {
-        showIndex(index % columns, index / columns);        
+        showIndex(index % columns, index / columns);
     }
 
     public void showIndex(int colPosition, int rowPosition) {
         this.currentColumn = colPosition;
-        this.currentRow = rowPosition;
-        quad.updateTextureCoords(colPosition, rowPosition);
+        this.currentRow = (rows-1)-rowPosition;
+        quad.updateTextureCoords(this.currentColumn, this.currentRow);
         setCullHint(Spatial.CullHint.Never);
     }
 
@@ -132,19 +135,21 @@ public class Sprite extends Node {
         texture.setMagFilter(Texture.MagFilter.Nearest);
         texture.setWrap(Texture.WrapMode.Repeat);
 
+//        Material material = new Material(baseApplication.getAssetManager(), "Common/MatDefs/Gui/Gui.j3md");
         Material material = new Material(baseApplication.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
 //        Material material = new Material(baseApplication.getAssetManager(), "Resources/MatDefs/SpriteShader.j3md");
 //        material.setColor("Color", ColorRGBA.White);
-        material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha); 
+        material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
         material.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
 //        material.setFloat("AlphaDiscardThreshold", 0.5f);
 
-        material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Custom);
-        material.getAdditionalRenderState().setCustomBlendFactors(RenderState.BlendFunc.Src_Alpha, RenderState.BlendFunc.One_Minus_Src_Alpha, RenderState.BlendFunc.One, RenderState.BlendFunc.One_Minus_Src_Alpha);
-
+//        material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Custom);
+//        material.getAdditionalRenderState().setCustomBlendFactors(RenderState.BlendFunc.Src_Alpha, RenderState.BlendFunc.One_Minus_Src_Alpha, RenderState.BlendFunc.One, RenderState.BlendFunc.One_Minus_Src_Alpha);
         material.setTexture("ColorMap", texture);
+//        material.setTexture("Texture", texture);
+        material.setColor("Color", ColorRGBA.White);
         setMaterial(material);
-        
+
         flipCoords(true);
         flipHorizontal(true);
     }
@@ -152,8 +157,7 @@ public class Sprite extends Node {
     public Material getMaterial() {
         return material;
     }
-    
-    
+
 //
 //    @Override
 //    public void write(JmeExporter e) throws IOException {
@@ -199,10 +203,10 @@ public class Sprite extends Node {
     public boolean isHorizontalFlipped() {
         return horizontalFlipped;
     }
-    
+
     public void setOffset(float x, float y, float z) {
         geometry.setLocalTranslation(x, y, z);
-        
+
     }
-    
+
 }

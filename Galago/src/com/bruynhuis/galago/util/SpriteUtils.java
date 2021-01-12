@@ -53,7 +53,7 @@ public class SpriteUtils {
      * @param scale
      * @return
      */
-    public static Sprite addSprite(Node parent, String image, float scale, float x, float y, float z) {
+    public static Sprite addSprite(Node parent, String image, boolean pixelated, float scale, float x, float y, float z) {
         float width = 100;
         float height = 100;
 
@@ -62,12 +62,12 @@ public class SpriteUtils {
         width = ((float) texture.getImage().getWidth()) * scale;
         height = ((float) texture.getImage().getHeight()) * scale;
 
-//        if (SharedSystem.getInstance().getBaseApplication().getTextureManager().isPixelated()) {
-//            texture.setMinFilter(Texture.MinFilter.NearestNoMipMaps);
-//            texture.setMagFilter(Texture.MagFilter.Nearest);
-//        } else {
-//            texture.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
-//        }
+        if (pixelated) {
+            texture.setMinFilter(Texture.MinFilter.NearestNoMipMaps);
+            texture.setMagFilter(Texture.MagFilter.Nearest);
+        } else {
+            texture.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+        }
 //
 //        Material material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Resources/MatDefs/SpriteShader.j3md");
 //        material.setColor("Color", ColorRGBA.White);
@@ -89,6 +89,8 @@ public class SpriteUtils {
 //        Material material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Resources/MatDefs/SpriteShader.j3md");
         //set the spritesheet png built with TexturePacker
         material.setTexture("ColorMap", texture);
+        material.setColor("Color", ColorRGBA.White);
+//        material.setFloat("AlphaDiscardThreshold", 0.55f);
 
         //your sprites most likely contain transparency, so it's probably better to set Alpha otherwise you'll see artefacts
 //        material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
@@ -107,21 +109,17 @@ public class SpriteUtils {
 //                RenderState.BlendFunc.One, 
 //                RenderState.BlendFunc.One_Minus_Src_Alpha);
         material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-        material.getAdditionalRenderState().setBlendEquation(RenderState.BlendEquation.Add);
-        material.getAdditionalRenderState().setBlendEquationAlpha(RenderState.BlendEquationAlpha.Max);
-
         material.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
-        material.setFloat("AlphaDiscardThreshold", 0.7f);
+
         Sprite sprite = new Sprite("sprite", width, height);
         sprite.setMaterial(material);
         sprite.flipCoords(true);
         sprite.flipHorizontal(true);
-        sprite.setQueueBucket(RenderQueue.Bucket.Transparent);
+//        sprite.setQueueBucket(RenderQueue.Bucket.Transparent);
         sprite.setOffset(x, y, z);
         parent.attachChild(sprite);
 
-        SpatialUtils.addDebugSphere(sprite, 0.1f, ColorRGBA.Blue, new Vector3f(0, 0, 0));
-
+//        SpatialUtils.addDebugSphere(sprite, 0.1f, ColorRGBA.Blue, new Vector3f(0, 0, 0));
         return sprite;
     }
 
@@ -156,6 +154,13 @@ public class SpriteUtils {
         return sprite;
     }
 
+    public static Sprite addSpritePixelated(Node parent, String image, float width, float height) {
+        Sprite sprite = addSprite(parent, width, height);
+        addImage(sprite, image, true);
+
+        return sprite;
+    }
+
     /**
      * Add a sprite with an offset.
      *
@@ -170,6 +175,23 @@ public class SpriteUtils {
      */
     public static Sprite addSprite(Node parent, String image, float width, float height, float offsetX, float offsetY, float offsetZ) {
         Sprite sprite = addSprite(parent, image, width, height);
+        sprite.setLocalTranslation(offsetX, offsetY, offsetZ);
+        return sprite;
+    }
+
+    /**
+     *
+     * @param parent
+     * @param image
+     * @param width
+     * @param height
+     * @param offsetX
+     * @param offsetY
+     * @param offsetZ
+     * @return
+     */
+    public static Sprite addSpritePixelated(Node parent, String image, float width, float height, float offsetX, float offsetY, float offsetZ) {
+        Sprite sprite = addSpritePixelated(parent, image, width, height);
         sprite.setLocalTranslation(offsetX, offsetY, offsetZ);
         return sprite;
     }
@@ -236,7 +258,9 @@ public class SpriteUtils {
 
     public static void addImage(Sprite sprite, String image) {
 
+        //First we load the texture
         Texture texture = SharedSystem.getInstance().getBaseApplication().getAssetManager().loadTexture(image);
+        texture.setWrap(Texture.WrapMode.Repeat);
         if (SharedSystem.getInstance().getBaseApplication().getTextureManager().isPixelated()) {
             texture.setMinFilter(Texture.MinFilter.NearestNoMipMaps);
             texture.setMagFilter(Texture.MagFilter.Nearest);
@@ -244,18 +268,43 @@ public class SpriteUtils {
             texture.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         }
 
-        Material material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Resources/MatDefs/SpriteShader.j3md");
+        Material material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+        material.setTexture("ColorMap", texture);
         material.setColor("Color", ColorRGBA.White);
-        material.setFloat("AlphaDiscardThreshold", 0.5f);
-        material.setTexture("Texture", texture);
         material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+//        material.getAdditionalRenderState().setCustomBlendFactors(RenderState.BlendFunc.Src_Alpha, RenderState.BlendFunc.One_Minus_Src_Alpha, RenderState.BlendFunc.One, RenderState.BlendFunc.One_Minus_Src_Alpha);
         material.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
-        material.setTexture("Texture", texture);
         sprite.setMaterial(material);
 
         sprite.flipCoords(true);
         sprite.flipHorizontal(true);
         sprite.setQueueBucket(RenderQueue.Bucket.Transparent);
+
+    }
+
+    public static void addImage(Sprite sprite, String image, boolean pixelated) {
+
+        //First we load the texture
+        Texture texture = SharedSystem.getInstance().getBaseApplication().getAssetManager().loadTexture(image);
+        texture.setWrap(Texture.WrapMode.Repeat);
+        if (pixelated) {
+//            texture.setMinFilter(Texture.MinFilter.NearestNoMipMaps);
+            texture.setMagFilter(Texture.MagFilter.Nearest);
+        } else {
+            texture.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+        }
+
+        Material material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+        material.setTexture("ColorMap", texture);
+        material.setColor("Color", ColorRGBA.White);
+        material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+//        material.getAdditionalRenderState().setCustomBlendFactors(RenderState.BlendFunc.Src_Alpha, RenderState.BlendFunc.One_Minus_Src_Alpha, RenderState.BlendFunc.One, RenderState.BlendFunc.One_Minus_Src_Alpha);
+        material.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+        sprite.setMaterial(material);
+
+        sprite.flipCoords(true);
+        sprite.flipHorizontal(true);
+//        sprite.setQueueBucket(RenderQueue.Bucket.Transparent);
 
     }
 
@@ -328,7 +377,7 @@ public class SpriteUtils {
      * @param mass
      * @return
      */
-    public static RigidBodyControl addCircleMass(Sprite sprite, float radius, float mass) {
+    public static RigidBodyControl addCircleMass(Spatial sprite, float radius, float mass) {
 
         if (SharedSystem.getInstance().getBaseApplication() instanceof Base2DApplication) {
             Base2DApplication base2DApplication = (Base2DApplication) SharedSystem.getInstance().getBaseApplication();
@@ -428,6 +477,41 @@ public class SpriteUtils {
         }
 
     }
+    
+    /**
+     * This helper method will interpolate a spatial to a position.
+     *
+     * @param spatial
+     * @param x
+     * @param y
+     * @param z
+     * @param time
+     * @param delay
+     */
+    public static void interpolate(Spatial sprite, float x, float y, float z, float time, float delay, boolean loop, TweenEquation tweenEquation) {
+        int repeat = 0;
+        if (loop) {
+            repeat = Tween.INFINITY;
+        }
+
+        if (sprite.getControl(RigidBodyControl.class) == null) {
+            Tween.to(sprite, SpatialAccessor.POS_XYZ, time)
+                    .target(x, y, z)
+                    .delay(delay)
+                    .ease(tweenEquation)
+                    .repeatYoyo(repeat, delay)                    
+                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+
+        } else {
+            Tween.to(sprite.getControl(RigidBodyControl.class), Rigidbody2DAccessor.POS, time)
+                    .target(x, y, z)
+                    .delay(delay)
+                    .ease(tweenEquation)
+                    .repeatYoyo(repeat, delay)
+                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+        }
+
+    }    
 
     public static void bounce(Sprite sprite, float x, float y, float z, float time, float delay, int count) {
 

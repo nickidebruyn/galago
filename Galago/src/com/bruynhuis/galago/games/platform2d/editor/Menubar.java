@@ -21,6 +21,7 @@ public class Menubar extends Panel {
     public static final String ACTION_PLAY = "action-play";
     public static final String ACTION_DRAW = "action-draw";
     public static final String ACTION_TRASH = "action-trash";
+    public static final String ACTION_LINK = "action-link";
     
     private float xVal = 10;
 
@@ -28,17 +29,19 @@ public class Menubar extends Panel {
         super(parent, "Resources/editor/side-panel-top.png", parent.getWindow().getWidth(), 74);
         
         
-        addPlayButton(ACTION_PLAY, buttonAdapter);
-        addSpace();
-        addSpace();
-        addSpace();
+//        addPlayButton(ACTION_PLAY, buttonAdapter);
+        addToolButton(ACTION_PLAY, "Resources/editor/icon-play.png", buttonAdapter);
+//        addSpace();
+//        addSpace();
+//        addSpace();
         addToolButton(ACTION_SAVE, "Resources/editor/icon-save.png", buttonAdapter);
         addToolButton(ACTION_OPEN, "Resources/editor/icon-open.png", buttonAdapter);
         addToolButton(ACTION_NEW, "Resources/editor/icon-new.png", buttonAdapter);
         addToolButton(ACTION_TRASH, "Resources/editor/icon-trash.png", buttonAdapter);
         
-        addSpace();
+//        addSpace();
         
+        addToolButton(ACTION_LINK, null, buttonAdapter);
         addToolButton(ACTION_PAINT, "Resources/editor/icon-paint.png", buttonAdapter);
         addToolButton(ACTION_DRAW, "Resources/editor/icon-draw.png", buttonAdapter);
                 

@@ -23,7 +23,7 @@ public class SpriteQuad extends Mesh {
     private int colPosition = 0;
     private int rowPosition = 0;
     private boolean flipCoords = false;
-    private float uvSpacing = 0.002f;
+    private float uvSpacing = 0.001f;
     
     /**
      * Serialization only. Do not use.

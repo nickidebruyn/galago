@@ -16,7 +16,7 @@ import com.jme3.network.serializing.Serializable;
  */
 @Serializable
 public class ObjectStateMessage extends AbstractMessage {
-    
+
     private int objectType;
     private String objectId;
     private String objectName;
@@ -24,6 +24,9 @@ public class ObjectStateMessage extends AbstractMessage {
     private Vector3f position;
     private Quaternion rotation;
     private boolean destroyed;
+    private int health = 1;
+    private Vector3f halfExtends = Vector3f.ZERO;
+    private float radius;
 
     public ObjectStateMessage() {
     }
@@ -95,5 +98,28 @@ public class ObjectStateMessage extends AbstractMessage {
         this.destroyed = destroyed;
     }
 
-    
+    public int getHealth() {
+        return health;
+    }
+
+    public void setHealth(int health) {
+        this.health = health;
+    }
+
+    public Vector3f getHalfExtends() {
+        return halfExtends;
+    }
+
+    public void setHalfExtends(Vector3f halfExtends) {
+        this.halfExtends = halfExtends;
+    }
+
+    public float getRadius() {
+        return radius;
+    }
+
+    public void setRadius(float radius) {
+        this.radius = radius;
+    }
+
 }

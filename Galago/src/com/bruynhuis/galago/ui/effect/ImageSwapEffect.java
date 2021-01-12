@@ -4,15 +4,15 @@
  */
 package com.bruynhuis.galago.ui.effect;
 
+import com.bruynhuis.galago.ui.ImageWidget;
 import com.bruynhuis.galago.ui.Widget;
-import com.bruynhuis.galago.ui.button.TouchButton;
 
 /**
  *
  * @author Nidebruyn
  */
 public class ImageSwapEffect extends Effect {
-    
+
     private String offImage;
     private String onImage;
 
@@ -21,7 +21,7 @@ public class ImageSwapEffect extends Effect {
         this.offImage = offImage;
         this.onImage = onImage;
     }
-    
+
     @Override
     protected void doShow() {
     }
@@ -32,16 +32,16 @@ public class ImageSwapEffect extends Effect {
 
     @Override
     protected void doTouchDown() {
-        TouchButton button = (TouchButton) widget;
-        button.updatePicture(onImage);
-        button.setTransparency(1);
+        ImageWidget image = (ImageWidget) widget;
+        image.updatePicture(onImage);
+//        image.setTransparency(1);
     }
 
     @Override
     protected void doTouchUp() {
-        TouchButton button = (TouchButton) widget;
-        button.updatePicture(offImage);
-        button.setTransparency(1);
+        ImageWidget image = (ImageWidget) widget;
+        image.updatePicture(offImage);
+//        image.setTransparency(1);
     }
 
     @Override
@@ -54,16 +54,26 @@ public class ImageSwapEffect extends Effect {
 
     @Override
     protected void doSelected() {
-        TouchButton button = (TouchButton) widget;
+        ImageWidget button = (ImageWidget) widget;
         button.updatePicture(onImage);
-        button.setTransparency(1);
+//        button.setTransparency(1);
     }
 
     @Override
     protected void doUnselected() {
-        TouchButton button = (TouchButton) widget;
+        ImageWidget button = (ImageWidget) widget;
         button.updatePicture(offImage);
-        button.setTransparency(1);
+//        button.setTransparency(1);
     }
-    
+
+    @Override
+    protected void doHoverOver() {
+
+    }
+
+    @Override
+    protected void doHoverOff() {
+
+    }
+
 }

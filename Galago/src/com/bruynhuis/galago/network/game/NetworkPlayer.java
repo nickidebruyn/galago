@@ -10,6 +10,7 @@ import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.PhysicsTickListener;
 import com.jme3.bullet.collision.PhysicsCollisionEvent;
 import com.jme3.bullet.collision.PhysicsCollisionListener;
+import com.jme3.bullet.collision.PhysicsCollisionObject;
 import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
@@ -24,6 +25,7 @@ import com.jme3.scene.Node;
  */
 public class NetworkPlayer implements PhysicsTickListener, PhysicsCollisionListener {
 
+    private boolean networkClient;
     private int playerId;
     private int playerType;
     private String playerName;
@@ -35,7 +37,9 @@ public class NetworkPlayer implements PhysicsTickListener, PhysicsCollisionListe
     private float friction = 0f;
     private float restitution = 0.5f;
     private Vector3f halfExtends;
+    private Vector3f initialPosition;
     private Vector3f initialForce;
+    private Vector3f initialViewDirection;
     private Vector3f initialGravity;
     private NetworkGame networkGame;
     private Node playerNode;
@@ -48,6 +52,9 @@ public class NetworkPlayer implements PhysicsTickListener, PhysicsCollisionListe
     private int loot;
     private boolean killed;
     private boolean active;
+    private int collisionGroup = PhysicsCollisionObject.COLLISION_GROUP_01;
+    private int collideWithGroups = PhysicsCollisionObject.COLLISION_GROUP_01;
+    private String state;
 
     public NetworkPlayer(NetworkGame networkGame, int playerId, String playerName, Vector3f position, Quaternion rotation) {
         this.networkGame = networkGame;
@@ -55,6 +62,7 @@ public class NetworkPlayer implements PhysicsTickListener, PhysicsCollisionListe
         this.playerName = playerName;
         this.position = position;
         this.rotation = rotation;
+        this.initialPosition = position.clone();
     }
 
     public int getPlayerId() {
@@ -87,6 +95,10 @@ public class NetworkPlayer implements PhysicsTickListener, PhysicsCollisionListe
 
     public void setRotation(Quaternion rotation) {
         this.rotation = rotation;
+    }
+
+    public Vector3f getInitialPosition() {
+        return initialPosition;
     }
 
     public int getPlayerType() {
@@ -165,7 +177,7 @@ public class NetworkPlayer implements PhysicsTickListener, PhysicsCollisionListe
                         getMass());
 
             } else if (getCollisionType() == CollisionType.TYPE_CHARACTER) {
-                NetworkCharacterControl characterControl = new NetworkCharacterControl(getHalfExtends().x, getHalfExtends().y * 2, getMass());
+                NetworkCharacterControl characterControl = new NetworkCharacterControl(getHalfExtends().x, getHalfExtends().y, getMass());
                 setNetworkCharacterControl(characterControl);
 //                rigidBody = characterControl.getPhysicsRigidBody();
                 playerNode.addControl(characterControl);
@@ -173,17 +185,20 @@ public class NetworkPlayer implements PhysicsTickListener, PhysicsCollisionListe
                 networkGame.getBulletAppState().getPhysicsSpace().addTickListener(this);
                 networkGame.getBulletAppState().getPhysicsSpace().add(characterControl);
                 characterControl.warp(getPosition().clone());
-                
+                characterControl.setViewDirection(initialViewDirection);
+
                 if (initialForce != null) {
                     characterControl.getPhysicsRigidBody().setLinearVelocity(initialForce.clone());
                 }
                 if (initialGravity != null) {
-                     characterControl.getPhysicsRigidBody().setGravity(initialGravity.clone());
-                    
+                    characterControl.getPhysicsRigidBody().setGravity(initialGravity.clone());
+
                 }
-                
+
                 characterControl.getPhysicsRigidBody().setFriction(friction);
                 characterControl.getPhysicsRigidBody().setRestitution(restitution);
+                characterControl.getPhysicsRigidBody().setCollisionGroup(collisionGroup);
+                characterControl.getPhysicsRigidBody().setCollideWithGroups(collideWithGroups);
 
             }
 
@@ -195,17 +210,19 @@ public class NetworkPlayer implements PhysicsTickListener, PhysicsCollisionListe
                 rigidBody.setPhysicsLocation(getPosition().clone());
                 rigidBody.setPhysicsRotation(getRotation().clone());
                 setPhysicsRigidBody(rigidBody);
-                
+
                 if (initialForce != null) {
                     rigidBody.setLinearVelocity(initialForce.clone());
                 }
                 if (initialGravity != null) {
                     rigidBody.setGravity(initialGravity.clone());
-                    
+
                 }
-                
+
                 rigidBody.setFriction(friction);
                 rigidBody.setRestitution(restitution);
+                rigidBody.setCollisionGroup(collisionGroup);
+                rigidBody.setCollideWithGroups(collideWithGroups);
             }
 
             networkGame.log("Loaded player physics");
@@ -233,7 +250,7 @@ public class NetworkPlayer implements PhysicsTickListener, PhysicsCollisionListe
             }
 
         }
-        
+
         active = false;
 
     }
@@ -313,6 +330,7 @@ public class NetworkPlayer implements PhysicsTickListener, PhysicsCollisionListe
 
     @Override
     public void collision(PhysicsCollisionEvent event) {
+
         if (event.getNodeA() != null && event.getNodeA().getName().equals(playerId + "")) {
 //            System.out.println("Found collision with object B: " + event.getNodeB().getName());
             NetworkObject object = networkGame.getObjects().get(event.getNodeB().getName());
@@ -358,6 +376,10 @@ public class NetworkPlayer implements PhysicsTickListener, PhysicsCollisionListe
 
         }
     }
+    
+    public void addScore(int s) {
+        this.score = score + s;
+    }
 
     public void doKill() {
         this.health = 0;
@@ -378,7 +400,7 @@ public class NetworkPlayer implements PhysicsTickListener, PhysicsCollisionListe
 
         if (physicsRigidBody != null) {
             physicsRigidBody.clearForces();
-            ((RigidBodyControl) physicsRigidBody).setEnabled(false);
+            ((RigidBodyControl) physicsRigidBody).setEnabled(true);
             physicsRigidBody.setPhysicsLocation(getPosition().clone());
             physicsRigidBody.setPhysicsRotation(getRotation().clone());
 
@@ -446,6 +468,46 @@ public class NetworkPlayer implements PhysicsTickListener, PhysicsCollisionListe
 
     public void setRestitution(float restitution) {
         this.restitution = restitution;
+    }
+
+    public boolean isNetworkClient() {
+        return networkClient;
+    }
+
+    public void setNetworkClient(boolean networkClient) {
+        this.networkClient = networkClient;
+    }
+
+    public Vector3f getInitialViewDirection() {
+        return initialViewDirection;
+    }
+
+    public void setInitialViewDirection(Vector3f initialViewDirection) {
+        this.initialViewDirection = initialViewDirection;
+    }
+
+    public int getCollisionGroup() {
+        return collisionGroup;
+    }
+
+    public void setCollisionGroup(int collisionGroup) {
+        this.collisionGroup = collisionGroup;
+    }
+
+    public int getCollideWithGroups() {
+        return collideWithGroups;
+    }
+
+    public void setCollideWithGroups(int collideWithGroups) {
+        this.collideWithGroups = collideWithGroups;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
     }
 
 }

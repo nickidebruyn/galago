@@ -46,7 +46,7 @@ public abstract class SimplePhysics2DGame implements PhysicsCollisionListener {
     public static final String TYPE_VEGETATION = "vegetation";
     public static final String TYPE_BULLET = "bullet";
     public static final String SHAPE = "shape";
-    
+
     protected Base2DApplication baseApplication;
     protected Node rootNode;
     protected Node levelNode;
@@ -122,13 +122,20 @@ public abstract class SimplePhysics2DGame implements PhysicsCollisionListener {
         if (player != null) {
 
 //            log("Collision: " + spatialA.getName() + " with " + spatialB.getName());
-
             if (checkCollisionWithType(spatialA, spatialB, TYPE_PLAYER, TYPE_STATIC)) {
                 fireCollisionPlayerWithStaticListener(lastCollidedSpatial, lastColliderSpatial);
 
             } else if (checkCollisionWithType(spatialA, spatialB, TYPE_PLAYER, TYPE_TERRAIN)) {
                 fireCollisionPlayerWithTerrainListener(lastCollidedSpatial, lastColliderSpatial);
-                
+
+            } else if (checkCollisionWithType(spatialA, spatialB, TYPE_PLAYER, TYPE_END)) {
+                if (spatialA.getName().equals(TYPE_PLAYER)) {
+                    spatialB.getControl(RigidBodyControl.class).setActive(false);
+                } else if (spatialB.getName().equals(TYPE_PLAYER)) {
+                    spatialA.getControl(RigidBodyControl.class).setActive(false);
+                }
+                doLevelCompleted();
+
             } else if (checkCollisionWithType(spatialA, spatialB, TYPE_PLAYER, TYPE_PLAYER)) {
                 fireCollisionPlayerWithPlayerListener(lastCollidedSpatial, lastColliderSpatial);
 
@@ -182,12 +189,10 @@ public abstract class SimplePhysics2DGame implements PhysicsCollisionListener {
                 && ((sA.getName().startsWith(collider) && sB.getName().startsWith(type))
                 || (sA.getName().startsWith(type) && sB.getName().startsWith(collider)));
 
-
         if (collision && sB.getName().startsWith(type)) {
             lastCollidedSpatial = sB;
             lastColliderSpatial = sA;
             return true;
-
 
         } else if (collision && sA.getName().startsWith(type)) {
             lastCollidedSpatial = sA;
@@ -202,8 +207,8 @@ public abstract class SimplePhysics2DGame implements PhysicsCollisionListener {
     }
 
     public void doGameOver() {
-        started = false;
-        paused = true;
+        started = true;
+        paused = false;
         gameOver = true;
         fireGameOverListener();
     }
@@ -248,7 +253,7 @@ public abstract class SimplePhysics2DGame implements PhysicsCollisionListener {
             gameListener.doCollisionPlayerWithTerrain(collided, collider);
         }
     }
-    
+
     protected void fireCollisionPlayerWithPlayerListener(Spatial collided, Spatial collider) {
         if (gameListener != null) {
             gameListener.doCollisionPlayerWithPlayer(collided, collider);
@@ -557,27 +562,34 @@ public abstract class SimplePhysics2DGame implements PhysicsCollisionListener {
      */
     public Spatial addEnd(Sprite sprite) {
         sprite.setName(TYPE_END);
-        levelNode.attachChild(sprite);
+
         endPosition = sprite.getWorldTranslation().clone();
 
-        sprite.addControl(new AbstractControl() {
-            @Override
-            protected void controlUpdate(float tpf) {
-                if (isStarted() && !isGameOver() && !isPaused()) {
-                    
-                    float distance = new Vector2f(player.getPosition().x, player.getPosition().y).distance(new Vector2f(spatial.getLocalTranslation().x, spatial.getLocalTranslation().y));
+        if (sprite.getControl(RigidBodyControl.class) != null) {
+            baseApplication.getDyn4jAppState().getPhysicsSpace().add(sprite.getControl(RigidBodyControl.class));
+            levelNode.attachChild(sprite);
 
-                    if (distance < player.getSize() * 0.5f) {
-                        doLevelCompleted();
+        } else {
+            sprite.addControl(new AbstractControl() {
+                @Override
+                protected void controlUpdate(float tpf) {
+                    if (isStarted() && !isGameOver() && !isPaused()) {
+
+                        float distance = new Vector2f(player.getPosition().x, player.getPosition().y).distance(new Vector2f(spatial.getLocalTranslation().x, spatial.getLocalTranslation().y));
+
+                        if (distance < player.getSize() * 0.5f) {
+                            doLevelCompleted();
+                        }
+
                     }
-
                 }
-            }
 
-            @Override
-            protected void controlRender(RenderManager rm, ViewPort vp) {
-            }
-        });
+                @Override
+                protected void controlRender(RenderManager rm, ViewPort vp) {
+                }
+            });
+        }
+
         return sprite;
 
     }

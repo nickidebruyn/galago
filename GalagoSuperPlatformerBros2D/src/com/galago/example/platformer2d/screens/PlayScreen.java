@@ -568,4 +568,9 @@ public class PlayScreen extends AbstractScreen implements Platform2DGameListener
 
                 }
     }
+
+    @Override
+    public void doCollisionBulletWithPickup(Spatial collided, Spatial collider) {
+        
+    }
 }

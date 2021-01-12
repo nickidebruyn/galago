@@ -164,6 +164,16 @@ public class Toolbar extends Panel implements TouchButtonListener {
     public void doTouchCancel(float touchX, float touchY, float tpf, String uid) {
     }
 
+    @Override
+    public void doHoverOver(float touchX, float touchY, float tpf, String uid) {
+        
+    }
+
+    @Override
+    public void doHoverOff(float touchX, float touchY, float tpf, String uid) {
+        
+    }
+
     private void addTerrainTools() {
 
         URL url = null;
@@ -171,7 +181,7 @@ public class Toolbar extends Panel implements TouchButtonListener {
         try {
             Platform platform = JmeSystem.getPlatform();
 
-            if (platform.compareTo(Platform.Android_ARM5) == 0 || platform.compareTo(Platform.Android_ARM6) == 0 || platform.compareTo(Platform.Android_ARM7) == 0) {
+            if (window.getApplication().isMobileApp()) {
                 url = JmeSystem.getResource("/assets/Textures/terrain/");
 
             } else {

@@ -25,6 +25,10 @@ public class KeyboardControlInputListener implements ActionListener {
     private static final String KEYBOARD_RIGHT = "KEY-RIGHT";
     private static final String KEYBOARD_UP = "KEY-UP";
     private static final String KEYBOARD_DOWN = "KEY-DOWN";
+    private static final String KEYBOARD_LEFT2 = "KEY-LEFT2";
+    private static final String KEYBOARD_RIGHT2 = "KEY-RIGHT2";
+    private static final String KEYBOARD_UP2 = "KEY-UP2";
+    private static final String KEYBOARD_DOWN2 = "KEY-DOWN2";
     private static final String KEYBOARD_LEFT_CTRL = "KEYBOARD_LEFT_CTRL";
     private static final String KEYBOARD_RIGHT_CTRL = "KEYBOARD_RIGHT_CTRL";
     private static final String KEYBOARD_TAB = "KEYBOARD_TAB";
@@ -54,10 +58,16 @@ public class KeyboardControlInputListener implements ActionListener {
 
             inputManager.addMapping(KEYBOARD_ENTER, new KeyTrigger(KeyInput.KEY_RETURN));
             inputManager.addMapping(KEYBOARD_SPACE, new KeyTrigger(KeyInput.KEY_SPACE));
-            inputManager.addMapping(KEYBOARD_LEFT, new KeyTrigger(KeyInput.KEY_LEFT), new KeyTrigger(KeyInput.KEY_A));
-            inputManager.addMapping(KEYBOARD_RIGHT, new KeyTrigger(KeyInput.KEY_RIGHT), new KeyTrigger(KeyInput.KEY_D));
-            inputManager.addMapping(KEYBOARD_UP, new KeyTrigger(KeyInput.KEY_UP), new KeyTrigger(KeyInput.KEY_W));
-            inputManager.addMapping(KEYBOARD_DOWN, new KeyTrigger(KeyInput.KEY_DOWN), new KeyTrigger(KeyInput.KEY_S));
+            inputManager.addMapping(KEYBOARD_LEFT, new KeyTrigger(KeyInput.KEY_LEFT));
+            inputManager.addMapping(KEYBOARD_RIGHT, new KeyTrigger(KeyInput.KEY_RIGHT));
+            inputManager.addMapping(KEYBOARD_UP, new KeyTrigger(KeyInput.KEY_UP));
+            inputManager.addMapping(KEYBOARD_DOWN, new KeyTrigger(KeyInput.KEY_DOWN));
+
+            inputManager.addMapping(KEYBOARD_LEFT2, new KeyTrigger(KeyInput.KEY_A));
+            inputManager.addMapping(KEYBOARD_RIGHT2, new KeyTrigger(KeyInput.KEY_D));
+            inputManager.addMapping(KEYBOARD_UP2, new KeyTrigger(KeyInput.KEY_W));
+            inputManager.addMapping(KEYBOARD_DOWN2, new KeyTrigger(KeyInput.KEY_S));
+
             inputManager.addMapping(KEYBOARD_LEFT_CTRL, new KeyTrigger(KeyInput.KEY_LCONTROL));
             inputManager.addMapping(KEYBOARD_RIGHT_CTRL, new KeyTrigger(KeyInput.KEY_RCONTROL));
             inputManager.addMapping(KEYBOARD_TAB, new KeyTrigger(KeyInput.KEY_TAB));
@@ -65,6 +75,7 @@ public class KeyboardControlInputListener implements ActionListener {
 
             inputManager.addListener(this, new String[]{KEYBOARD_ENTER, KEYBOARD_SPACE,
                 KEYBOARD_LEFT, KEYBOARD_RIGHT, KEYBOARD_UP, KEYBOARD_DOWN,
+                KEYBOARD_LEFT2, KEYBOARD_RIGHT2, KEYBOARD_UP2, KEYBOARD_DOWN2,
                 KEYBOARD_LEFT_CTRL, KEYBOARD_RIGHT_CTRL, KEYBOARD_TAB, KEYBOARD_DELETE});
         }
     }
@@ -81,6 +92,10 @@ public class KeyboardControlInputListener implements ActionListener {
         inputManager.deleteMapping(KEYBOARD_RIGHT);
         inputManager.deleteMapping(KEYBOARD_UP);
         inputManager.deleteMapping(KEYBOARD_DOWN);
+        inputManager.deleteMapping(KEYBOARD_LEFT2);
+        inputManager.deleteMapping(KEYBOARD_RIGHT2);
+        inputManager.deleteMapping(KEYBOARD_UP2);
+        inputManager.deleteMapping(KEYBOARD_DOWN2);
         inputManager.deleteMapping(KEYBOARD_LEFT_CTRL);
         inputManager.deleteMapping(KEYBOARD_RIGHT_CTRL);
         inputManager.deleteMapping(KEYBOARD_TAB);
@@ -123,18 +138,25 @@ public class KeyboardControlInputListener implements ActionListener {
     @Override
     public void onAction(String name, boolean isPressed, float tpf) {
         if (name != null) {
-            
+
             keyboardControlEvent.setKeyDown(isPressed);
-            keyboardControlEvent.setUp(KEYBOARD_UP.equals(name));
-            keyboardControlEvent.setDown(KEYBOARD_DOWN.equals(name));
-            keyboardControlEvent.setLeft(KEYBOARD_LEFT.equals(name));
-            keyboardControlEvent.setRight(KEYBOARD_RIGHT.equals(name));
+            keyboardControlEvent.setUp(KEYBOARD_UP.equals(name) || KEYBOARD_UP2.equals(name));
+            keyboardControlEvent.setDown(KEYBOARD_DOWN.equals(name) || KEYBOARD_DOWN2.equals(name));
+            keyboardControlEvent.setLeft(KEYBOARD_LEFT.equals(name) || KEYBOARD_LEFT2.equals(name));
+            keyboardControlEvent.setRight(KEYBOARD_RIGHT.equals(name) || KEYBOARD_RIGHT2.equals(name));
             keyboardControlEvent.setButton1(KEYBOARD_ENTER.equals(name));
             keyboardControlEvent.setButton2(KEYBOARD_SPACE.equals(name));
             keyboardControlEvent.setButton3(KEYBOARD_TAB.equals(name));
             keyboardControlEvent.setButton4(KEYBOARD_LEFT_CTRL.equals(name));
             keyboardControlEvent.setButton5(KEYBOARD_RIGHT_CTRL.equals(name));
             keyboardControlEvent.setDelete(KEYBOARD_DELETE.equals(name));
+
+            if (KEYBOARD_UP2.equals(name) || KEYBOARD_DOWN2.equals(name)
+                    || KEYBOARD_LEFT2.equals(name) || KEYBOARD_RIGHT2.equals(name)) {
+                keyboardControlEvent.setSecondSet(true);
+            } else {
+                keyboardControlEvent.setSecondSet(false);
+            }
 
             fireKeyboardControlEvent(keyboardControlEvent, tpf);
         }

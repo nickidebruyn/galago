@@ -559,7 +559,7 @@ public abstract class Blender3DGame implements PhysicsCollisionListener {
         if (spatial.getUserData(SENSOR) != null) {
             GhostControl ghostControl = null;
             if (collisionShape == null) {
-                ghostControl = new GhostControl();
+//                ghostControl = new GhostControl();
             } else {
                 ghostControl = new GhostControl(collisionShape);
             }

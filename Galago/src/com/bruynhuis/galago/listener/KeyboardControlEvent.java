@@ -16,6 +16,7 @@ public class KeyboardControlEvent {
     private boolean right = false;
     private boolean up = false;
     private boolean down = false;
+    private boolean secondSet = false;
     private boolean button1 = false;
     private boolean button2 = false;
     private boolean button3 = false;
@@ -154,6 +155,14 @@ public class KeyboardControlEvent {
 
     public void setDelete(boolean delete) {
         this.delete = delete;
+    }
+
+    public boolean isSecondSet() {
+        return secondSet;
+    }
+
+    public void setSecondSet(boolean secondSet) {
+        this.secondSet = secondSet;
     }
 
 }

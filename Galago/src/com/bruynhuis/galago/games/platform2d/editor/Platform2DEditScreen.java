@@ -15,12 +15,17 @@ import com.bruynhuis.galago.listener.PickListener;
 import com.bruynhuis.galago.listener.TouchPickListener;
 import com.bruynhuis.galago.screen.AbstractScreen;
 import com.bruynhuis.galago.sprite.Sprite;
+import com.bruynhuis.galago.ui.Label;
+import com.bruynhuis.galago.ui.TextAlign;
 import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.UUID;
 
 /**
  *
@@ -33,22 +38,30 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
     private TouchPickListener touchPickListener;
     private KeyboardControlInputListener keyboardControlInputListener;
     private FileNameDialog fileNameDialog;
+    private LinkLevelDialog linkLevelDialog;
     private ConfirmDialog trashConfirmDialog;
     private ConfirmDialog saveConfirmDialog;
+    private SavedFilesDialog savedFilesDialog;
     private Platform2DGame game;
     protected int columns = 26;
     protected int rows = 16;
+    protected float tileSize = 1f;
     protected Toolbar toolbar;
-    private Menubar menubar;
-    protected String fileName = "default-level" + FILE_EXT;
-    private boolean floodFill = false;
+    protected Menubar menubar;
+    protected String fileName = null;
+    protected boolean floodFill = false;
     private ArrayList<Sprite> worksheetTiles = new ArrayList<Sprite>();
     private boolean moveLeft;
     private boolean moveRight;
-    private float moveSpeed = 5;
+    protected float moveSpeed = 5;
+    protected float cameraFrustrum = 10;
+    protected float zoomSpeed = 10f;
     private boolean moveUp;
     private boolean moveDown;
-    
+    protected String prefix = "default-";
+    protected Label selectedItemLabel;
+    protected Tile lastSelectedTile;
+
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
@@ -58,7 +71,7 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
      * must move to the test screen.
      */
     protected abstract void doTestAction();
-    
+
     /**
      * Create an instance of the game
      *
@@ -80,7 +93,11 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
                         fileNameDialog.show();
 
                     } else if (Menubar.ACTION_OPEN.equals(uid)) {
-                        showScreen("fileselect");
+                        savedFilesDialog.setFilePrefix(prefix);
+                        savedFilesDialog.show();
+
+                    } else if (Menubar.ACTION_LINK.equals(uid)) {
+                        linkLevelDialog.show();
 
                     } else if (Menubar.ACTION_DRAW.equals(uid)) {
                         floodFill = false;
@@ -92,7 +109,7 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
                         game.save();
                         saveConfirmDialog.setText("Level " + fileName.replaceAll(FILE_EXT, "") + " saved successfully!");
                         saveConfirmDialog.show();
-                        
+
                     } else if (Menubar.ACTION_TRASH.equals(uid)) {
                         trashConfirmDialog.show();
 
@@ -108,6 +125,16 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
 
         toolbar = new Toolbar(hudPanel);
         toolbar.leftTop(0, 0);
+        toolbar.setTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                if (isActive()) {
+                    selectedItemLabel.setText(uid);
+
+                }
+            }
+
+        });
 
         fileNameDialog = new FileNameDialog(window);
         fileNameDialog.addOkButtonListener(new TouchButtonAdapter() {
@@ -117,14 +144,49 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
 
                     String nameText = fileNameDialog.getFileName().trim();
                     if (!nameText.equals("")) {
-                        setFileName(nameText + FILE_EXT);
+                        setFileName(prefix + nameText + FILE_EXT);
                         showScreen("edit");
                     }
 
                 }
             }
         });
-        
+
+        linkLevelDialog = new LinkLevelDialog(window);
+        linkLevelDialog.addOkButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                if (isActive()) {
+
+                    String nameText = linkLevelDialog.getValue().trim();
+                    String keyText = linkLevelDialog.getKey().trim();
+
+                    if (!nameText.equals("") && !keyText.equals("")) {
+
+                        if (lastSelectedTile != null) {
+                            lastSelectedTile.getProperties().put(keyText, nameText);
+                            
+                        }
+
+                        linkLevelDialog.hide();
+
+                    }
+
+                }
+            }
+        });
+
+        savedFilesDialog = new SavedFilesDialog(window, prefix);
+        savedFilesDialog.setFileSelectedButtonAdapter(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                log("Open file : " + uid);
+                setFileName(uid);
+                showScreen("edit");
+            }
+
+        });
+
         trashConfirmDialog = new ConfirmDialog(window, "Are you sure you want to start the level over?");
         trashConfirmDialog.addOkButtonListener(new TouchButtonAdapter() {
             @Override
@@ -136,7 +198,7 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
                 }
             }
         });
-        
+
         saveConfirmDialog = new ConfirmDialog(window, "Level saved successfully!");
         saveConfirmDialog.addOkButtonListener(new TouchButtonAdapter() {
             @Override
@@ -147,17 +209,23 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
                 }
             }
         });
-        
+
+        selectedItemLabel = new Label(hudPanel, "none", 18, 300, 30);
+        selectedItemLabel.setAlignment(TextAlign.RIGHT);
+        selectedItemLabel.rightBottom(10, 60);
+
         initUI();
 
         touchPickListener = new TouchPickListener(camera, rootNode);
         touchPickListener.setPickListener(this);
-        
+
         keyboardControlInputListener = new KeyboardControlInputListener();
         keyboardControlInputListener.addKeyboardControlListener(this);
     }
-    
+
     protected abstract void initUI();
+
+    protected abstract void initCamera();
 
     @Override
     protected void load() {
@@ -166,21 +234,21 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
         moveRight = false;
         moveUp = false;
         moveDown = false;
-        
-        game = initGame();        
+
+        game = initGame();
+
+        if (fileName == null) {
+            fileName = prefix + "default" + FILE_EXT;
+        }
+
         game.edit(fileName);
         game.load();
 
         loadWorksheet();
-//
-        camera.setLocation(new Vector3f(game.getStartPosition().x, game.getStartPosition().y, 10));
-//
-//        if (mainApplication.isMobileApp()) {
-//            mainApplication.setCameraDistanceFrustrum(9.4f);
-//        } else {
-//            mainApplication.setCameraDistanceFrustrum(9.8f);
-//        }
 
+        camera.setLocation(new Vector3f(game.getStartPosition().x, game.getStartPosition().y, 10));
+
+        initCamera();
 
     }
 
@@ -190,9 +258,11 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
         rootNode.attachChild(worksheet);
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < columns; c++) {
-                Sprite tile = new Sprite("marker", 1f, 1f);
+                Sprite tile = new Sprite("marker", tileSize, tileSize);
                 Material material = baseApplication.getAssetManager().loadMaterial("Resources/worksheet.j3m");
                 tile.setMaterial(material);
+                material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.AlphaAdditive);
+                material.setColor("Color", ColorRGBA.Gray);
                 tile.setLocalTranslation(c, r, 0);
                 worksheet.attachChild(tile);
                 worksheetTiles.add(tile);
@@ -200,7 +270,6 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
         }
 
 //        worksheet.center();
-
     }
 
     @Override
@@ -250,48 +319,63 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
             } else if (selectedTile == null && (tile == null || tile.getUid().startsWith("sky-"))) {
                 doPaintAction(sprite.getWorldTranslation().x, sprite.getWorldTranslation().y);
 
-
             }
         }
     }
 
     private boolean isPickPositionValid(PickEvent pickEvent) {
-        return pickEvent.getContactObject() != null && !pickEvent.getContactObject().getParent().getName().startsWith("sky-")
+        return pickEvent.getContactObject() != null && pickEvent.getContactObject().getParent() != null && !pickEvent.getContactObject().getParent().getName().startsWith("sky-")
                 && !fileNameDialog.isVisible() && !trashConfirmDialog.isVisible() && !saveConfirmDialog.isVisible();
     }
 
     public void picked(PickEvent pickEvent, float tpf) {
 
-        if (pickEvent.isKeyDown() && pickEvent.getContactObject() != null && isPickPositionValid(pickEvent)) {
+        if (pickEvent.isKeyDown() && !hasOpenDialog() && pickEvent.getContactObject() != null && isPickPositionValid(pickEvent)) {
 
             if (pickEvent.getContactObject().getParent() instanceof Sprite) {
 
-                Sprite sprite = (Sprite) pickEvent.getContactObject().getParent();                
+                Sprite sprite = (Sprite) pickEvent.getContactObject().getParent();
                 Tile selectedTile = game.getTileAtPosition(sprite.getWorldTranslation());
                 log("Tile at pos: " + sprite.getWorldTranslation());
 
                 if (floodFill) {
                     log("Flood fill: " + selectedTile);
                     doFloodFill(selectedTile);
+                    floodFill = false;
 
                 } else {
                     log("Picked: " + selectedTile);
+                    if (toolbar.getSelectedItem() != null && toolbar.getSelectedItem().equals("select")) {
+                        lastSelectedTile = selectedTile;
+//                        log("Last selected tile: " + lastSelectedTile);
 
-                    if (selectedTile == null) {
+                        if (lastSelectedTile != null) {
+//                            log("Link : " + lastSelectedTile.getProperties().get("link"));
+                            selectedItemLabel.setText("Selected Tile: " + lastSelectedTile.getUid());
+                            log("Selected Tile Properties: " + lastSelectedTile.getProperties());
+
+                        }
+
+                    } else if (selectedTile == null && toolbar.getSelectedItem() != null && !toolbar.getSelectedItem().equals("rotate")) {
                         doPaintAction(sprite.getWorldTranslation().x, sprite.getWorldTranslation().y);
 
                     } else if (toolbar.getSelectedItem() != null && toolbar.getSelectedItem().equals("erase")) {
-                        log("Removing tile: " + selectedTile.getUid());
 
                         if (selectedTile != null && !selectedTile.getUid().startsWith("sky-")) {
+                            log("Removing tile: " + selectedTile.getUid());
                             game.removeTile(selectedTile);
+                        }
+                    } else if (toolbar.getSelectedItem() != null && toolbar.getSelectedItem().equals("rotate")) {
+
+                        if (selectedTile != null && !selectedTile.getUid().startsWith("sky-")) {
+                            log("Rotating tile: " + selectedTile.getUid());
+                            game.rotateTile(selectedTile);
                         }
                     } else if (toolbar.getSelectedItem() != null && selectedTile != null && !game.hasTileAtPosition(sprite.getWorldTranslation(), toolbar.getSelectedItem())) {
                         log("Selected Tile: " + selectedTile.getUid() + ";  Tile to add: " + toolbar.getSelectedItem());
                         doPaintAction(sprite.getWorldTranslation().x, sprite.getWorldTranslation().y);
                     }
                 }
-
             }
 
         }
@@ -300,16 +384,16 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
 
     public void drag(PickEvent pickEvent, float tpf) {
 
-        if (pickEvent.isKeyDown() && pickEvent.getContactObject() != null && isPickPositionValid(pickEvent)) {
+        if (pickEvent.isKeyDown() && !hasOpenDialog() && pickEvent.getContactObject() != null && isPickPositionValid(pickEvent)) {
 
             if (pickEvent.getContactObject().getParent() instanceof Sprite) {
                 Sprite sprite = (Sprite) pickEvent.getContactObject().getParent();
                 Tile selectedTile = game.getTileAtPosition(sprite.getWorldTranslation());
 
-                if (!floodFill) {
-//                    log("Picked: " + selectedTile);
+                if (!floodFill && !toolbar.getSelectedItem().equals("rotate") && !toolbar.getSelectedItem().equals("select")) {
+//                    log("Picked: " + selectedTile.getUid());
 
-                    if (selectedTile == null) {
+                    if (selectedTile == null && toolbar.getSelectedItem() != null) {
                         doPaintAction(sprite.getWorldTranslation().x, sprite.getWorldTranslation().y);
 
                     } else if (toolbar.getSelectedItem() != null && toolbar.getSelectedItem().equals("erase")) {
@@ -325,9 +409,17 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
                     }
                 }
 
-
             }
 
+        }
+
+        if (pickEvent.isZoomDown()) {
+            cameraFrustrum += tpf * zoomSpeed;
+            mainApplication.setCameraDistanceFrustrum(cameraFrustrum);
+
+        } else if (pickEvent.isZoomUp()) {
+            cameraFrustrum -= tpf * zoomSpeed;
+            mainApplication.setCameraDistanceFrustrum(cameraFrustrum);
         }
 
     }
@@ -338,7 +430,7 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
 
         String selectedItem = toolbar.getSelectedItem();
         log("doPaintAction: " + selectedItem + ", " + x + ", " + y);
-        if (selectedItem != null && !selectedItem.equals("erase")) {
+        if (selectedItem != null && !selectedItem.equals("erase") && !selectedItem.equals("select")) {
             Sprite sprite = game.getItem(selectedItem);
 
             //First let's check for an existing sky
@@ -360,56 +452,58 @@ public abstract class Platform2DEditScreen extends AbstractScreen implements Pic
             //Now we add a new sky
             Tile tile = new Tile(pos.x, pos.y, sprite.getWorldTranslation().z, selectedItem);
             tile.setSpatial(sprite);
+            tile.getProperties().setProperty("uuid", UUID.randomUUID().toString());
             game.addTile(tile);
         }
-
 
     }
 
     @Override
     public void onKey(KeyboardControlEvent keyboardControlEvent, float fps) {
-        if (isActive()) {
-            
+        if (isActive() && !hasOpenDialog()) {
+
             if (keyboardControlEvent.isLeft()) {
                 moveLeft = keyboardControlEvent.isKeyDown();
-                
+
             }
-            
+
             if (keyboardControlEvent.isRight()) {
                 moveRight = keyboardControlEvent.isKeyDown();
-                
+
             }
-            
+
             if (keyboardControlEvent.isUp()) {
                 moveUp = keyboardControlEvent.isKeyDown();
-                
+
             }
-            
+
             if (keyboardControlEvent.isDown()) {
                 moveDown = keyboardControlEvent.isKeyDown();
-                
+
             }
-            
+
         }
     }
 
     @Override
     public void update(float tpf) {
-        if (isActive()) {
+        if (isActive() && !hasOpenDialog()) {
             if (moveLeft) {
-                camera.setLocation(camera.getLocation().add(-tpf*moveSpeed, 0, 0));
-                
+                camera.setLocation(camera.getLocation().add(-tpf * moveSpeed, 0, 0));
+
             } else if (moveRight) {
-                camera.setLocation(camera.getLocation().add(tpf*moveSpeed, 0, 0));
-                
+                camera.setLocation(camera.getLocation().add(tpf * moveSpeed, 0, 0));
+
             } else if (moveUp) {
-                camera.setLocation(camera.getLocation().add(0, tpf*moveSpeed, 0));
-                
+                camera.setLocation(camera.getLocation().add(0, tpf * moveSpeed, 0));
+
             } else if (moveDown) {
-                camera.setLocation(camera.getLocation().add(0, -tpf*moveSpeed, 0));
+                camera.setLocation(camera.getLocation().add(0, -tpf * moveSpeed, 0));
             }
         }
     }
-    
-    
+
+    protected boolean hasOpenDialog() {
+        return fileNameDialog.isVisible() || trashConfirmDialog.isVisible() || saveConfirmDialog.isVisible() || savedFilesDialog.isVisible() || linkLevelDialog.isVisible();
+    }
 }

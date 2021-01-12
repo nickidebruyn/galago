@@ -142,7 +142,7 @@ public class TextField extends ImageWidget implements InputType {
             //Init the text
             bitmapText = bitmapFont.createLabel(id);
             bitmapText.setText("Text");             // the text
-            Rectangle rectangle = new Rectangle((-getWidth() * 0.5f) + padding, (getHeight() * 0.5f) - padding, getWidth() - padding, (getHeight() * 0.5f) - padding);
+            Rectangle rectangle = new Rectangle((-getWidth() * 0.5f) + padding, (getHeight() * 0.45f) - padding, getWidth() - padding, (getHeight() * 0.5f) - padding);
 //            System.out.println("TextField Rectange = " + rectangle);
             bitmapText.setBox(rectangle);
             bitmapText.setSize(fontStyle.getFontSize() * panel.getWindow().getScaleFactorHeight());      // font size
@@ -667,4 +667,7 @@ public class TextField extends ImageWidget implements InputType {
         this.textToUpdate = text;
     }
 
+    public void append(String text) {
+        bitmapText.setText(bitmapText.getText() + text);
+    }
 }

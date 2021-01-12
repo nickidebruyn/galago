@@ -4,6 +4,9 @@
  */
 package com.bruynhuis.galago.ui.panel;
 
+import com.bruynhuis.galago.app.BaseApplication;
+import com.bruynhuis.galago.listener.AndroidInputEvent;
+import com.bruynhuis.galago.listener.AndroidInputEventListener;
 import com.bruynhuis.galago.listener.JoystickEvent;
 import com.bruynhuis.galago.listener.JoystickListener;
 import com.bruynhuis.galago.ui.Widget;
@@ -12,6 +15,7 @@ import com.bruynhuis.galago.util.Debug;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
+import java.util.concurrent.Callable;
 
 /**
  * A button panel will group TouchButtons together and allow the user to rotate
@@ -19,9 +23,10 @@ import com.jme3.input.controls.KeyTrigger;
  *
  * @author Nidebruyn
  */
-public class ButtonPanel extends Panel implements ActionListener, JoystickListener {
+public class ButtonPanel extends Panel implements ActionListener, JoystickListener, AndroidInputEventListener {
 
     private TouchButton selectedButton;
+    private BaseApplication baseApplication;
 
     public ButtonPanel(Widget parent) {
         super(parent);
@@ -40,29 +45,44 @@ public class ButtonPanel extends Panel implements ActionListener, JoystickListen
     }
 
     private void registerInput() {
-        window.getInputManager().addMapping("keyboard_up", new KeyTrigger(KeyInput.KEY_UP));
-        window.getInputManager().addMapping("keyboard_down", new KeyTrigger(KeyInput.KEY_DOWN));
-        window.getInputManager().addMapping("keyboard_enter_pressed", new KeyTrigger(KeyInput.KEY_RETURN));
 
-        window.getInputManager().addMapping("keyboard_left", new KeyTrigger(KeyInput.KEY_LEFT));
-        window.getInputManager().addMapping("keyboard_right", new KeyTrigger(KeyInput.KEY_RIGHT));
-        window.getInputManager().addMapping("keyboard_space_pressed", new KeyTrigger(KeyInput.KEY_SPACE));
+        baseApplication = window.getApplication();
 
-        window.getInputManager().addListener(this, "keyboard_up", "keyboard_down", "keyboard_enter_pressed", "keyboard_left", "keyboard_right", "keyboard_space_pressed");
+        if (baseApplication.isMobileApp()) {
+            baseApplication.addAndroidMotionListener(this);
 
-        window.getApplication().getJoystickInputListener().addJoystickListener(this);
+        } else {
+            window.getInputManager().addMapping("keyboard_up", new KeyTrigger(KeyInput.KEY_UP));
+            window.getInputManager().addMapping("keyboard_down", new KeyTrigger(KeyInput.KEY_DOWN));
+            window.getInputManager().addMapping("keyboard_enter_pressed", new KeyTrigger(KeyInput.KEY_RETURN));
+
+            window.getInputManager().addMapping("keyboard_left", new KeyTrigger(KeyInput.KEY_LEFT));
+            window.getInputManager().addMapping("keyboard_right", new KeyTrigger(KeyInput.KEY_RIGHT));
+            window.getInputManager().addMapping("keyboard_space_pressed", new KeyTrigger(KeyInput.KEY_SPACE));
+
+            window.getInputManager().addListener(this, "keyboard_up", "keyboard_down", "keyboard_enter_pressed", "keyboard_left", "keyboard_right", "keyboard_space_pressed");
+
+            window.getApplication().getJoystickInputListener().addJoystickListener(this);
+
+        }
     }
 
     private void unregisterInput() {
-        window.getInputManager().deleteMapping("keyboard_up");
-        window.getInputManager().deleteMapping("keyboard_down");
-        window.getInputManager().deleteMapping("keyboard_enter_pressed");
-        window.getInputManager().deleteMapping("keyboard_left");
-        window.getInputManager().deleteMapping("keyboard_right");
-        window.getInputManager().deleteMapping("keyboard_space_pressed");
 
-        window.getInputManager().removeListener(this);
-        window.getApplication().getJoystickInputListener().removeJoystickListener(this);
+        if (baseApplication.isMobileApp()) {
+            baseApplication.removeAndroidMotionListener(this);
+
+        } else {
+            window.getInputManager().deleteMapping("keyboard_up");
+            window.getInputManager().deleteMapping("keyboard_down");
+            window.getInputManager().deleteMapping("keyboard_enter_pressed");
+            window.getInputManager().deleteMapping("keyboard_left");
+            window.getInputManager().deleteMapping("keyboard_right");
+            window.getInputManager().deleteMapping("keyboard_space_pressed");
+
+            window.getInputManager().removeListener(this);
+            window.getApplication().getJoystickInputListener().removeJoystickListener(this);
+        }
     }
 
     @Override
@@ -141,7 +161,6 @@ public class ButtonPanel extends Panel implements ActionListener, JoystickListen
                 registerInput();
             }
 
-
         } else {
 
             if (window.getInputManager().hasMapping("keyboard_up")) {
@@ -166,7 +185,6 @@ public class ButtonPanel extends Panel implements ActionListener, JoystickListen
             }
         }
 
-
         if ((joystickEvent.isButton1() || joystickEvent.isButton3()) && selectedButton != null) {
             if (joystickEvent.isButtonDown()) {
                 selectedButton.fireTouchDown(0, 0, 1f);
@@ -174,6 +192,57 @@ public class ButtonPanel extends Panel implements ActionListener, JoystickListen
                 selectedButton.fireTouchUp(0, 0, 1f);
             }
         }
+
+    }
+
+    @Override
+    public void doMotionAction(AndroidInputEvent event) {
+        baseApplication.enqueue(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                
+                boolean pressed = event.getAction() == 0;
+
+                if (pressed) {
+                    System.out.println("Event = " + event.getKeyCode());
+                    
+                    //Left action
+                    if (event.getKeyCode() == 21) {
+                        swapDown(1);
+                    }
+                    //Right action
+                    if (event.getKeyCode() == 22) {
+                        swapUp(1);
+                    }
+                    //Up
+                    if (event.getKeyCode() == 19) {
+                        swapUp(1);
+                    }
+                    if (event.getKeyCode() == 20) {
+                        swapDown(1);
+                    }
+
+                }
+
+                if (event.getKeyCode() == 23) {
+                    if (pressed) {
+                        selectedButton.fireTouchDown(0, 0, 1f);
+                    } else {
+                        selectedButton.fireTouchUp(0, 0, 1f);
+                    }
+                }
+
+                if (event.getKeyCode() == 24) {
+                    if (pressed) {
+                        selectedButton.fireTouchDown(0, 0, 1f);
+                    } else {
+                        selectedButton.fireTouchUp(0, 0, 1f);
+                    }
+                }
+
+                return null;
+            }
+        });
 
     }
 }

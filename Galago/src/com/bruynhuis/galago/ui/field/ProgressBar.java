@@ -7,42 +7,45 @@ package com.bruynhuis.galago.ui.field;
 import com.bruynhuis.galago.ui.ImageWidget;
 import com.bruynhuis.galago.ui.TextAlign;
 import com.bruynhuis.galago.ui.panel.Panel;
+import com.jme3.math.ColorRGBA;
 import com.jme3.ui.Picture;
 
 /**
  *
- * The progressBar class is exactly that.
- * 2 Images layered over each other to represent a Horizontal ProgressBar.
- * 
+ * The progressBar class is exactly that. 2 Images layered over each other to
+ * represent a Horizontal ProgressBar.
+ *
  * @author nidebruyn
  */
 public class ProgressBar extends ImageWidget {
 
-    protected Panel panel;    
+    protected Panel panel;
     protected float progress = 1;
     protected Picture progressPicture;
+    protected ColorRGBA progressPictureColor = new ColorRGBA(1, 1, 1, 1);
     protected String progressPictureFile;
     protected float padding = 0;
     protected float borderWidth = 5;
+    protected float progressDepth = -0.1f;
     protected TextAlign progressAlignment = TextAlign.LEFT;
-    
+
     /**
-     * 
+     *
      * @param panel
      * @param pictureFile
-     * @param progressPictureFile 
+     * @param progressPictureFile
      */
     public ProgressBar(Panel panel, String pictureFile, String progressPictureFile) {
         this(panel, pictureFile, progressPictureFile, 250, 40);
     }
 
     /**
-     * 
+     *
      * @param panel
      * @param pictureFile
      * @param progressPictureFile
      * @param width
-     * @param height 
+     * @param height
      */
     public ProgressBar(Panel panel, String pictureFile, String progressPictureFile, float width, float height) {
         super(panel.getWindow(), panel, pictureFile, width, height, false);
@@ -54,35 +57,34 @@ public class ProgressBar extends ImageWidget {
 //            progressPicture.setImage(window.getAssetManager(), progressPictureFile, true);
 //            progressPicture.setMaterial(window.makeGuiMaterial(texture2D));
             progressPicture.setMaterial(window.getApplication().getTextureManager().getGUIMaterial(progressPictureFile));
-            
+
             progressPicture.setWidth(getWidth());
             progressPicture.setHeight(getHeight());
             progressPicture.move(-getWidth() * 0.5f, -getHeight() * 0.5f, 0f);
             widgetNode.attachChild(progressPicture);
-            
-//            window.addPictureForOptimization(picture);
 
+//            window.addPictureForOptimization(picture);
         }
 
         setProgress(progress);
     }
-       
+
     /**
-     * 
-     * @param progress 
+     *
+     * @param progress
      */
     public void setProgress(float progress) {
         this.progress = progress;
-        float pad = borderWidth - (borderWidth*progress);
-        progressPicture.setWidth(getWidth()*progress);
-        
+        float pad = borderWidth - (borderWidth * progress);
+        progressPicture.setWidth(getWidth() * progress);
+
         if (progressAlignment.equals(TextAlign.RIGHT)) {
-            progressPicture.setLocalTranslation((-getWidth() * 0.5f) + ((padding*window.getScaleFactorWidth())*(1f-progress)) + pad, -getHeight() * 0.5f, -0.1f);
-            
+            progressPicture.setLocalTranslation((-getWidth() * 0.5f) + ((padding * window.getScaleFactorWidth()) * (1f - progress)) + pad, -getHeight() * 0.5f, progressDepth);
+
         } else {
-            progressPicture.setLocalTranslation((-getWidth() * 0.5f) + ((padding*window.getScaleFactorWidth())*(1f-progress)) + pad, -getHeight() * 0.5f, -0.1f);
+            progressPicture.setLocalTranslation((-getWidth() * 0.5f) + ((padding * window.getScaleFactorWidth()) * (1f - progress)) + pad, -getHeight() * 0.5f, progressDepth);
         }
-        
+
     }
 
     public float getBorderWidth() {
@@ -92,20 +94,20 @@ public class ProgressBar extends ImageWidget {
     public void setBorderWidth(float borderWidth) {
         this.borderWidth = borderWidth;
     }
-    
+
     public float getProgress() {
         return progress;
-    }   
+    }
 
     public void setProgressAlignment(TextAlign progressAlignment) {
         this.progressAlignment = progressAlignment;
     }
-    
+
     @Override
     protected boolean isBatched() {
         return false;
     }
-    
+
     public float getPadding() {
         return padding;
     }
@@ -113,4 +115,20 @@ public class ProgressBar extends ImageWidget {
     public void setPadding(float padding) {
         this.padding = padding;
     }
+
+    public float getProgressDepth() {
+        return progressDepth;
+    }
+
+    public void setProgressDepth(float progressDepth) {
+        this.progressDepth = progressDepth;
+    }
+
+    public void setProgressTransparency(float alpha) {
+        if (progressPicture != null && progressPicture.getMaterial() != null) {
+            progressPictureColor.set(1f, 1f, 1f, alpha);
+            progressPicture.getMaterial().setColor("Color", progressPictureColor);
+        }
+    }
+
 }

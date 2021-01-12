@@ -24,26 +24,26 @@ public class FileNameDialog extends PopupDialog {
     private NameField nameField;
 
     public FileNameDialog(Window window) {
-        super(window, "Resources/panel.png", 680, 256, true);
+        super(window, "Resources/panel.png", window.getWidth()*0.9f, window.getHeight()*0.6f, true);
         
         title.remove();
 
-        title = new Label(this, "New Level", 400, 80, new FontStyle(36));
-        title.setTextColor(ColorRGBA.Brown);
-        title.centerTop(0, -16);
+        title = new Label(this, "New Level", 400, 30, new FontStyle(30));
+        title.setTextColor(ColorRGBA.DarkGray);
+        title.centerTop(0, 20);
         
-        label = new Label(this, "Level Name: ", 26, 250, 50);
-        label.centerAt(-160, 10);
-        label.setTextColor(ColorRGBA.DarkGray);        
+        label = new Label(this, "Name: ", 26, 400, 50);
+        label.centerAt(0, 20);
+        label.setTextColor(ColorRGBA.Gray);        
         
         nameField = new NameField(this);
-        nameField.centerAt(100, 10);
+        nameField.centerAt(0, -30);
         
         okButton = new ButtonWide(this, "file-edit-ok-button", "Ok");
-        okButton.centerBottom(0, 32);
+        okButton.centerBottom(0, 15);
         
         closeButton = new ButtonClose(this, "Close new file button");
-        closeButton.rightTop(0, 0);
+        closeButton.rightTop(15, 15);
         closeButton.addTouchButtonListener(new TouchButtonAdapter() {
 
             @Override

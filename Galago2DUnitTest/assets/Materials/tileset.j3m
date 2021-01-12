@@ -1,0 +1,11 @@
+Material My Material : Common/MatDefs/Misc/Unshaded.j3md {
+     MaterialParameters {
+        ColorMap : Flip "Textures/tileset-lab.png"
+        AlphaDiscardThreshold : 0.5
+        GlowMap : Flip "Textures/tileset-lab-glow.png"
+     }
+    AdditionalRenderState {
+      Blend Alpha
+      FaceCull Off
+    }
+}

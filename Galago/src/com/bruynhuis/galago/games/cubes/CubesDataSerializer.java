@@ -41,7 +41,7 @@ public class CubesDataSerializer {
         try {
             Platform platform = JmeSystem.getPlatform();
 
-            if (platform.compareTo(Platform.Android_ARM5) == 0 || platform.compareTo(Platform.Android_ARM6) == 0 || platform.compareTo(Platform.Android_ARM7) == 0) {
+            if (isMobileApp()) {
                 levelInputStream = JmeSystem.getResourceAsStream("/assets/Levels/" + fileName);
 
             } else {
@@ -163,6 +163,28 @@ public class CubesDataSerializer {
         }
 
         return success;
+
+    }
+
+    /**
+     * This method can be called from the game to determine if it is a mobile
+     * app or not.
+     *
+     * @return boolean
+     */
+    public static boolean isMobileApp() {
+        try {
+            Platform platform = JmeSystem.getPlatform();
+            return platform.compareTo(Platform.Android_ARM5) == 0
+                    || platform.compareTo(Platform.Android_ARM6) == 0
+                    || platform.compareTo(Platform.Android_ARM7) == 0
+                    || platform.compareTo(Platform.Android_ARM8) == 0
+                    || platform.compareTo(Platform.Android_Other) == 0
+                    || platform.compareTo(Platform.Android_X86) == 0;
+
+        } catch (UnsupportedOperationException e) {
+            return true;
+        }
 
     }
 

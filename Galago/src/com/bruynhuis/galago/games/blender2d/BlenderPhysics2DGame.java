@@ -44,16 +44,21 @@ public abstract class BlenderPhysics2DGame implements PhysicsCollisionListener {
     public static final String TYPE_START = "start";
     public static final String TYPE_END = "end";
     public static final String TYPE_BULLET = "bullet";
-    
+    public static final String TYPE_SKY = "sky";
+    public static final String TYPE_SKY1 = "sky1";
+    public static final String TYPE_SKY2 = "sky2";
+    public static final String TYPE_SKY3 = "sky3";
+    public static final String TYPE_SKY4 = "sky4";
+
     public static final String SHAPE = "shape";
     public static final String SHAPE_TRIANGLE = "triangle";
     public static final String SHAPE_BOX = "box";
     public static final String SHAPE_CIRCLE = "circle";
     public static final String SHAPE_ELLIPSE = "ellipse";
-    
+
     public static final String MASS = "mass";
     public static final String SENSOR = "sensor";
-    
+
     protected Base2DApplication baseApplication;
     protected String sceneFile;
     protected Node rootNode;
@@ -78,7 +83,7 @@ public abstract class BlenderPhysics2DGame implements PhysicsCollisionListener {
     }
 
     public abstract void init();
-    
+
     public abstract void parse(Spatial spatial);
 
     /**
@@ -87,74 +92,101 @@ public abstract class BlenderPhysics2DGame implements PhysicsCollisionListener {
     public void load() {
         baseApplication.getDyn4jAppState().setEnabled(false);
 
-        levelNode = (Node)baseApplication.getAssetManager().loadModel(sceneFile);
+        levelNode = (Node) baseApplication.getAssetManager().loadModel(sceneFile);
         rootNode.attachChild(levelNode);
-        
+
         SceneGraphVisitor sgv = new SceneGraphVisitor() {
             public void visit(Spatial spatial) {
 
                 if (spatial.getUserData(TYPE) != null
                         && spatial.getUserData(TYPE).equals(TYPE_TERRAIN)) {
-                    
+
                     log("##### ADDING TERRAIN ################################################");
                     spatial.setName(TYPE_TERRAIN);
-                    add2DRigidbody(spatial);       
-                    
+                    add2DRigidbody(spatial);
+
                 } else if (spatial.getUserData(TYPE) != null
                         && spatial.getUserData(TYPE).equals(TYPE_STATIC)) {
-                    
+
                     log("##### ADDING STATIC ################################################");
                     spatial.setName(TYPE_STATIC);
-                    add2DRigidbody(spatial);       
-                    
+                    add2DRigidbody(spatial);
+
                 } else if (spatial.getUserData(TYPE) != null
                         && spatial.getUserData(TYPE).equals(TYPE_OBSTACLE)) {
-                    
+
                     log("##### ADDING OBSTACLE ################################################");
                     spatial.setName(TYPE_OBSTACLE);
-                    add2DRigidbody(spatial);       
-                    
+                    add2DRigidbody(spatial);
+
                 } else if (spatial.getUserData(TYPE) != null
                         && spatial.getUserData(TYPE).equals(TYPE_ENEMY)) {
-                    
+
                     log("##### ADDING ENEMY ################################################");
                     spatial.setName(TYPE_ENEMY);
-                    add2DRigidbody(spatial);       
+                    add2DRigidbody(spatial);
 
                 } else if (spatial.getUserData(TYPE) != null
                         && spatial.getUserData(TYPE).equals(TYPE_START)) {
-                    
+
                     log("##### ADDING START ################################################");
                     spatial.setName(TYPE_START);
                     startPosition = spatial.getWorldTranslation().clone();
-                    startAngle = spatial.getWorldRotation().toAngleAxis(Vector3f.UNIT_Z)*FastMath.RAD_TO_DEG;
+                    startAngle = spatial.getWorldRotation().toAngleAxis(Vector3f.UNIT_Z) * FastMath.RAD_TO_DEG;
                     log("\t World position: " + startPosition);
                     log("\t World rotation: " + startAngle);
 
                 } else if (spatial.getUserData(TYPE) != null
-                        && spatial.getUserData(TYPE).equals(TYPE_END)) {
+                        && spatial.getUserData(TYPE).equals(TYPE_SKY)) {
+
+                    log("##### ADDING SKY ################################################");
+                    spatial.setName(TYPE_SKY);
+                    addSky(spatial, 1);
                     
+                } else if (spatial.getUserData(TYPE) != null
+                        && spatial.getUserData(TYPE).equals(TYPE_SKY1)) {
+
+                    log("##### ADDING SKY1 ################################################");
+                    spatial.setName(TYPE_SKY1);
+                    addSky(spatial, 0.91f);                    
+                    
+                } else if (spatial.getUserData(TYPE) != null
+                        && spatial.getUserData(TYPE).equals(TYPE_SKY2)) {
+
+                    log("##### ADDING SKY2 ################################################");
+                    spatial.setName(TYPE_SKY2);
+                    addSky(spatial, 0.95f);                    
+                    
+                } else if (spatial.getUserData(TYPE) != null
+                        && spatial.getUserData(TYPE).equals(TYPE_SKY3)) {
+
+                    log("##### ADDING SKY2 ################################################");
+                    spatial.setName(TYPE_SKY3);
+                    addSky(spatial, 0.98f);
+                    
+                } else if (spatial.getUserData(TYPE) != null
+                        && spatial.getUserData(TYPE).equals(TYPE_END)) {
+
                     log("##### ADDING END ################################################");
-                    spatial.setName(TYPE_END);      
-                    endPosition = spatial.getWorldTranslation().clone();        
+                    spatial.setName(TYPE_END);
+                    endPosition = spatial.getWorldTranslation().clone();
                     log("\t World position: " + endPosition);
                     add2DRigidbody(spatial);
-                    
 
                 } else if (spatial.getUserData(TYPE) != null
                         && spatial.getUserData(TYPE).equals(TYPE_PICKUP)) {
-                    
+
                     log("##### ADDING PICKUP ################################################");
                     spatial.setName(TYPE_PICKUP);
                     log("\t World position: " + spatial.getWorldTranslation());
                     addPickup(spatial);
 
                 }
-                
+
                 parse(spatial);
             }
         };
-        
+
         levelNode.depthFirstTraversal(sgv);
 
         init();
@@ -193,7 +225,7 @@ public abstract class BlenderPhysics2DGame implements PhysicsCollisionListener {
 
         baseApplication.getDyn4jAppState().getPhysicsSpace().clear();
         baseApplication.getDyn4jAppState().getPhysicsSpace().addPhysicsTickListener(baseApplication);
-        
+
         player = null;
         System.gc(); //Force memory to be released;
 
@@ -228,12 +260,11 @@ public abstract class BlenderPhysics2DGame implements PhysicsCollisionListener {
         if (player != null) {
 
 //            log("Collision: " + spatialA.getName() + " with " + spatialB.getName());
-
             if (checkCollisionWithType(spatialA, spatialB, TYPE_PLAYER, TYPE_STATIC)) {
                 fireCollisionPlayerWithStaticListener(lastCollidedSpatial, lastColliderSpatial);
 
             } else if (checkCollisionWithType(spatialA, spatialB, TYPE_PLAYER, TYPE_TERRAIN)) {
-                fireCollisionPlayerWithTerrainListener(lastCollidedSpatial, lastColliderSpatial);
+                fireCollisionPlayerWithTerrainListener(lastCollidedSpatial, lastColliderSpatial, point);
 
             } else if (checkCollisionWithType(spatialA, spatialB, TYPE_PLAYER, TYPE_PICKUP)) {
                 fireCollisionPlayerWithPickupListener(lastCollidedSpatial, lastColliderSpatial);
@@ -290,12 +321,10 @@ public abstract class BlenderPhysics2DGame implements PhysicsCollisionListener {
                 && ((sA.getName().startsWith(collider) && sB.getName().startsWith(type))
                 || (sA.getName().startsWith(type) && sB.getName().startsWith(collider)));
 
-
         if (collision && sB.getName().startsWith(type)) {
             lastCollidedSpatial = sB;
             lastColliderSpatial = sA;
             return true;
-
 
         } else if (collision && sA.getName().startsWith(type)) {
             lastCollidedSpatial = sA;
@@ -351,9 +380,9 @@ public abstract class BlenderPhysics2DGame implements PhysicsCollisionListener {
         }
     }
 
-    protected void fireCollisionPlayerWithTerrainListener(Spatial collided, Spatial collider) {
+    protected void fireCollisionPlayerWithTerrainListener(Spatial collided, Spatial collider, Vector3f point) {
         if (gameListener != null) {
-            gameListener.doCollisionPlayerWithTerrain(collided, collider);
+            gameListener.doCollisionPlayerWithTerrain(collided, collider, point);
         }
     }
 
@@ -493,11 +522,11 @@ public abstract class BlenderPhysics2DGame implements PhysicsCollisionListener {
         }
 
     }
-    
+
     /**
      * This will parse and add the physics to the spatial.
-     * 
-     * @param spatial 
+     *
+     * @param spatial
      */
     protected void add2DRigidbody(Spatial spatial) {
         Float massVal = spatial.getUserData(MASS);
@@ -506,7 +535,7 @@ public abstract class BlenderPhysics2DGame implements PhysicsCollisionListener {
             mass = massVal.floatValue();
         }
         RigidBodyControl rigidBodyControl = new RigidBodyControl(mass);
-        
+
         log("\t World Bounds: " + spatial.getWorldBound());
 
         if (spatial instanceof Node) {
@@ -527,22 +556,22 @@ public abstract class BlenderPhysics2DGame implements PhysicsCollisionListener {
         spatial.addControl(rigidBodyControl);
         baseApplication.getDyn4jAppState().getPhysicsSpace().add(spatial);
         rigidBodyControl.setMass(mass);
-        
+
         boolean sensor = false;
         if (spatial.getUserData(SENSOR) != null) {
             sensor = true;
         }
         rigidBodyControl.setSensor(sensor);
-        
+
         log("\t World position: " + spatial.getWorldTranslation());
-        
+
         float radians = spatial.getWorldRotation().toAngles(null)[2];
-        log("\t World rotation: " + (radians* FastMath.RAD_TO_DEG));
+        log("\t World rotation: " + (radians * FastMath.RAD_TO_DEG));
         rigidBodyControl.setPhysicLocation(spatial.getWorldTranslation().x, spatial.getWorldTranslation().y);
         rigidBodyControl.setPhysicRotation(radians);
 
     }
-    
+
     protected void addCollisionShape(RigidBodyControl rigidBodyControl, Geometry geometry) {
         String type = null;
         if (geometry.getUserData(SHAPE) != null) {
@@ -550,7 +579,7 @@ public abstract class BlenderPhysics2DGame implements PhysicsCollisionListener {
         } else if (geometry.getParent().getUserData(SHAPE) != null) {
             type = geometry.getParent().getUserData(SHAPE);
         }
-        
+
         if (SHAPE_BOX.equals(type)) {
             addBoxCollisionShape(rigidBodyControl, geometry);
         } else if (SHAPE_CIRCLE.equals(type)) {
@@ -560,18 +589,18 @@ public abstract class BlenderPhysics2DGame implements PhysicsCollisionListener {
         } else {
             addTriangleCollisionShape(rigidBodyControl, geometry);
         }
-        
+
     }
 
     private void addTriangleCollisionShape(RigidBodyControl rigidBodyControl, Geometry geometry) {
         int triCount = geometry.getMesh().getTriangleCount();
-        log("\t Add collision shapes: -TriCount: " + triCount);        
+        log("\t Add collision shapes: -TriCount: " + triCount);
         log("\t World Bounds: " + geometry.getWorldBound());
-        
+
         Vector3f vec1 = new Vector3f(0, 0, 0);
         Vector3f vec2 = new Vector3f(0, 0, 0);
         Vector3f vec3 = new Vector3f(0, 0, 0);
-                
+
         for (int t = 0; t < triCount; t++) {
             geometry.getMesh().getTriangle(t, vec1, vec2, vec3);
             TriCollisionShape triCollisionShape = new TriCollisionShape(vec1.clone(), vec2.clone(), vec3.clone());
@@ -579,34 +608,53 @@ public abstract class BlenderPhysics2DGame implements PhysicsCollisionListener {
         }
 
     }
-    
+
     private void addBoxCollisionShape(RigidBodyControl rigidBodyControl, Geometry geometry) {
-        BoundingBox bb = (BoundingBox)geometry.getWorldBound();
-        float width = bb.getXExtent()*2f;
-        float height = bb.getYExtent()*2f;
+        BoundingBox bb = (BoundingBox) geometry.getWorldBound();
+        float width = bb.getXExtent() * 2f;
+        float height = bb.getYExtent() * 2f;
         BoxCollisionShape boxCollisionShape = new BoxCollisionShape(width, height);
         rigidBodyControl.addCollisionShape(boxCollisionShape);
 
     }
-    
+
     private void addCircleCollisionShape(RigidBodyControl rigidBodyControl, Geometry geometry) {
-        BoundingBox bb = (BoundingBox)geometry.getWorldBound();
+        BoundingBox bb = (BoundingBox) geometry.getWorldBound();
 //        float width = bb.getXExtent()*2f;
         float height = bb.getYExtent();
         CircleCollisionShape collisionShape = new CircleCollisionShape(height);
         rigidBodyControl.addCollisionShape(collisionShape);
 
     }
-    
+
     private void addEllipseCollisionShape(RigidBodyControl rigidBodyControl, Geometry geometry) {
-        BoundingBox bb = (BoundingBox)geometry.getWorldBound();
-        float width = bb.getXExtent()*2f;
-        float height = bb.getYExtent()*2f;
+        BoundingBox bb = (BoundingBox) geometry.getWorldBound();
+        float width = bb.getXExtent() * 2f;
+        float height = bb.getYExtent() * 2f;
         EllipseCollisionShape collisionShape = new EllipseCollisionShape(width, height);
         rigidBodyControl.addCollisionShape(collisionShape);
 
     }
 
+    /**
+     * Create background sky
+     */
+    protected void addSky(Spatial spatial, final float parallaxEffectSpeed) {
+        log("Add sky");
+
+        spatial.addControl(new AbstractControl() {
+            @Override
+            protected void controlUpdate(float tpf) {
+                //Make the background stick to the camera
+                spatial.setLocalTranslation(baseApplication.getCamera().getLocation().x * parallaxEffectSpeed, spatial.getLocalTranslation().y, spatial.getLocalTranslation().z);
+            }
+
+            @Override
+            protected void controlRender(RenderManager rm, ViewPort vp) {
+            }
+        });
+
+    }
 
 //    /**
 //     * Add an enemy type object. If the player collides with this it dies.
@@ -649,7 +697,6 @@ public abstract class BlenderPhysics2DGame implements PhysicsCollisionListener {
 //        return sprite;
 //
 //    }
-
     public void fixTexture(MatParam mp) {
         if (mp != null) {
             MatParamTexture mpt = (MatParamTexture) mp;
@@ -749,7 +796,6 @@ public abstract class BlenderPhysics2DGame implements PhysicsCollisionListener {
 //        return bodyControl.getSpatial();
 //
 //    }
-
     /**
      * Add a bullet type object. If the player collides with this it dies.
      *

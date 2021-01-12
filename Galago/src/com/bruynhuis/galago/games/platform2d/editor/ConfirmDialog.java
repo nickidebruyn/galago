@@ -24,24 +24,24 @@ public class ConfirmDialog extends PopupDialog {
     private Label label;
 
     public ConfirmDialog(Window window, String text) {
-        super(window, "Resources/panel.png", 680, 256, true);
+        super(window, "Resources/panel.png", window.getWidth()*0.9f, window.getHeight()*0.6f, true);
         
         title.remove();
 
-        title = new Label(this, "Confirm", 400, 80, new FontStyle(36));
-        title.setTextColor(ColorRGBA.Brown);
-        title.centerTop(0, -16);
+        title = new Label(this, "Confirm", 400, 30, new FontStyle(30));
+        title.setTextColor(ColorRGBA.DarkGray);
+        title.centerTop(0, 20);
         
-        label = new Label(this, text, 22, 450, 50);
+        label = new Label(this, text, 20, window.getWidth()*0.8f, 100);
         label.centerAt(0, 30);
         label.setAlignment(TextAlign.CENTER);
-        label.setTextColor(ColorRGBA.DarkGray);        
+        label.setTextColor(ColorRGBA.Gray);        
                 
         okButton = new ButtonWide(this, "confirm-ok-button", "Ok");
-        okButton.centerBottom(0, 32);
+        okButton.centerBottom(0, 15);
         
         closeButton = new ButtonClose(this, "close confirm dialog");
-        closeButton.rightTop(0, 0);
+        closeButton.rightTop(15, 15);
         closeButton.addTouchButtonListener(new TouchButtonAdapter() {
 
             @Override

@@ -26,9 +26,9 @@ public class Game extends BasicGame {
 
     @Override
     public void init() {        
-        SpriteUtils.addSprite(levelNode, "Textures/grass-land.png", 0.028f, 0, 0, 0);
-        SpriteUtils.addSprite(levelNode, "Textures/rock1.png", 0.022f, 1, 0, 0);
-        Sprite tree =  SpriteUtils.addSprite(levelNode, "Textures/tree1.png", 0.022f, 0, 0, 0);
+        SpriteUtils.addSprite(levelNode, "Textures/grass-land.png", false, 0.028f, 0, 0, 0);
+        SpriteUtils.addSprite(levelNode, "Textures/rock1.png", false, 0.022f, 1, 0, 0);
+        Sprite tree =  SpriteUtils.addSprite(levelNode, "Textures/tree1.png", false, 0.022f, 0, 0, 0);
         tree.setOffset(0, 3, 0);
         SpriteUtils.rotateTo(tree, -5);
         Tween anim = Tween.to(tree, SpatialAccessor.ROTATION_Z, 2)
@@ -38,7 +38,7 @@ public class Game extends BasicGame {
                 .start(baseApplication.getTweenManager());
         
         
-        SpriteUtils.addSprite(levelNode, "Textures/rock1.png", 0.022f, 5, 0, 0);
+        SpriteUtils.addSprite(levelNode, "Textures/rock1.png", false, 0.022f, 5, 0, 0);
     }
 
 }

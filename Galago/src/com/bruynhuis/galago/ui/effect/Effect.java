@@ -67,7 +67,25 @@ public abstract class Effect extends AbstractControl {
     
     protected abstract void doTouchUp();
     
+    /**
+     * do the touch hover effect
+     */
+    public void fireHoverOver() {
+        doHoverOver();
+        
+    }    
     
+    protected abstract void doHoverOver();
+    
+    /**
+     * do the hover effect
+     */
+    public void fireHoverOff() {
+        doHoverOff();
+        
+    }    
+    
+    protected abstract void doHoverOff();    
 
     @Override
     protected void controlRender(RenderManager rm, ViewPort vp) {

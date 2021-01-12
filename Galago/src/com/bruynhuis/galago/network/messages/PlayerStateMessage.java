@@ -28,6 +28,7 @@ public class PlayerStateMessage extends AbstractMessage {
     private int loot;
     private boolean killed = false;
     private boolean onGround = false;
+    private String state;
 
     public PlayerStateMessage() {
     }
@@ -124,6 +125,14 @@ public class PlayerStateMessage extends AbstractMessage {
 
     public void setOnGround(boolean onGround) {
         this.onGround = onGround;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
     }
 
     

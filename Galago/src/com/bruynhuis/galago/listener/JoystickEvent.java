@@ -4,6 +4,9 @@
  */
 package com.bruynhuis.galago.listener;
 
+import com.jme3.input.event.JoyAxisEvent;
+import com.jme3.input.event.JoyButtonEvent;
+
 /**
  * This class will contain pick data when a user touches the screen and drag the
  * screen.
@@ -17,6 +20,8 @@ public class JoystickEvent {
     private boolean right = false;
     private boolean up = false;
     private boolean down = false;
+    private boolean horizontal = false;
+    private boolean vertical = false;
     private float analogValue;
     private int joystickIndex;
     
@@ -31,6 +36,9 @@ public class JoystickEvent {
     private boolean button8 = false;
     private boolean button9 = false;
     private boolean button10 = false;
+    
+    private JoyAxisEvent joyAxisEvent;
+    private JoyButtonEvent joyButtonEvent;
 
     public float getAnalogValue() {
         return analogValue;
@@ -203,11 +211,30 @@ public class JoystickEvent {
         down = false;
         analogValue = 0;
         joystickIndex = 0;
+        axisDown = false;
+        horizontal = false;
+        vertical = false;
     }
     
     public boolean isAxisDown() {
         return axisDown;
 //        return isLeft() || isRight() || isUp() || isDown();
+    }
+
+    public boolean isHorizontal() {
+        return horizontal;
+    }
+
+    public void setHorizontal(boolean horizontal) {
+        this.horizontal = horizontal;
+    }
+
+    public boolean isVertical() {
+        return vertical;
+    }
+
+    public void setVertical(boolean vertical) {
+        this.vertical = vertical;
     }
 
     public int getJoystickIndex() {
@@ -221,6 +248,22 @@ public class JoystickEvent {
     @Override
     public String toString() {
         return "JoystickEvent{" + "axisDown=" + axisDown + ", left=" + left + ", right=" + right + ", up=" + up + ", down=" + down + ", analogValue=" + analogValue + ", joystickIndex=" + joystickIndex + ", buttonDown=" + buttonDown + ", button1=" + button1 + ", button2=" + button2 + ", button3=" + button3 + ", button4=" + button4 + ", button5=" + button5 + ", button6=" + button6 + ", button7=" + button7 + ", button8=" + button8 + ", button9=" + button9 + ", button10=" + button10 + '}';
+    }
+
+    public JoyAxisEvent getJoyAxisEvent() {
+        return joyAxisEvent;
+    }
+
+    public void setJoyAxisEvent(JoyAxisEvent joyAxisEvent) {
+        this.joyAxisEvent = joyAxisEvent;
+    }
+
+    public JoyButtonEvent getJoyButtonEvent() {
+        return joyButtonEvent;
+    }
+
+    public void setJoyButtonEvent(JoyButtonEvent joyButtonEvent) {
+        this.joyButtonEvent = joyButtonEvent;
     }
 
  

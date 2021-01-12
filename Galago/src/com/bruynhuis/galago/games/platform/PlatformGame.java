@@ -487,7 +487,7 @@ public abstract class PlatformGame implements PhysicsCollisionListener, PhysicsT
             try {
                 Platform platform = JmeSystem.getPlatform();
 
-                if (platform.compareTo(Platform.Android_ARM5) == 0 || platform.compareTo(Platform.Android_ARM6) == 0 || platform.compareTo(Platform.Android_ARM7) == 0) {
+                if (baseApplication.isMobileApp()) {
                     propertiesInputStream = JmeSystem.getResourceAsStream("/assets/Levels/" + propertiesFile);
 
                 } else {
@@ -534,7 +534,7 @@ public abstract class PlatformGame implements PhysicsCollisionListener, PhysicsT
 
             Platform platform = JmeSystem.getPlatform();
 
-            if (platform.compareTo(Platform.Android_ARM5) == 0 || platform.compareTo(Platform.Android_ARM6) == 0 || platform.compareTo(Platform.Android_ARM7) == 0) {
+            if (baseApplication.isMobileApp()) {
                 levelInputStream = JmeSystem.getResourceAsStream("/assets/Levels/" + levelFile);
 
             } else {

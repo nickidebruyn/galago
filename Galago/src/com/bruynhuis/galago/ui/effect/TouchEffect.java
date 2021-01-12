@@ -60,6 +60,14 @@ public class TouchEffect extends Effect {
     protected void doUnselected() {
     }
     
-    
+    @Override
+    protected void doHoverOver() {
+        
+    }
+
+    @Override
+    protected void doHoverOff() {
+        
+    }
     
 }

@@ -21,6 +21,7 @@ public class PlayerMoveMessage extends AbstractMessage {
     private String gameId;
     private Vector3f position;
     private Quaternion rotation;
+    private boolean clearForces;
 
     public PlayerMoveMessage() {
     }
@@ -30,6 +31,14 @@ public class PlayerMoveMessage extends AbstractMessage {
         this.gameId = gameId;
         this.position = position;
         this.rotation = rotation;
+    }
+    
+    public PlayerMoveMessage(int playerId, String gameId, Vector3f position, Quaternion rotation, boolean clearForces) {
+        this.playerId = playerId;
+        this.gameId = gameId;
+        this.position = position;
+        this.rotation = rotation;
+        this.clearForces = clearForces;
     }
 
     public int getPlayerId() {
@@ -62,6 +71,14 @@ public class PlayerMoveMessage extends AbstractMessage {
 
     public void setRotation(Quaternion rotation) {
         this.rotation = rotation;
+    }
+
+    public boolean isClearForces() {
+        return clearForces;
+    }
+
+    public void setClearForces(boolean clearForces) {
+        this.clearForces = clearForces;
     }
 
     

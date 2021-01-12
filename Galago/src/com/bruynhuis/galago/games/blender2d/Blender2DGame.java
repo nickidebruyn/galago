@@ -231,9 +231,9 @@ public abstract class Blender2DGame {
         }
     }
 
-    protected void fireCollisionPlayerWithTerrainListener(Spatial collided, Spatial collider) {
+    protected void fireCollisionPlayerWithTerrainListener(Spatial collided, Spatial collider, Vector3f point) {
         if (gameListener != null) {
-            gameListener.doCollisionPlayerWithTerrain(collided, collider);
+            gameListener.doCollisionPlayerWithTerrain(collided, collider, point);
         }
     }
 

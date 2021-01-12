@@ -10,6 +10,7 @@ import com.jme3.scene.Node;
 import java.util.HashMap;
 import java.util.Map;
 import com.bruynhuis.galago.app.BaseApplication;
+import com.jme3.audio.AudioData;
 import com.jme3.math.FastMath;
 import java.util.Iterator;
 
@@ -90,7 +91,6 @@ public class SoundManager {
             this.stopSound();
         }
 
-
     }
 
     public void muteMusic(boolean mute) {
@@ -141,7 +141,6 @@ public class SoundManager {
             music.put(name, audioNode);
         }
 
-
     }
 
     /**
@@ -170,7 +169,6 @@ public class SoundManager {
 
             }
         }
-
 
     }
 
@@ -299,7 +297,7 @@ public class SoundManager {
             return;
         }
 
-        AudioNode audioNode = new AudioNode(application.getAssetManager(), soundPath, false);
+        AudioNode audioNode = new AudioNode(application.getAssetManager(), soundPath, AudioData.DataType.Buffer);
         audioNode.setPositional(false);
         audioNode.setLooping(false);
         audioNode.setVolume(fxVolume);
@@ -359,15 +357,15 @@ public class SoundManager {
             }
         }
     }
-    
+
     public int getCompletedPreloadedSoundFXCount() {
         int completed = 0;
-        
+
         for (Iterator<AudioNode> it = getSoundFx().values().iterator(); it.hasNext();) {
             AudioNode an = it.next();
 
             if (an.getUserData("preloaded") != null) {
-                completed ++;
+                completed++;
             }
 
         }
@@ -388,9 +386,9 @@ public class SoundManager {
         audioNode.playInstance(); // play once!
 
     }
-    
+
     public void playSoundRandomPitch(String name) {
-        float pitch = 0.8f + ((float)FastMath.nextRandomInt(0, 40)/100f);
+        float pitch = 0.8f + ((float) FastMath.nextRandomInt(0, 40) / 100f);
 //        Debug.log("play sound at pitch: " + pitch);
         setSoundPitch(name, pitch);
         playSound(name);

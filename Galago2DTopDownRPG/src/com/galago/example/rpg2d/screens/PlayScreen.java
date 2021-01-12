@@ -68,7 +68,7 @@ public class PlayScreen extends AbstractScreen implements BasicGameListener, Key
         
         camera.setLocation(new Vector3f(0, 0, 10));
         
-        marker = SpriteUtils.addSprite(rootNode, "Textures/marker.png", 0.02f, 0, 0, 0);
+        marker = SpriteUtils.addSprite(rootNode, "Textures/marker.png", false, 0.02f, 0, 0, 0);
         
     }
 

@@ -27,9 +27,11 @@ public class NetworkGame {
     private BaseServerApplication application;
     private String gameId;
     private String gameName;
-    private boolean active;
+    private boolean started;
+    private boolean gameover;
     private boolean physicsEnabled;
     private boolean randomSpawnPoint;
+    private boolean keepOpen;
     private int gameCreatorId;
     private Map<Integer, NetworkPlayer> players = new HashMap<>();
     private Map<String, NetworkObject> objects = new HashMap<>();
@@ -39,7 +41,9 @@ public class NetworkGame {
     protected AbstractControl gameControl;
     protected Node gameNode;
     private Timer broadcastTimer = new Timer(2.5f);
+    private Timer gameState = new Timer(100f);
     private Timer statsTimer = new Timer(1000f);
+    private long startTime;
 
     public NetworkGame(BaseServerApplication application, String gameId, String gameName, int creatorId) {
         this.application = application;
@@ -80,12 +84,28 @@ public class NetworkGame {
         this.gameName = gameName;
     }
 
-    public boolean isActive() {
-        return active;
+    public boolean isStarted() {
+        return started;
     }
 
-    public void setActive(boolean active) {
-        this.active = active;
+    public void setStarted(boolean started) {
+        this.started = started;
+    }
+
+    public boolean isGameover() {
+        return gameover;
+    }
+
+    public void setGameover(boolean gameover) {
+        this.gameover = gameover;
+    }
+
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
     }
 
     public int getGameCreatorId() {
@@ -106,6 +126,14 @@ public class NetworkGame {
 
     public void setSpawnPoints(List<Vector3f> spawnPoints) {
         this.spawnPoints = spawnPoints;
+    }
+
+    public boolean isKeepOpen() {
+        return keepOpen;
+    }
+
+    public void setKeepOpen(boolean keepOpen) {
+        this.keepOpen = keepOpen;
     }
 
     public void addPlayer(NetworkPlayer networkPlayer) {
@@ -137,21 +165,25 @@ public class NetworkGame {
         gameControl = new AbstractControl() {
             @Override
             protected void controlUpdate(float tpf) {
+                
+                //Update player and obj state
                 broadcastTimer.update(tpf);
-
                 if (broadcastTimer.finished()) {
-
                     application.broadcastAllPlayerStates(NetworkGame.this, false);
                     application.broadcastAllObjectStates(NetworkGame.this, false);
-
                     broadcastTimer.reset();
-
+                }
+                
+                //Update all players with game state
+                gameState.update(tpf);
+                if (gameState.finished()) {
+                    application.broadcastGameStates(NetworkGame.this, true);
+                    gameState.reset();
                 }
 
+                //Update stats timer
                 statsTimer.update(tpf);
-
                 if (statsTimer.finished()) {
-
                     log("\n\n");
                     log("##### NETWORK GAME STATS #######");
                     log("# PLAYER: " + players.size());
@@ -159,7 +191,6 @@ public class NetworkGame {
                     log("# ");
                     log("##### END ######################");
                     log("\n\n");
-
                     statsTimer.reset();
 
                 }
@@ -175,6 +206,23 @@ public class NetworkGame {
         gameNode.addControl(gameControl);
         broadcastTimer.start();
         statsTimer.start();
+    }
+    
+    public void start() {
+        this.started = true;
+        this.gameover = false;
+        this.gameState.start();
+        this.startTime = System.currentTimeMillis();
+        this.application.broadcastGameStates(this, true);
+    }
+    
+    public void stop() {
+        this.started = false;
+        this.gameover = true;
+        this.gameState.stop();        
+        this.statsTimer.stop();
+        this.broadcastTimer.stop();
+        this.application.broadcastGameStates(this, true);
     }
 
     public void close() {

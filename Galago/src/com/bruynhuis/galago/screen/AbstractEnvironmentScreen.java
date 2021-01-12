@@ -23,6 +23,7 @@ import com.jme3.light.DirectionalLight;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
@@ -673,6 +674,7 @@ public abstract class AbstractEnvironmentScreen extends AbstractScreen implement
         rootNode.removeLight(ambientLight);
         rootNode.removeLight(directionalLight);
         rootNode.detachAllChildren();
+                
 
     }
 
@@ -760,7 +762,7 @@ public abstract class AbstractEnvironmentScreen extends AbstractScreen implement
             if (snapToNormalCheckbox.isChecked()) {
 
                 if (pickEvent.getContactNormal() != null) {
-                    paintGizmo.getLocalRotation().lookAt(pickEvent.getContactNormal(), Vector3f.UNIT_Y);
+                    Quaternion q = paintGizmo.getLocalRotation().lookAt(pickEvent.getContactNormal(), Vector3f.UNIT_Y);
                     contactNormal.set(pickEvent.getContactNormal());
                     SpatialUtils.rotate(paintGizmo, -90, 0, 0);
 
@@ -769,7 +771,7 @@ public abstract class AbstractEnvironmentScreen extends AbstractScreen implement
                 }
             } else {
                 Vector3f upNormal = new Vector3f(0, 1, 0);
-                paintGizmo.getLocalRotation().lookAt(upNormal, Vector3f.UNIT_Y);
+                Quaternion q = paintGizmo.getLocalRotation().lookAt(upNormal, Vector3f.UNIT_Y);
                 contactNormal.set(upNormal);
                 SpatialUtils.rotate(paintGizmo, -90, 0, 0);
 

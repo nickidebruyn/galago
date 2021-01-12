@@ -16,12 +16,14 @@ import com.jme3.network.serializing.Serializable;
 public class ExitGameMessage extends AbstractMessage {
 
     private String gameId;
+    private int playerId;
 
     public ExitGameMessage() {
     }
 
-    public ExitGameMessage(String gameId) {
+    public ExitGameMessage(String gameId, int playerId) {
         this.gameId = gameId;
+        this.playerId = playerId;
 
     }
 
@@ -31,6 +33,14 @@ public class ExitGameMessage extends AbstractMessage {
 
     public void setGameId(String gameId) {
         this.gameId = gameId;
+    }
+
+    public int getPlayerId() {
+        return playerId;
+    }
+
+    public void setPlayerId(int playerId) {
+        this.playerId = playerId;
     }
 
 }

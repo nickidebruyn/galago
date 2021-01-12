@@ -5,8 +5,11 @@
 package com.bruynhuis.galago.util;
 
 import aurelienribon.tweenengine.Tween;
+import aurelienribon.tweenengine.TweenCallback;
+import aurelienribon.tweenengine.TweenEquation;
 import aurelienribon.tweenengine.equations.Circ;
 import com.bruynhuis.galago.app.Base3DApplication;
+import com.bruynhuis.galago.control.SpatialLifeControl;
 import com.bruynhuis.galago.control.camera.CameraStickControl;
 import com.bruynhuis.galago.control.tween.RigidbodyAccessor;
 import com.bruynhuis.galago.control.tween.SpatialAccessor;
@@ -15,7 +18,10 @@ import com.jme3.bounding.BoundingSphere;
 import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
+import com.jme3.bullet.control.GhostControl;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.font.BitmapFont;
+import com.jme3.font.BitmapText;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.MatParam;
@@ -30,12 +36,15 @@ import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.renderer.Camera;
+import com.jme3.renderer.RenderManager;
+import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.CameraNode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.SceneGraphVisitor;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.control.AbstractControl;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Cylinder;
 import com.jme3.scene.shape.Dome;
@@ -606,7 +615,7 @@ public class SpatialUtils {
         Box box = new Box(xExtend, yExtend, zExtend);
         Geometry geometry = new Geometry("box", box);
         parent.attachChild(geometry);
-        geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+//        geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
 //        TangentUtils.generateBindPoseTangentsIfNecessary(box);
 
         return geometry;
@@ -627,7 +636,7 @@ public class SpatialUtils {
         line.setLineWidth(linewidth);
         Geometry geometry = new Geometry("line", line);
         parent.attachChild(geometry);
-        geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+        geometry.setShadowMode(RenderQueue.ShadowMode.Off);
 
         Material m = addColor(geometry, color, true);
         m.getAdditionalRenderState().setLineWidth(linewidth);
@@ -865,6 +874,10 @@ public class SpatialUtils {
         return material;
     }
 
+    public static Material addTexture(Spatial spatial, String texturePath, boolean unshaded) {
+        return addTexture(spatial, texturePath, unshaded, false);
+    }
+
     /**
      * Add color to the spatial.
      *
@@ -872,12 +885,18 @@ public class SpatialUtils {
      * @param colorRGBA
      * @return
      */
-    public static Material addTexture(Spatial spatial, String texturePath, boolean unshaded) {
+    public static Material addTexture(Spatial spatial, String texturePath, boolean unshaded, boolean pixelated) {
         Material material = null;
 
         Texture texture = SharedSystem.getInstance().getBaseApplication().getAssetManager().loadTexture(texturePath);
-//        texture.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         texture.setWrap(Texture.WrapMode.Repeat);
+
+        if (pixelated) {
+//            texture.setMinFilter(Texture.MinFilter.NearestNoMipMaps);
+            texture.setMagFilter(Texture.MagFilter.Nearest);
+        } else {
+            texture.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+        }
 
         if (unshaded) {
             material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
@@ -975,6 +994,53 @@ public class SpatialUtils {
     }
 
     /**
+     * Add ghost control to the spatial.
+     *
+     * @param spatial
+     * @param mass
+     * @return
+     */
+    public static GhostControl addGhostControl(Spatial spatial) {
+
+        if (SharedSystem.getInstance().getBaseApplication() instanceof Base3DApplication) {
+            Base3DApplication base3DApplication = (Base3DApplication) SharedSystem.getInstance().getBaseApplication();
+
+            GhostControl control = spatial.getControl(GhostControl.class);
+
+            if (control == null) {
+                CollisionShape collisionShape = null;
+                if (spatial instanceof Geometry) {
+                    //Check for box mesh
+                    if (((Geometry) spatial).getMesh() instanceof Box) {
+                        Box box = (Box) ((Geometry) spatial).getMesh();
+                        collisionShape = new BoxCollisionShape(new Vector3f(box.getXExtent(), box.getYExtent(), box.getZExtent()));
+
+                    } else if (((Geometry) spatial).getMesh() instanceof Sphere) {
+                        Sphere sphere = (Sphere) ((Geometry) spatial).getMesh();
+                        collisionShape = new SphereCollisionShape(sphere.getRadius());
+                    }
+
+                    //TODO: Need to check for other mesh types
+                }
+
+                if (collisionShape != null) {
+                    control = new GhostControl(collisionShape);
+                }
+
+                spatial.addControl(control);
+                base3DApplication.getBulletAppState().getPhysicsSpace().add(spatial);
+            }
+
+            return control;
+
+        } else {
+            throw new RuntimeException("Requires a Base3DApplication implementations with physics enabled.");
+
+        }
+
+    }
+
+    /**
      * Translate any object to a given position.
      *
      * @param spatial
@@ -1041,6 +1107,31 @@ public class SpatialUtils {
                     .target(x, y, z)
                     .delay(delay)
                     .repeatYoyo(repeat, delay)
+                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+        }
+
+    }
+
+    public static Tween interpolate(Spatial spatial, float x, float y, float z, float time, float delay, boolean loop, TweenCallback callback) {
+        int repeat = 0;
+        if (loop) {
+            repeat = Tween.INFINITY;
+        }
+
+        if (spatial.getControl(RigidBodyControl.class) == null) {
+            return Tween.to(spatial, SpatialAccessor.POS_XYZ, time)
+                    .target(x, y, z)
+                    .delay(delay)
+                    .repeatYoyo(repeat, delay)
+                    .setCallback(callback)
+                    .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+
+        } else {
+            return Tween.to(spatial.getControl(RigidBodyControl.class), RigidbodyAccessor.POS_XYZ, time)
+                    .target(x, y, z)
+                    .delay(delay)
+                    .repeatYoyo(repeat, delay)
+                    .setCallback(callback)
                     .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
         }
 
@@ -1264,4 +1355,107 @@ public class SpatialUtils {
         val = 1f - val;
         return val;
     }
+
+    public static Tween moveFromToCenter(Spatial spatial, float fromX, float fromY, float fromZ, float toX, float toY, float toZ, float duration, float delay) {
+        SpatialUtils.translate(spatial, fromX, fromY, fromZ);
+
+        return Tween.to(spatial, SpatialAccessor.POS_XYZ, duration)
+                .target(toX, toY, toZ)
+                .delay(delay);
+    }
+
+    public static Tween moveFromToCenter(Spatial spatial, float fromX, float fromY, float fromZ, float toX, float toY, float toZ, float duration, float delay, TweenCallback callback) {
+        SpatialUtils.translate(spatial, fromX, fromY, fromZ);
+
+        return Tween.to(spatial, SpatialAccessor.POS_XYZ, duration)
+                .target(toX, toY, toZ)
+                .delay(delay)
+                .setCallback(callback);
+    }
+
+    public static Tween rotateFromTo(Spatial spatial, float fromAngle, float toAngle, float duration, float delay, TweenEquation tweenEquation, TweenCallback callback) {
+        SpatialUtils.rotateTo(spatial, 0, 0, fromAngle);
+
+        return Tween.to(spatial, SpatialAccessor.ROTATION_Z, duration)
+                .target(toAngle)
+                .delay(delay)
+                .ease(tweenEquation)
+                .setCallback(callback);
+    }
+
+    public static Tween rotateFromTo(Spatial spatial, Vector3f fromAngles, Vector3f toAngles, float duration, float delay, TweenEquation tweenEquation, TweenCallback callback) {
+        SpatialUtils.rotateTo(spatial, fromAngles.x, fromAngles.y, fromAngles.z);
+
+        return Tween.to(spatial, SpatialAccessor.ROTATION_XYZ, duration)
+                .target(toAngles.x, toAngles.y, toAngles.z)
+                .delay(delay)
+                .ease(tweenEquation)
+                .setCallback(callback);
+    }
+
+    public static Tween rotateFromTo(Spatial spatial, Vector3f fromAngles, Vector3f toAngles, float duration, float delay) {
+        SpatialUtils.rotateTo(spatial, fromAngles.x, fromAngles.y, fromAngles.z);
+
+        return Tween.to(spatial, SpatialAccessor.ROTATION_XYZ, duration)
+                .target(toAngles.x, toAngles.y, toAngles.z)
+                .delay(delay);
+    }
+
+    /**
+     * Add text to the scene
+     *
+     * @param parent
+     * @param font
+     * @param text
+     * @param size
+     * @param color
+     * @return
+     */
+    public static BitmapText addText(Node parent, BitmapFont font, String text, float size, ColorRGBA color) {
+        //Add text
+        BitmapText bText = new BitmapText(font);
+        bText.setText(text);
+        bText.setSize(size);
+        bText.setColor(color);
+        bText.setLocalTranslation(0, 0, 0);
+        parent.attachChild(bText);
+        return bText;
+    }
+
+    public static BitmapText addFadeoutText(Node parent, BitmapFont font, String text, float size, ColorRGBA color, Vector3f pos) {
+        BitmapText bitmapText = addText(parent, font, text, size, color);
+        bitmapText.setLocalTranslation(pos.x, pos.y, pos.z);
+        bitmapText.addControl(new SpatialLifeControl(100));
+
+        Tween.to(bitmapText, SpatialAccessor.POS_XYZ, 1.5f)
+                .target(pos.x + 0.5f, pos.y + 1f, pos.z)
+                .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
+        
+        bitmapText.addControl(new AbstractControl() {
+            
+            private float alpha = 1.2f;
+            
+            @Override
+            protected void controlUpdate(float tpf) {
+                
+                alpha -= tpf;
+                if (alpha < 0) {
+                    alpha = 0;
+                }
+                
+                if (alpha < 1) {
+                    ((BitmapText)spatial).setAlpha(alpha);
+                }
+                
+            }
+
+            @Override
+            protected void controlRender(RenderManager rm, ViewPort vp) {
+            }
+        });
+
+
+        return bitmapText;
+    }
+
 }

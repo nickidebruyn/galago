@@ -5,6 +5,7 @@
  */
 package com.bruynhuis.galago.network.messages;
 
+import com.jme3.bullet.collision.PhysicsCollisionObject;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.network.AbstractMessage;
@@ -33,6 +34,9 @@ public class AddObjectMessage extends AbstractMessage {
     private Vector3f rotationLock = new Vector3f(1, 1, 1);
     private float friction = 0.5f;
     private float restitution = 0.5f;
+    private int health = 0;
+    private int collisionGroup = PhysicsCollisionObject.COLLISION_GROUP_01;
+    private int collideWithGroups = PhysicsCollisionObject.COLLISION_GROUP_01;
 
     public AddObjectMessage() {
     }
@@ -180,6 +184,30 @@ public class AddObjectMessage extends AbstractMessage {
 
     public void setSensor(boolean sensor) {
         this.sensor = sensor;
+    }
+
+    public int getHealth() {
+        return health;
+    }
+
+    public void setHealth(int health) {
+        this.health = health;
+    }
+
+    public int getCollisionGroup() {
+        return collisionGroup;
+    }
+
+    public void setCollisionGroup(int collisionGroup) {
+        this.collisionGroup = collisionGroup;
+    }
+
+    public int getCollideWithGroups() {
+        return collideWithGroups;
+    }
+
+    public void setCollideWithGroups(int collideWithGroups) {
+        this.collideWithGroups = collideWithGroups;
     }
 
 }

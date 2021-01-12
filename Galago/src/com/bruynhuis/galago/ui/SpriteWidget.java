@@ -20,6 +20,8 @@ public class SpriteWidget extends Widget {
     protected Sprite sprite;
     protected String imageFile;
     protected ColorRGBA imageColor = new ColorRGBA(1, 1, 1, 1);
+    private int rows;
+    private int cols;
 
     /**
      *
@@ -31,6 +33,9 @@ public class SpriteWidget extends Widget {
      */
     public SpriteWidget(Panel parent, String pictureFile, float width, float height, int columns, int rows, int colIndex, int rowIndex, boolean lockscaling) {
         super(parent.getWindow(), parent, width, height, lockscaling);
+        
+        this.rows = rows;
+        this.cols = columns;
 
         if (pictureFile != null) {
             //load picture
@@ -51,7 +56,7 @@ public class SpriteWidget extends Widget {
 
     public void updateImage(int colIndex, int rowIndex) {
         if (sprite != null) {
-            sprite.showIndex(colIndex, rowIndex);
+            sprite.showIndex(colIndex, (rows-1)-rowIndex);
         }
     }
 

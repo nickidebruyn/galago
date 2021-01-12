@@ -4,6 +4,7 @@
  */
 package com.bruynhuis.galago.games.blender2d;
 
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
 
 /**
@@ -18,7 +19,7 @@ public interface Blender2DGameListener {
     
     public void doScoreChanged(int score);
     
-    public void doCollisionPlayerWithTerrain(Spatial collided, Spatial collider);
+    public void doCollisionPlayerWithTerrain(Spatial collided, Spatial collider, Vector3f point);
     
     public void doCollisionPlayerWithStatic(Spatial collided, Spatial collider);
     

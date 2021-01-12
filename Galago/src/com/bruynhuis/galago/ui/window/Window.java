@@ -114,8 +114,6 @@ public class Window {
         windowNode.setLocalTranslation((width / 2f) * getScaleFactorWidth(), (height / 2f) * getScaleFactorHeight(), 0);
         guiNode.attachChild(windowNode);
 
-
-
     }
 
 //    /**
@@ -240,20 +238,18 @@ public class Window {
                     fireCollisionOnButtons(cr, down, move, cursorPointX, cursorPointY, tpf);
 
                 }
-                                
+
             } else {
                 buttonTriggered = false;
                 releaseSelectedButtons(null);
 
             }
 
-        } else {            
-            if (down) {
+        } else if (down) {
 //                releaseSelectedButtons(null);
-            }
         }
     }
-    
+
     private boolean collisionResultsContainsButton(CollisionResults collisionResults) {
         boolean contains = false;
         for (int i = 0; i < collisionResults.size(); i++) {
@@ -286,7 +282,6 @@ public class Window {
 //        if (down && cr != null) {
 //            log("Collision = " + cr.getGeometry().getName());
 //        }
-
         if (cr.getGeometry().getParent() != null
                 && cr.getGeometry().getParent().getUserData(TouchButton.TYPE_TOUCH_BUTTON) != null
                 && cr.getGeometry().getParent().getUserData(TouchButton.TYPE_TOUCH_BUTTON) instanceof TouchButton) {
@@ -296,16 +291,22 @@ public class Window {
 
             if (touchButton.isEnabled() && touchButton.isVisible()) {
                 if (move) {
+                    
                     touchButton.fireTouchMove(cursorPointX, cursorPointY, tpf);
+                    
+                    //TODO: Figure out how to check if the mouse was down to fire the move or hover event
+//                    log("Down ===== " + down);
+//                    if (down) {                        
+//                        touchButton.fireTouchMove(cursorPointX, cursorPointY, tpf);
+//                    } else {
+//                        touchButton.fireHoverOver(cursorPointX, cursorPointY, tpf);
+//                    }
 
+                } else if (down) {
+                    buttonTriggered = true;
+                    touchButton.fireTouchDown(cursorPointX, cursorPointY, tpf);
                 } else {
-                    if (down) {
-                        buttonTriggered = true;
-                        touchButton.fireTouchDown(cursorPointX, cursorPointY, tpf);
-                    } else {
-                        touchButton.fireTouchUp(cursorPointX, cursorPointY, tpf);
-                    }
-
+                    touchButton.fireTouchUp(cursorPointX, cursorPointY, tpf);
                 }
             }
 
@@ -319,7 +320,7 @@ public class Window {
     public float getScaleFactorHeight() {
         return getAppSettings().getHeight() / getHeight();
     }
-    
+
     public float getWidthScaled() {
         return getAppSettings().getWidth();
     }
@@ -465,6 +466,11 @@ public class Window {
                             getInputManager().getCursorPosition().y, 1);
                     buttonTriggered = false;
                 }
+                if (touchButton.isEnabled() && touchButton.isVisible() && touchButton.isHovered()) {
+                    touchButton.fireHoverOff(getInputManager().getCursorPosition().x,
+                            getInputManager().getCursorPosition().y, 1);
+                    buttonTriggered = false;
+                }
 //                //TODO:
 //                if (widget != null && !touchButton.equals(widget) && touchButton.isTouched()) {
 //                    touchButton.fireTouchCancel(getInputManager().getCursorPosition().x,
@@ -486,11 +492,11 @@ public class Window {
     public boolean isButtonTriggered() {
         return buttonTriggered;
     }
-    
+
     /**
      * This will determine if a dialog is currently open.
-     * 
-     * @return 
+     *
+     * @return
      */
     public boolean isDialogOpen() {
         boolean open = false;
@@ -502,11 +508,11 @@ public class Window {
                     break;
                 }
             }
-            
-        }        
+
+        }
         return open;
     }
-    
+
     /**
      * This helper method will close all dialogs.
      */
@@ -518,18 +524,19 @@ public class Window {
                     panel.hide();
                 }
             }
-            
+
         }
     }
-    
+
     /**
      * Helper method that will pad text to the front of the string value
+     *
      * @param text
      * @param length
-     * @return 
+     * @return
      */
     public String padText(String text, int length) {
-        while(text.length() < length) {
+        while (text.length() < length) {
             text = "0" + text;
         }
         return text;

@@ -23,9 +23,11 @@ public class SpatialUpdateControl extends AbstractControl {
     @Override
     protected void controlUpdate(float tpf) {
         
-        if (targetPosition != null) {
+        if (targetPosition != null && targetPosition.distance(spatial.getLocalTranslation()) < 2f) {
             spatial.setLocalTranslation(spatial.getLocalTranslation().interpolateLocal(targetPosition, 0.4f));
             
+        } else if (targetPosition != null) {
+            spatial.setLocalTranslation(targetPosition);
         }
         
         if (targetRotation != null) {

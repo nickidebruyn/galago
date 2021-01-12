@@ -75,6 +75,10 @@ public class TouchPickListener implements ActionListener, AnalogListener {
         ray = new Ray(cam.getLocation(), cam.getDirection());
         pickEvent = new PickEvent();
     }
+    
+    public void setTargetNode(Node node) {
+        this.scene = node;
+    }
 
     public boolean isEnabled() {
         return enabled;

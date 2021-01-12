@@ -25,8 +25,8 @@ import com.jme3.scene.Spatial;
 
 /**
  *
- * A normal text label on the screen.
- * It now supports both bitmap text and true type fonts ttf
+ * A normal text label on the screen. It now supports both bitmap text and true
+ * type fonts ttf
  *
  * @author nidebruyn
  */
@@ -76,7 +76,7 @@ public class Label extends Widget {
     public Label(Panel panel, String text, float width, float height, FontStyle fontStyle) {
         super(panel.getWindow(), panel, width, height, false);
         this.panel = panel;
-        
+
         bitmapFont = panel.getWindow().getApplication().getFontManager().getBitmapFonts(fontStyle);
 //        Rectangle textBox = new Rectangle(-getWidth() * 0.5f, getHeight() * 0.5f, getWidth(), getHeight() *0.5f);
 
@@ -85,7 +85,7 @@ public class Label extends Widget {
             bitmapText = bitmapFont.createLabel(text);
             bitmapText.setText(text);             // the text
             //The Rectangle box height value for bitmap text is not a physical height but half the height
-            bitmapText.setBox(new Rectangle(-getWidth() * 0.5f, getHeight() * 0.5f, getWidth(), getHeight() *0.5f));
+            bitmapText.setBox(new Rectangle(-getWidth() * 0.5f, getHeight() * 0.5f, getWidth(), getHeight() * 0.5f));
             bitmapText.setSize(fontStyle.getFontSize() * panel.getWindow().getScaleFactorHeight());      // font size
             bitmapText.setColor(ColorRGBA.White);// font color
             bitmapText.setAlignment(BitmapFont.Align.Center);
@@ -104,19 +104,18 @@ public class Label extends Widget {
         }
 
         panel.add(this);
-        
+
         setText(text);
 
 //        bitmapText.setLocalTranslation(bitmapText.getLocalTranslation().x, bitmapText.getLocalTranslation().y, 0.001f);
     }
-    
-    
+
     public void setWrapMode(LineWrapMode lineWrapMode) {
         if (bitmapText != null) {
             this.bitmapText.setLineWrapMode(lineWrapMode);
-            
+
         } else if (stringContainer != null) {
-            
+
             switch (lineWrapMode) {
                 case Clip:
                     stringContainer.setWrapMode(StringContainer.WrapMode.Clip);
@@ -124,21 +123,21 @@ public class Label extends Widget {
                 case Word:
                     stringContainer.setWrapMode(StringContainer.WrapMode.Word);
                     break;
-                    
+
                 case NoWrap:
                     stringContainer.setWrapMode(StringContainer.WrapMode.NoWrap);
                     break;
-                    
+
                 case Character:
                     stringContainer.setWrapMode(StringContainer.WrapMode.CharClip);
                     break;
 
             }
-            
+
             this.trueTypeContainer.updateGeometry();
         }
     }
-    
+
     /**
      *
      * @param align
@@ -169,7 +168,7 @@ public class Label extends Widget {
                     stringContainer.setAlignment(StringContainer.Align.Center);
                     break;
             }
-            
+
             this.trueTypeContainer.updateGeometry();
         }
 
@@ -205,7 +204,7 @@ public class Label extends Widget {
                     stringContainer.setVerticalAlignment(StringContainer.VAlign.Center);
                     break;
             }
-            
+
             this.trueTypeContainer.updateGeometry();
         }
     }
@@ -229,24 +228,27 @@ public class Label extends Widget {
                 this.trueTypeContainer.removeFromParent();
 
             }
-        } else {
-            if (bitmapText != null) {
-                this.bitmapText.setText(text);
-                if (this.bitmapText.getParent() == null) widgetNode.attachChild(this.bitmapText);
-
-            } else if (stringContainer != null) {
-                this.stringContainer.setText(text);
-                if (this.trueTypeContainer.getParent() == null) widgetNode.attachChild(this.trueTypeContainer);
-                this.trueTypeContainer.updateGeometry();
-
+        } else if (bitmapText != null) {
+            this.bitmapText.setText(text);
+            if (this.bitmapText.getParent() == null) {
+                widgetNode.attachChild(this.bitmapText);
             }
+
+        } else if (stringContainer != null) {
+            this.stringContainer.setText(text);
+            if (this.trueTypeContainer.getParent() == null) {
+                widgetNode.attachChild(this.trueTypeContainer);
+            }
+            this.trueTypeContainer.updateGeometry();
+
         }
 
     }
 
     /**
      * Return the text value of this button
-     * @return 
+     *
+     * @return
      */
     public String getText() {
         if (bitmapText != null) {
@@ -254,14 +256,14 @@ public class Label extends Widget {
                 return "";
             } else {
                 return this.bitmapText.getText();
-            }            
+            }
 
         } else if (stringContainer != null) {
             if (this.trueTypeContainer.getParent() == null) {
                 return "";
             } else {
                 return this.stringContainer.getText();
-            }            
+            }
 
         } else {
             return null;
@@ -317,7 +319,7 @@ public class Label extends Widget {
         }
 
     }
-    
+
     /**
      *
      * @param size
@@ -348,7 +350,7 @@ public class Label extends Widget {
             this.trueTypeContainer.updateGeometry();
 
         }
-        
+
     }
 
     @Override
@@ -359,18 +361,21 @@ public class Label extends Widget {
         } else if (stringContainer != null) {
             //TODO: NEED TO find a way to handle this
             return 1f;
-            
+
 //            this.trueTypeContainer.getMaterial().setColor("Color", colorRGBA);
 //            this.trueTypeContainer.updateGeometry();
-
         } else {
             return 1f;
         }
-        
+
     }
 
     @Override
     protected boolean isBatched() {
         return false;
+    }
+
+    public void append(String text) {
+        bitmapText.setText(bitmapText.getText() + text);
     }
 }

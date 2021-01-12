@@ -40,14 +40,13 @@ public class SwipeStick extends Panel {
                     touchDownY = touchY;
                     fireTouchPress(touchX, touchY);
 
-
                 }
             }
 
             @Override
             public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
                 fireTouchRelease(touchX, touchY);
-                
+
                 touchDownX = 0;
                 touchDownY = 0;
             }
@@ -64,19 +63,19 @@ public class SwipeStick extends Panel {
                     fireTouchMoveLeft(touchX, touchY, FastMath.sqrt((float) (dx * dx + 0)));
 
                 } else //Check if the stick is moving right
-                if ((touchX > touchDownX)) {
-                    fireTouchMoveRight(touchX, touchY, FastMath.sqrt((float) (dx * dx + 0)));
+                 if ((touchX > touchDownX)) {
+                        fireTouchMoveRight(touchX, touchY, FastMath.sqrt((float) (dx * dx + 0)));
 
-                } 
+                    }
                 //Check if the stick is moving up
                 if ((touchY > touchDownY)) {
                     fireTouchMoveUp(touchX, touchY, FastMath.sqrt((float) (0 + dy * dy)));
 
                 } else //Check if the stick is moving down
-                if ((touchY < touchDownY)) {
-                    fireTouchMoveDown(touchX, touchY, FastMath.sqrt((float) (0 + dy * dy)));
+                 if ((touchY < touchDownY)) {
+                        fireTouchMoveDown(touchX, touchY, FastMath.sqrt((float) (0 + dy * dy)));
 
-                }
+                    }
 
             }
 

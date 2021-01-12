@@ -74,8 +74,11 @@ public abstract class ImageWidget extends Widget {
             if (!pictureFile.equals(currentPictureFile)) {
                 float alpha = pictureColor.a;
                 picture.setMaterial(window.getApplication().getTextureManager().getGUIMaterial(pictureFile));
+//                System.out.println("Picture color = " + pictureColor);
+                setBackgroundColor(pictureColor);
                 currentPictureFile = pictureFile;
                 setTransparency(alpha);
+                
             }            
         }        
     }
@@ -103,7 +106,7 @@ public abstract class ImageWidget extends Widget {
     @Override
     public void setTransparency(float alpha) {
         if (picture != null && picture.getMaterial() != null) {            
-            pictureColor.set(1f, 1f, 1f, alpha);
+            pictureColor.set(pictureColor.r, pictureColor.g, pictureColor.b, alpha);
             picture.getMaterial().setColor("Color", pictureColor);
         }
     }

@@ -78,5 +78,14 @@ public class WobbleEffect extends Effect {
     @Override
     protected void doUnselected() {
     }
-    
+ 
+    @Override
+    protected void doHoverOver() {
+        
+    }
+
+    @Override
+    protected void doHoverOff() {
+        
+    }
 }

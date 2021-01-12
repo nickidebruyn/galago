@@ -33,7 +33,7 @@ public class Player extends BasicPlayer {
     @Override
     protected void init() {
 
-        SpriteUtils.addSprite(playerNode, "Textures/player.png", 0.01f, -1, 0, 0);
+        SpriteUtils.addSprite(playerNode, "Textures/player.png", false, 0.01f, -1, 0, 0);
 
         playerNode.addControl(new AbstractControl() {
             @Override

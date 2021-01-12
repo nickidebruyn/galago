@@ -23,6 +23,7 @@ public class CreateGameMessage extends AbstractMessage {
     private boolean physicsEnabled;
     private Vector3f gravity;
     private boolean randomSpawnPoint;
+    private boolean keepOpen;
 
     public CreateGameMessage() {
     }
@@ -70,6 +71,14 @@ public class CreateGameMessage extends AbstractMessage {
 
     public void setRandomSpawnPoint(boolean randomSpawnPoint) {
         this.randomSpawnPoint = randomSpawnPoint;
+    }
+
+    public boolean isKeepOpen() {
+        return keepOpen;
+    }
+
+    public void setKeepOpen(boolean keepOpen) {
+        this.keepOpen = keepOpen;
     }
 
 }

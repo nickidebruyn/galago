@@ -26,6 +26,7 @@ import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
+import com.jme3.font.LineWrapMode;
 import com.jme3.font.Rectangle;
 import com.jme3.input.InputManager;
 import com.jme3.input.KeyNames;
@@ -152,14 +153,15 @@ public class TextArea extends ImageWidget implements InputType {
 
         if (bitmapFont != null) {
             //Init the text
-            bitmapText = bitmapFont.createLabel(id);
-            bitmapText.setText("TextArea");             // the text
-            bitmapText.setBox(new Rectangle((-getWidth() * 0.5f) + padding, (getHeight() * 0.5f) - padding, getWidth() - padding, (getHeight() * 0.5f) - padding));
+            bitmapText = bitmapFont.createLabel("");
+            bitmapText.setText("");             // the text
+            //The Rectangle box height value for bitmap text is not a physical height but half the height
+            bitmapText.setBox(new Rectangle(-getWidth() * 0.5f, getHeight() * 0.5f, getWidth(), getHeight() * 0.5f));
             bitmapText.setSize(fontStyle.getFontSize() * panel.getWindow().getScaleFactorHeight());      // font size
-            bitmapText.setColor(ColorRGBA.DarkGray);// font color
-            bitmapText.setAlignment(BitmapFont.Align.Left);
-            bitmapText.setVerticalAlignment(BitmapFont.VAlign.Top);
-            widgetNode.attachChild(bitmapText);
+            bitmapText.setColor(ColorRGBA.White);// font color
+            bitmapText.setAlignment(BitmapFont.Align.Center);
+            bitmapText.setVerticalAlignment(BitmapFont.VAlign.Center);
+            
         } else {
             //Init the text
             trueTypeFont = panel.getWindow().getApplication().getFontManager().getTtfFonts(fontStyle);
@@ -538,17 +540,19 @@ public class TextArea extends ImageWidget implements InputType {
                 this.trueTypeContainer.removeFromParent();
 
             }
-        } else {
-            if (bitmapText != null) {
-                this.bitmapText.setText(text);
-                if (this.bitmapText.getParent() == null) widgetNode.attachChild(this.bitmapText);
-
-            } else if (stringContainer != null) {
-                this.stringContainer.setText(text);
-                if (this.trueTypeContainer.getParent() == null) widgetNode.attachChild(this.trueTypeContainer);
-                this.trueTypeContainer.updateGeometry();
-
+        } else if (bitmapText != null) {
+            this.bitmapText.setText(text);
+            if (this.bitmapText.getParent() == null) {
+                widgetNode.attachChild(this.bitmapText);
             }
+
+        } else if (stringContainer != null) {
+            this.stringContainer.setText(text);
+            if (this.trueTypeContainer.getParent() == null) {
+                widgetNode.attachChild(this.trueTypeContainer);
+            }
+            this.trueTypeContainer.updateGeometry();
+
         }
 
     }
@@ -559,14 +563,14 @@ public class TextArea extends ImageWidget implements InputType {
                 return "";
             } else {
                 return this.bitmapText.getText();
-            }            
+            }
 
         } else if (stringContainer != null) {
             if (this.trueTypeContainer.getParent() == null) {
                 return "";
             } else {
                 return this.stringContainer.getText();
-            }            
+            }
 
         } else {
             return null;
@@ -623,6 +627,8 @@ public class TextArea extends ImageWidget implements InputType {
      * @param text
      */
     public void append(String text) {
+        
+        System.out.println("######### SET TEXT: " + bitmapText.getText());
 
         if (bitmapText != null) {
             if (bitmapText.getText() == null || bitmapText.getText().length() == 0) {
