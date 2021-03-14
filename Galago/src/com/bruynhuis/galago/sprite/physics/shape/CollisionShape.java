@@ -11,6 +11,7 @@ import com.jme3.export.OutputCapsule;
 import com.jme3.export.Savable;
 import com.jme3.math.Vector3f;
 import java.io.IOException;
+import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.geometry.Convex;
 
 /**
@@ -23,6 +24,7 @@ public abstract class CollisionShape implements Savable {
     protected Vector3f scale = new Vector3f(1, 1, 1);
     protected Vector3f location = new Vector3f(0, 0, 0);
     protected float margin = 0.0f;
+    protected BodyFixture bodyFixture;
 
     public CollisionShape() {
     }
@@ -66,4 +68,14 @@ public abstract class CollisionShape implements Savable {
 //        this.scale = (Vector3f) capsule.readSavable("scale", new Vector3f(1, 1, 1));
 //        this.margin = capsule.readFloat("margin", 0.0f);
     }
+
+    public BodyFixture getBodyFixture() {
+        return bodyFixture;
+    }
+
+    public void setBodyFixture(BodyFixture bodyFixture) {
+        this.bodyFixture = bodyFixture;
+    }
+    
+    
 }

@@ -18,6 +18,7 @@ public class NetworkGameMessage extends AbstractMessage {
     private String gameId;
     private String gameName;
     private boolean active;
+    private boolean full;
 
     public NetworkGameMessage() {
     }
@@ -49,6 +50,14 @@ public class NetworkGameMessage extends AbstractMessage {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public boolean isFull() {
+        return full;
+    }
+
+    public void setFull(boolean full) {
+        this.full = full;
     }
     
 }

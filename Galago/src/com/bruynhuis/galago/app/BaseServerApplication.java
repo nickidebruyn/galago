@@ -849,6 +849,11 @@ public abstract class BaseServerApplication extends SimpleApplication implements
             for (Iterator<NetworkGame> iterator = games.values().iterator(); iterator.hasNext();) {
                 NetworkGame game = iterator.next();
                 messages[i] = new NetworkGameMessage(game.getGameId(), game.getGameName());
+                if (game.getPlayers().size() >= game.getSpawnPoints().size()) {
+                    messages[i].setFull(true);
+                } else {
+                    messages[i].setFull(false);
+                }
                 i++;
             }
 

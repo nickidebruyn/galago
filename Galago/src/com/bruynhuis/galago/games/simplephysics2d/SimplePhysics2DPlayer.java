@@ -19,6 +19,7 @@ public abstract class SimplePhysics2DPlayer {
     protected Vector3f startPosition;
     protected int lives = 0;
     protected int score = 0;
+    protected int maximumLives = 3;
 
     public SimplePhysics2DPlayer(SimplePhysics2DGame physicsGame) {
         this.game = physicsGame;
@@ -76,7 +77,7 @@ public abstract class SimplePhysics2DPlayer {
     }
     
     public boolean addLife() {
-        if (lives < 3) {
+        if (lives < maximumLives) {
             lives ++;
             return true;
         }        

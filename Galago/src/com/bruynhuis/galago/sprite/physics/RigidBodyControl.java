@@ -116,6 +116,16 @@ public class RigidBodyControl extends AbstractControl implements PhysicsControl 
         this.body.addFixture(bodyFixture);
 
     }
+    
+    /**
+     * This will remove a body fixture from the body object
+     * @param collisionShape 
+     */
+    public void removeCollisionShape(CollisionShape collisionShape) {
+        this.bodyFixture = collisionShape.getBodyFixture();        
+        this.body.removeFixture(bodyFixture);
+
+    }    
 
     public void setCollisionShape(CollisionShape collisionShape) {
         this.collisionShape = collisionShape;
