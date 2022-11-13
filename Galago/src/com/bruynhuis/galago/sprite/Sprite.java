@@ -209,4 +209,16 @@ public class Sprite extends Node {
 
     }
 
+    @Override
+    public void setName(String name) {
+        super.setName(name);
+        geometry.setName(name);
+    }
+
+//    @Override
+//    public void setModelBound(BoundingVolume modelBound) {
+//        super.setModelBound(modelBound);
+//        geometry.setModelBound(modelBound);
+//    }
+
 }

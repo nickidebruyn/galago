@@ -988,4 +988,10 @@ public class SpriteUtils {
                 .setCallback(callback);
     }
 
+    public static Vector3f moveTowards(Vector3f start, Vector3f target, float speed) {
+        Vector3f dir = target.multLocal(1, 1, 0).subtract(start.multLocal(1, 1, 0));
+        dir = dir.normalizeLocal().mult(speed);
+        return start.add(dir.x, dir.y, dir.z);
+
+    }    
 }

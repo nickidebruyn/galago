@@ -68,6 +68,7 @@ public class MenuScreen extends AbstractScreen {
         addSceneButton(gridPanel, RagdollScreen.NAME, "Ragdoll");
         addSceneButton(gridPanel, CombatScreen.NAME, "Combat");
         addSceneButton(gridPanel, SplatMarkerScreen.NAME, "Splat Mask");
+        addSceneButton(gridPanel, ParticleEditor.NAME, "Particle Editor");
 
         gridPanel.layout(8, 3);
 

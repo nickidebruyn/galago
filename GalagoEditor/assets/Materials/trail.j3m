@@ -1,0 +1,10 @@
+Material My Material : Common/MatDefs/Misc/Unshaded.j3md {
+     MaterialParameters {
+        GlowColor : 1.0 0.0 0.8 1.0
+        Color : 0.8 0.0 0.8 1.0
+     }
+    AdditionalRenderState {
+
+        Blend PremultAlpha
+    }
+}

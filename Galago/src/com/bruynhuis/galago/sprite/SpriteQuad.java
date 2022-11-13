@@ -83,6 +83,7 @@ public class SpriteQuad extends Mesh {
                                               0, 0, 1});
         setBuffer(VertexBuffer.Type.Index, 1, BufferUtils.createShortBuffer(indexes));
         updateBound();
+        setStatic();
 
     }
     

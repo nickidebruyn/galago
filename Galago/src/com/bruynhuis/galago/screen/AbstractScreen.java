@@ -54,6 +54,7 @@ public abstract class AbstractScreen extends AbstractAppState implements EscapeL
     protected String previousScreen;
     protected boolean setPrevious = true;
     protected boolean loading = false;
+    protected String screenName;
 
     /**
      * This method must contain all initialization of widgets for this screen.
@@ -235,7 +236,7 @@ public abstract class AbstractScreen extends AbstractAppState implements EscapeL
             baseApplication.getRootNode().attachChild(rootNode);
 
             loading = true;
-//            log("Loading screen...");
+            log("Showing screen...," + screenName);
 
         } else {
             active = false;
@@ -257,14 +258,13 @@ public abstract class AbstractScreen extends AbstractAppState implements EscapeL
             rootNode.removeFromParent();
             baseApplication.getViewPort().clearProcessors();
 
-
             if (nextScreen != null) {
                 exit();
                 AbstractScreen screen = baseApplication.showScreen(nextScreen);
                 nextScreen = null;
 
                 if (setPrevious) {
-                    String screenName = null;
+                    screenName = null;
                     //Determine this screens name
                     for (Iterator it = baseApplication.getScreenManager().getScreens().keySet().iterator(); it.hasNext();) {
                         String key = (String) it.next();
@@ -402,5 +402,13 @@ public abstract class AbstractScreen extends AbstractAppState implements EscapeL
 
     public Node getRootNode() {
         return rootNode;
+    }
+
+    public String getScreenName() {
+        return screenName;
+    }
+
+    public void setScreenName(String screenName) {
+        this.screenName = screenName;
     }
 }

@@ -20,10 +20,13 @@ import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.GhostControl;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.environment.EnvironmentCamera;
+import com.jme3.environment.LightProbeFactory;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
+import com.jme3.light.LightProbe;
 import com.jme3.material.MatParam;
 import com.jme3.material.MatParamTexture;
 import com.jme3.material.Material;
@@ -32,6 +35,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Plane;
 import com.jme3.math.Quaternion;
+import com.jme3.math.Transform;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
@@ -367,10 +371,10 @@ public class SpatialUtils {
         FilterPostProcessor fpp = new FilterPostProcessor(SharedSystem.getInstance().getBaseApplication().getAssetManager());
 
         final WaterFilter water = new WaterFilter(parent, lightDir);
-        water.setWaterTransparency(0.4f);
-        water.setShoreHardness(0.3f);
-        water.setShininess(0.01f);
-        water.setSpeed(0.5f);
+//        water.setWaterTransparency(0.4f);
+//        water.setShoreHardness(0.3f);
+//        water.setShininess(0.01f);
+//        water.setSpeed(0.5f);
 //        water.setWaterColor(new ColorRGBA().setAsSrgb(0.0078f, 0.3176f, 0.5f, 1.0f));
 //        water.setDeepWaterColor(new ColorRGBA().setAsSrgb(0.0039f, 0.00196f, 0.145f, 1.0f));
 //        water.setUnderWaterFogDistance(80);
@@ -656,6 +660,7 @@ public class SpatialUtils {
     public static Spatial addSphere(Node parent, int zSamples, int radialSamples, float radius) {
 
         Sphere sphere = new Sphere(zSamples, radialSamples, radius);
+//        sphere.setBound(new BoundingSphere(radius, new Vector3f(0, 0, 0)));
         Geometry geometry = new Geometry("sphere", sphere);
         parent.attachChild(geometry);
         geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
@@ -868,6 +873,19 @@ public class SpatialUtils {
         material.setColor("EdgesColor", edgeColor);
         material.setFloat("EdgeSize", edgeSize);
         material.setBoolean("Fog_Edges", true);
+
+        spatial.setMaterial(material);
+
+        return material;
+    }
+
+    public static Material addPBRColor(Spatial spatial, ColorRGBA colorRGBA) {
+        Material material = null;
+
+        material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Common/MatDefs/Light/PBRLighting.j3md");  // create a simple material
+        material.setColor("BaseColor", colorRGBA);
+        material.setFloat("Metallic", 0.5f);
+        material.setFloat("Roughness", 0.5f);
 
         spatial.setMaterial(material);
 
@@ -1430,23 +1448,23 @@ public class SpatialUtils {
         Tween.to(bitmapText, SpatialAccessor.POS_XYZ, 1.5f)
                 .target(pos.x + 0.5f, pos.y + 1f, pos.z)
                 .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
-        
+
         bitmapText.addControl(new AbstractControl() {
-            
+
             private float alpha = 1.2f;
-            
+
             @Override
             protected void controlUpdate(float tpf) {
-                
+
                 alpha -= tpf;
                 if (alpha < 0) {
                     alpha = 0;
                 }
-                
+
                 if (alpha < 1) {
-                    ((BitmapText)spatial).setAlpha(alpha);
+                    ((BitmapText) spatial).setAlpha(alpha);
                 }
-                
+
             }
 
             @Override
@@ -1454,8 +1472,108 @@ public class SpatialUtils {
             }
         });
 
-
         return bitmapText;
     }
 
+    public static LightProbe loadLightProbe(Node parentNode, String path) {
+
+//        Node probeNode = (Node) SharedSystem.getInstance().getBaseApplication().getAssetManager().loadModel("Models/Probes/bathroom.j3o");
+        Node probeNode = (Node) SharedSystem.getInstance().getBaseApplication().getAssetManager().loadModel(path);
+        LightProbe lightProbe = null;
+
+        System.out.println("probeNode: " + probeNode);
+        if (probeNode != null && probeNode.getLocalLightList().size() > 0) {
+            lightProbe = (LightProbe) probeNode.getLocalLightList().get(0);
+            System.out.println("Getting light probe from model");
+
+        } else {
+            lightProbe = LightProbeFactory.makeProbe(SharedSystem.getInstance().getBaseApplication().getStateManager().getState(EnvironmentCamera.class), parentNode);
+            lightProbe.getArea().setRadius(200);
+
+        }
+        parentNode.addLight(lightProbe);
+
+        System.out.println("Added probe light");
+
+        return lightProbe;
+
+    }
+
+    public static Vector3f moveTowards(Vector3f start, Vector3f target, float speed) {
+        Vector3f dir = target.subtract(start);
+        dir = dir.normalizeLocal().mult(speed);
+        return start.add(dir.x, dir.y, dir.z);
+
+    }
+
+    public static void changeParent(Node parent, Spatial child) {
+
+        Transform childWorldTransform = child.getWorldTransform();
+
+        Transform parentWorldTransform = parent.getWorldTransform();
+
+        Transform newLocalTransform = getLocalTransformToPreserveWorldTransform(parentWorldTransform, childWorldTransform);
+
+        parent.attachChild(child);
+
+        child.setLocalTransform(newLocalTransform);
+
+    }
+
+    private static Transform getLocalTransformToPreserveWorldTransform(Transform parentTransform, Transform childTransform) {
+
+        Vector3f scale = childTransform.getScale().divide(parentTransform.getScale());
+
+        Quaternion rotation = parentTransform.getRotation().inverse().multLocal(childTransform.getRotation());
+
+        Vector3f translation = parentTransform.getRotation().inverse()
+                .multLocal(childTransform.getTranslation().subtract(parentTransform.getTranslation()))
+                .divideLocal(parentTransform.getScale());
+
+        return new Transform(translation, rotation, scale);
+
+    }
+
+    public static Node findRootNode(Spatial spatial) {
+        if (spatial.getParent() != null) {
+            return findRootNode(spatial.getParent());
+        } else {
+            return (Node) spatial;
+        }
+    }
+    
+    /**
+     * Check if a spatial has a specific tag
+     * @param spatial
+     * @param tag
+     * @return 
+     */
+    public static boolean hasTag(Spatial spatial, String tag) {
+        if (spatial != null && tag != null) {
+            String t = spatial.getUserData("TAG");
+            if (t != null && t.equalsIgnoreCase(tag)) {
+                return true;
+            }
+            
+        }
+        return false;
+    }
+    
+    /**
+     * For now a spatial can have only one tag
+     * @param spatial
+     * @param tag 
+     */
+    public static void addTag(Spatial spatial, String tag) {
+        if (spatial != null && tag != null) {
+            spatial.setUserData("TAG", tag);
+            spatial.depthFirstTraversal(new SceneGraphVisitor() {
+                @Override
+                public void visit(Spatial sptl) {
+                    System.out.println("Setting tag: " + tag);
+                    spatial.setUserData("TAG", tag);
+                }
+            });
+        }
+    }
 }

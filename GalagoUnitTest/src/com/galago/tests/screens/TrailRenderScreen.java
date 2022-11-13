@@ -110,8 +110,8 @@ public class TrailRenderScreen extends AbstractScreen implements PickListener {
         Material trailMat = assetManager.loadMaterial("Materials/trail.j3m");
 
         Geometry trailGeometry = new Geometry();
-        trailMat.getAdditionalRenderState().setAlphaTest(true);
-        trailMat.getAdditionalRenderState().setAlphaFallOff(0.5f);
+//        trailMat.getAdditionalRenderState().setAlphaTest(true);
+//        trailMat.getAdditionalRenderState().setAlphaFallOff(0.5f);
         trailGeometry.setMaterial(trailMat);
         //rootNode.attachChild(trail);  // either attach the trail geometry node to the root…
         trailGeometry.setIgnoreTransform(true); // or set ignore transform to true. this should be most useful when attaching nodes in the editor
