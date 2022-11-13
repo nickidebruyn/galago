@@ -26,6 +26,7 @@ import com.galago.tests.screens.LightningSky;
 import com.galago.tests.screens.MenuScreen;
 import com.galago.tests.screens.MotionBlurScreen;
 import com.galago.tests.screens.PagerPanelScreen;
+import com.galago.tests.screens.ParticleEditor;
 import com.galago.tests.screens.PhysicsJointScreen;
 import com.galago.tests.screens.PhysicsScreen;
 import com.galago.tests.screens.PostShaderScreen;
@@ -112,6 +113,7 @@ public class MainApplication extends Base3DApplication {
         screenManager.loadScreen(RagdollScreen.NAME, new RagdollScreen());
         screenManager.loadScreen(CombatScreen.NAME, new CombatScreen());
         screenManager.loadScreen(SplatMarkerScreen.NAME, new SplatMarkerScreen());
+        screenManager.loadScreen(ParticleEditor.NAME, new ParticleEditor());
 
     }
 

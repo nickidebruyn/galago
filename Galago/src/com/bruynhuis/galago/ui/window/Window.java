@@ -296,11 +296,11 @@ public class Window {
                     
                     //TODO: Figure out how to check if the mouse was down to fire the move or hover event
 //                    log("Down ===== " + down);
-//                    if (down) {                        
-//                        touchButton.fireTouchMove(cursorPointX, cursorPointY, tpf);
-//                    } else {
-//                        touchButton.fireHoverOver(cursorPointX, cursorPointY, tpf);
-//                    }
+                    if (down) {                        
+                        touchButton.fireTouchMove(cursorPointX, cursorPointY, tpf);
+                    } else {
+                        touchButton.fireHoverOver(cursorPointX, cursorPointY, tpf);
+                    }
 
                 } else if (down) {
                     buttonTriggered = true;

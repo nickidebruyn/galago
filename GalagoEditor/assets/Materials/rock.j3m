@@ -1,0 +1,10 @@
+Material My Material : Resources/MatDefs/UnshadedToon.j3md {
+     MaterialParameters {
+        Toon : true
+        EdgeSize : 0.05
+        EdgesColor : 0.0 0.0 0.0 1.0
+        ColorMap : "Textures/rock-dif.jpg"
+     }
+    AdditionalRenderState {
+    }
+}

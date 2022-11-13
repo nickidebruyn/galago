@@ -34,6 +34,7 @@ public class ScreenManager {
     public void loadScreen(String screenName, AbstractScreen abstractScreenState) {
         application.getStateManager().attach(abstractScreenState);
         screens.put(screenName, abstractScreenState);
+        abstractScreenState.setScreenName(screenName);
 
     }
 

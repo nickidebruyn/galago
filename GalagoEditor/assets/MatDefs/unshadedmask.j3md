@@ -1,0 +1,29 @@
+MaterialDef Default unshadedmask {
+
+    MaterialParameters {
+        Texture2D Texture
+        Texture2D MaskTexture
+        Color MaskColor (Color)
+
+    }
+
+    Technique {
+        VertexShader GLSL100:   Shaders/unshadedmask.vert
+        FragmentShader GLSL100: Shaders/unshadedmask.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+        }
+
+        Defines {
+            HAS_TEXTURE : Texture
+            HAS_MASK : MaskTexture
+            HAS_MASK_COLOR : MaskColor
+
+        }
+    }
+
+    Technique {
+    }
+
+}
