@@ -69,7 +69,7 @@ public class TerrainPanel extends Panel {
     private String selectedNormalMap = "NormalMap";
     private String selectedTextureScale = "DiffuseMap_0_scale";
     private String selectedRegion = "region1";
-    
+
     private float triScale = 100;
 
     private boolean slopeSelected = false;
@@ -266,16 +266,23 @@ public class TerrainPanel extends Panel {
                 int index = terrainLayersButton.getIndex();
                 System.out.println("Selected terrain layer: " + index);
 
-                if (index == 0) {
-                    selectedDiffuseMap = "DiffuseMap";
-                    selectedNormalMap = "NormalMap";
-                    selectedTextureScale = "DiffuseMap_0_scale";
+                if (isPBRMaterial()) {
+                    selectedDiffuseMap = "AlbedoMap_" + index;
+                    selectedNormalMap = "NormalMap_" + index;
+                    selectedTextureScale = "AlbedoMap_" + index + "_scale";
 
                 } else {
-                    selectedDiffuseMap = "DiffuseMap_" + index;
-                    selectedNormalMap = "NormalMap_" + index;
-                    selectedTextureScale = "DiffuseMap_" + index + "_scale";
+                    if (index == 0) {
+                        selectedDiffuseMap = "DiffuseMap";
+                        selectedNormalMap = "NormalMap";
+                        selectedTextureScale = "DiffuseMap_0_scale";
 
+                    } else {
+                        selectedDiffuseMap = "DiffuseMap_" + index;
+                        selectedNormalMap = "NormalMap_" + index;
+                        selectedTextureScale = "DiffuseMap_" + index + "_scale";
+
+                    }
                 }
 
                 if (index == 4) {
@@ -312,7 +319,7 @@ public class TerrainPanel extends Panel {
                     region.setZ(value);
 
                 } else {
-                    terrain.getMaterial().setFloat(selectedTextureScale, value/triScale);
+                    terrain.getMaterial().setFloat(selectedTextureScale, value / triScale);
                 }
 
             }
@@ -642,25 +649,30 @@ public class TerrainPanel extends Panel {
             autoPaintStartHeight.getParent().setVisible(false);
 
         } else {
-            
+
             //Set this when a saved level was open
             if (isHeightLitMaterial()) {
                 terrainMaterialButton.setSelection(1);
-                
+
             } else if (isPaintableMaterial()) {
                 terrainMaterialButton.setSelection(0);
-                
+
             }
-            int size = terrain.getTerrainSize()-1;
+            int size = terrain.getTerrainSize() - 1;
             System.out.println("Terrain size is: " + size);
-            if (size == 256) terrainSizeButton.setSelection(0);
-            if (size == 512) terrainSizeButton.setSelection(1);
-            if (size == 1024) terrainSizeButton.setSelection(2);
-            
-            
+            if (size == 256) {
+                terrainSizeButton.setSelection(0);
+            }
+            if (size == 512) {
+                terrainSizeButton.setSelection(1);
+            }
+            if (size == 1024) {
+                terrainSizeButton.setSelection(2);
+            }
+
             //Set the terrain settings
             headerMaterial.setVisible(true);
-            terrainToolsButton.getParent().setVisible(true);            
+            terrainToolsButton.getParent().setVisible(true);
             terrainLayersButton.getParent().setVisible(true);
             baseTextureButton.getButton1().getParent().setVisible(true);
 
@@ -693,8 +705,8 @@ public class TerrainPanel extends Panel {
             } else {
                 baseTextureScale.getParent().setVisible(terrainAction.getTool() == TerrainAction.TOOL_PAINT);
                 float s = terrain.getMaterial().getParamValue(selectedTextureScale);
-                baseTextureScale.setValue(s*triScale);
-                
+                baseTextureScale.setValue(s * triScale);
+
                 terrainLayersButton.getParent().setVisible(terrainAction.getTool() == TerrainAction.TOOL_PAINT);
                 baseTextureButton.getButton2().getParent().setVisible(terrainAction.getTool() == TerrainAction.TOOL_PAINT);
 
@@ -724,7 +736,7 @@ public class TerrainPanel extends Panel {
     private boolean isPaintableMaterial() {
         return terrain != null && terrain.getMaterial().getMaterialDef().getAssetName().endsWith("/TerrainLighting.j3md");
     }
-    
+
     private boolean isPBRMaterial() {
         return terrain != null && terrain.getMaterial().getMaterialDef().getAssetName().endsWith("/PBRTerrain.j3md");
     }
@@ -755,21 +767,21 @@ public class TerrainPanel extends Panel {
         } else {
             terrainLayersButton.setOptions(terrainTextureLayers);
             terrainToolsButton.setOptions(terrainToolTypesPaint);
-            
+
             if (isPBRMaterial()) {
                 selectedDiffuseMap = "AlbedoMap_0";
                 selectedNormalMap = "NormalMap_0";
-                selectedTextureScale = "AlbedoMap_0_scale";                
-                
+                selectedTextureScale = "AlbedoMap_0_scale";
+
             } else {
                 selectedDiffuseMap = "DiffuseMap";
                 selectedNormalMap = "NormalMap";
                 selectedTextureScale = "DiffuseMap_0_scale";
-                
+
             }
 
         }
-        
+
         this.reload();
     }
 
@@ -814,7 +826,7 @@ public class TerrainPanel extends Panel {
     }
 
     public boolean isPaintable() {
-        return terrain != null && isPaintableMaterial();
+        return terrain != null && (isPaintableMaterial() || isPBRMaterial());
     }
 
     public float getPaintRadius() {
@@ -842,6 +854,5 @@ public class TerrainPanel extends Panel {
     public TerrainAction getTerrainAction() {
         return terrainAction;
     }
-    
-    
+
 }

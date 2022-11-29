@@ -342,8 +342,8 @@ public class TerrainUtils {
         mat.setTexture("AlbedoMap_0", defaultTexture);
         mat.setTexture("NormalMap_0", normalTexture);
         mat.setFloat("AlbedoMap_0_scale", DEFAULT_TEXTURE_SCALE);
-        mat.setFloat("Roughness_0", 1);
-        mat.setFloat("Metallic_0", 0);
+        mat.setFloat("Roughness_0", 0.6f);
+        mat.setFloat("Metallic_0", 0.2f);
         MaterialUtils.convertTextureToEmbeddedByName(mat, "AlbedoMap_0");
         MaterialUtils.convertTextureToEmbeddedByName(mat, "NormalMap_0");
 
