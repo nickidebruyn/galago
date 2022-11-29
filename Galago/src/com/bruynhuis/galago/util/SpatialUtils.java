@@ -194,6 +194,8 @@ public class SpatialUtils {
         Material m = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Resources/MatDefs/lineargradient.j3md");
         m.setColor("StartColor", topColor);
         m.setColor("EndColor", bottomColor);
+        m.setFloat("MinStep", 0.2f);
+        m.setFloat("MaxStep", 0.6f);
         m.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Back);
         sky.setMaterial(m);
 

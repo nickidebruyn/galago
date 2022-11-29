@@ -410,10 +410,12 @@ public class TouchButton extends ImageWidget implements Touchable {
 
     @Override
     public void fireTouchDown(float x, float y, float tpf) {
-        if (enabled && !isTouched() && isClickable()) {
+        if (enabled && !isTouched() && isClickable() && isVisible()) {
             wasDown = true;
             lastTouchX = x;
             lastTouchY = y;
+            
+            getWindow().removeFocusFromFields();
 
             for (Effect effect : effects) {
                 effect.fireTouchDown();
@@ -430,7 +432,7 @@ public class TouchButton extends ImageWidget implements Touchable {
 
     @Override
     public void fireTouchUp(float x, float y, float tpf) {
-        if (enabled && isTouched() && isClickable()) {
+        if (enabled && isTouched() && isClickable() && isVisible()) {
             lastTouchX = x;
             lastTouchY = y;
 
@@ -450,7 +452,7 @@ public class TouchButton extends ImageWidget implements Touchable {
 
     @Override
     public void fireTouchCancel(float x, float y, float tpf) {
-        if (enabled && isTouched() && isClickable()) {
+        if (enabled && isTouched() && isClickable() && isVisible()) {
             lastTouchX = x;
             lastTouchY = y;
 
@@ -470,7 +472,7 @@ public class TouchButton extends ImageWidget implements Touchable {
 
     @Override
     public void fireHoverOver(float x, float y, float tpf) {
-        if (enabled && isClickable() && !isHovered()) {
+        if (enabled && isClickable() && !isHovered() && isVisible()) {
             
             wasHovered = true;
             lastTouchX = x;
@@ -491,7 +493,7 @@ public class TouchButton extends ImageWidget implements Touchable {
     
     @Override
     public void fireHoverOff(float x, float y, float tpf) {
-        if (enabled && isClickable() && isHovered()) {
+        if (enabled && isClickable() && isHovered() && isVisible()) {
                        
             lastTouchX = x;
             lastTouchY = y;
@@ -512,7 +514,7 @@ public class TouchButton extends ImageWidget implements Touchable {
 
     @Override
     public void fireTouchMove(float x, float y, float tpf) {
-        if (enabled && isTouched() && isClickable()) {
+        if (enabled && isTouched() && isClickable() && isVisible()) {
             lastTouchX = x;
             lastTouchY = y;
         }

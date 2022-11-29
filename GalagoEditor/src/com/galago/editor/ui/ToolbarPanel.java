@@ -15,10 +15,13 @@ import com.galago.editor.utils.EditorUtils;
 public class ToolbarPanel extends Panel {
 
     private ToolbarButton selectButton;
+    private ToolbarButton paintButton;
     private ToolbarButton transformButton;
     private ToolbarButton hierarchyButton;
     
     private ToolbarButton addButton;
+    private ToolbarButton terrainButton;
+    private ToolbarButton waterButton;
     private ToolbarButton importButton;
     private ToolbarButton settingsButton;
     private ToolbarButton helpButton;
@@ -81,8 +84,11 @@ public class ToolbarPanel extends Panel {
 
         selectButton = addButtonTop(Action.SELECT, "Interface/downLeft.png", "Select object");
         transformButton = addButtonTop(Action.TRANSFORM, "Interface/transform.png", "Move, scale, rotate");
+        paintButton = addButtonTop(Action.PAINT, "Interface/brush.png", "Paint");
         hierarchyButton = addButtonTop(Action.HIERARCHY, "Interface/hierarchy.png", "Scene hierarchy");
         addButton = addButtonTop(Action.ADD, "Interface/plus.png", "Add object");
+        terrainButton = addButtonTop(Action.TERRAIN, "Interface/terrain.png", "Terrain");
+        waterButton = addButtonTop(Action.WATER, "Interface/water.png", "Water");
         importButton = addButtonTop(Action.IMPORT, "Interface/import.png", "Import object");
 
         helpButton = addButtonBottom(Action.HELP, "Interface/question.png", "Help");

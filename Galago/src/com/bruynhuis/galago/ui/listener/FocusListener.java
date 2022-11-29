@@ -14,4 +14,6 @@ public interface FocusListener {
     
     public void doFocus(String id);
     
+    public void doBlur(String id);
+    
 }

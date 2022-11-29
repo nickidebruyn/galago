@@ -73,6 +73,26 @@ public class DefaultTheme extends EditorTheme {
     public ColorRGBA getHeaderColor() {
         return ColorUtils.rgb(61,59,78);
     }
+
+    @Override
+    public ColorRGBA getButtonColor() {
+        return ColorUtils.rgb(81,78,109);
+    }
+
+    @Override
+    public ColorRGBA getButtonTextColor() {
+        return ColorUtils.rgb(255,255,255);
+    }
+
+    @Override
+    public ColorRGBA getFieldColor() {
+        return ColorUtils.rgb(95,98,100);
+    }
+
+    @Override
+    public ColorRGBA getFieldTextColor() {
+        return ColorUtils.rgb(255,255,255);
+    }
     
     
 }

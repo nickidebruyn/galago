@@ -381,6 +381,11 @@ public class TextArea extends ImageWidget implements InputType {
                     p.setProperty(BaseApplication.NAME, getText());
                     window.getApplication().fireKeyboardInputListener(p, TextArea.this);
                 }
+
+                @Override
+                public void doBlur(String id) {
+                }
+                
             });
         }
     }
@@ -426,6 +431,12 @@ public class TextArea extends ImageWidget implements InputType {
             focusListener.doFocus(id);
         }
     }
+    
+    protected void fireBlurListener(String id) {
+        if (focusListener != null) {
+            focusListener.doBlur(id);
+        }
+    }    
 
     public void clear() {
         setText("");
@@ -746,6 +757,7 @@ public class TextArea extends ImageWidget implements InputType {
 
     public void blur() {
         focus = false;
+        fireBlurListener(id);
     }
 
     @Override

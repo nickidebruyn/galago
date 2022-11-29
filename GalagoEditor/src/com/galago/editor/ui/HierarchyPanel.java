@@ -64,7 +64,7 @@ public class HierarchyPanel extends Panel {
         this.add(hierarchyTree);
         hierarchyTree.centerTop(0, 32);
         
-        selectedItem = new Image(this, "Interface/hierarchy-header.png", EditorUtils.HIERARCHYBAR_WIDTH, 18);
+        selectedItem = new Image(this, "Interface/tree-item-outline.png", EditorUtils.HIERARCHYBAR_WIDTH, 18);
         selectedItem.setTransparency(0.2f);
         selectedItem.centerTop(0, 32);
         

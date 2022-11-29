@@ -15,6 +15,7 @@ import java.io.IOException;
  */
 public class EditorUtils {
 
+    public static String GAME_EXTENSION = ".j3g";
     public static String SPATIAL_EXTENSION = ".j3o";
     public static float TOOLBAR_WIDTH = 46f;
     public static float TOOLBAR_BUTTON_SIZE = 42f;
@@ -68,6 +69,9 @@ public class EditorUtils {
         try {
             Spatial spatial = (Spatial) importer.load(file);
             System.out.println("Found spatial: " + spatial.getName());
+            
+            MaterialUtils.convertTexturesToDepthRendering(spatial);
+            
             return spatial;
 
         } catch (IOException e) {

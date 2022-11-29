@@ -27,7 +27,7 @@ public class MainApplication extends Base3DApplication {
     }
 
     public MainApplication() {
-        super("Galago Editor", 1920, 1080, "galago-editor.save", null, null, false);
+        super("Galago Editor", 1920, 1000, "galago-editor.save", "Interface/Fonts/NotoSansCJKHK.fnt", null, false);
     }
 
     @Override
@@ -40,6 +40,8 @@ public class MainApplication extends Base3DApplication {
         registerInputMappings("camera-action", new MouseButtonTrigger(1));
         
         showScreen(EditorScreen.NAME);
+        
+//        showStats();
     }
 
     @Override

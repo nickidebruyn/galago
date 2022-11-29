@@ -81,8 +81,10 @@ public class VFlowPanel extends Panel {
         
         for (int i = 0; i < widgets.size(); i++) {            
             Widget widget = widgets.get(i);
-            widget.centerTop(0, position);
-            position += (padding + (widget.getHeight()/window.getScaleFactorHeight()));
+            if (widget.isVisible()) {
+                widget.centerTop(0, position);
+                position += (padding + (widget.getHeight()/window.getScaleFactorHeight()));                
+            }
         }
     }
     

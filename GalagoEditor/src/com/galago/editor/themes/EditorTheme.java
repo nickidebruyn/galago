@@ -34,4 +34,12 @@ public abstract class EditorTheme {
 
     public abstract ColorRGBA getHeaderColor();
     
+    public abstract ColorRGBA getButtonColor();
+    
+    public abstract ColorRGBA getButtonTextColor();
+    
+    public abstract ColorRGBA getFieldColor();
+    
+    public abstract ColorRGBA getFieldTextColor();    
+    
 }

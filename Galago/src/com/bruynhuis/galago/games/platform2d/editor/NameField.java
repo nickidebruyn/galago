@@ -28,6 +28,13 @@ public class NameField extends TextField {
                 p.setProperty(BaseApplication.NAME, getText());
                 window.getApplication().fireKeyboardInputListener(p, NameField.this);
             }
+
+            @Override
+            public void doBlur(String id) {
+                Properties p = new Properties();
+                p.setProperty(BaseApplication.NAME, getText());
+                window.getApplication().fireKeyboardInputListener(p, NameField.this);
+            }
         });
         
     }

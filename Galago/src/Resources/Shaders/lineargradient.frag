@@ -4,6 +4,8 @@ uniform sampler2D m_ColorMap;
 uniform vec4 m_StartColor;
 uniform vec4 m_EndColor;
 uniform float m_Angle;
+uniform float m_MinStep;
+uniform float m_MaxStep;
 
 void main(){
 
@@ -19,6 +21,6 @@ void main(){
     float len = length(uv);
     uv = vec2(cos(angle) * len, sin(angle) * len) + origin;
 	    
-    gl_FragColor = mix(m_StartColor, m_EndColor, smoothstep(0.0, 1.0, uv.x));
+    gl_FragColor = mix(m_StartColor, m_EndColor, smoothstep(m_MinStep, m_MaxStep, uv.x));
 
 }

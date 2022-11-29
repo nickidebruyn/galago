@@ -142,7 +142,7 @@ public class TextField extends ImageWidget implements InputType {
             //Init the text
             bitmapText = bitmapFont.createLabel(id);
             bitmapText.setText("Text");             // the text
-            Rectangle rectangle = new Rectangle((-getWidth() * 0.5f) + padding, (getHeight() * 0.45f) - padding, getWidth() - padding, (getHeight() * 0.5f) - padding);
+            Rectangle rectangle = new Rectangle((-getWidth() * 0.5f) + padding, (getHeight() * 0.55f) - padding, getWidth() - padding, (getHeight() * 0.5f) - padding);
 //            System.out.println("TextField Rectange = " + rectangle);
             bitmapText.setBox(rectangle);
             bitmapText.setSize(fontStyle.getFontSize() * panel.getWindow().getScaleFactorHeight());      // font size
@@ -381,6 +381,12 @@ public class TextField extends ImageWidget implements InputType {
                     p.setProperty(BaseApplication.NAME, getText());
                     window.getApplication().fireKeyboardInputListener(p, TextField.this);
                 }
+                
+                public void doBlur(String id) {
+                    Properties p = new Properties();
+                    p.setProperty(BaseApplication.NAME, getText());
+                    window.getApplication().fireKeyboardInputListener(p, TextField.this);
+                }                
             });
         }
 
@@ -408,6 +414,12 @@ public class TextField extends ImageWidget implements InputType {
     protected void fireFocusListener(String id) {
         if (focusListener != null) {
             focusListener.doFocus(id);
+        }
+    }
+
+    protected void fireBlurListener(String id) {
+        if (focusListener != null) {
+            focusListener.doBlur(id);
         }
     }
 
@@ -660,6 +672,7 @@ public class TextField extends ImageWidget implements InputType {
 
     public void blur() {
         focus = false;
+        fireBlurListener(id);
     }
 
     @Override

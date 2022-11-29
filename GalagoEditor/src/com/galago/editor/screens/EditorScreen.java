@@ -8,24 +8,42 @@ import com.bruynhuis.galago.listener.TouchPickListener;
 import com.bruynhuis.galago.messages.MessageListener;
 import com.galago.editor.utils.EditorUtils;
 import com.bruynhuis.galago.screen.AbstractScreen;
+import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
+import com.bruynhuis.galago.ui.panel.Panel;
 import com.bruynhuis.galago.util.ColorUtils;
 import com.bruynhuis.galago.util.SpatialUtils;
 import com.galago.editor.spatial.Gizmo;
 import com.galago.editor.spatial.GizmoListener;
+import com.galago.editor.spatial.PaintGizmo;
 import com.galago.editor.ui.HierarchyPanel;
+import com.galago.editor.ui.ObjectAddPanel;
+import com.galago.editor.ui.TerrainPanel;
 import com.galago.editor.ui.ToolbarPanel;
+import com.galago.editor.ui.actions.TerrainAction;
+import com.galago.editor.ui.dialogs.TerrainDialog;
 import com.galago.editor.utils.Action;
 import com.galago.editor.utils.MaterialUtils;
+import com.galago.editor.utils.TerrainFlattenTool;
+import com.galago.editor.utils.TerrainPaintTool;
+import com.galago.editor.utils.TerrainRaiseTool;
+import com.galago.editor.utils.TerrainSmoothTool;
+import com.galago.editor.utils.TerrainUtils;
 import com.jme3.app.FlyCamAppState;
 import com.jme3.asset.plugins.FileLocator;
+import com.jme3.bounding.BoundingBox;
+import com.jme3.collision.CollisionResult;
+import com.jme3.collision.CollisionResults;
 import com.jme3.input.ChaseCamera;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.light.LightProbe;
+import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
+import com.jme3.math.Ray;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.ssao.SSAOFilter;
@@ -38,8 +56,13 @@ import com.jme3.scene.shape.Line;
 import com.jme3.shadow.DirectionalLightShadowFilter;
 import com.jme3.shadow.DirectionalLightShadowRenderer;
 import com.jme3.shadow.EdgeFilteringMode;
+import com.jme3.terrain.geomipmap.TerrainQuad;
+import com.jme3.texture.Texture;
 import com.jme3.water.WaterFilter;
 import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 
@@ -49,10 +72,14 @@ import javax.swing.filechooser.FileFilter;
  */
 public class EditorScreen extends AbstractScreen implements MessageListener, PickListener, GizmoListener {
 
-    public static final String NAME = "ParticleEditor";
+    public static final String NAME = "EditorScreen";
 
     private ToolbarPanel toolbarPanel;
     private HierarchyPanel hierarchyPanel;
+    private ObjectAddPanel objectAddPanel;
+    private TerrainPanel terrainPanel;
+
+    private TerrainDialog terrainDialog;
 
     protected AmbientLight ambientLight;
     protected DirectionalLight sunLight;
@@ -68,16 +95,27 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
     protected ChaseCamera chaseCamera;
     protected FlyCamAppState flyCamAppState;
-    protected float cameraDistance = 15f;
+    protected float cameraDistance = 24f;
     protected float distanceScale = 0f;
-    
+
     protected TouchPickListener touchPickListener;
 
     private Node editNode;
     private Gizmo transformGizmo;
+    private PaintGizmo paintGizmo;
     private Spatial selectedSpatial;
     private Node chaseCameraTarget;
-    
+
+    private TerrainPaintTool terrainPaintTool = new TerrainPaintTool();
+    private TerrainRaiseTool terrainRaiseTool = new TerrainRaiseTool();
+    private TerrainFlattenTool terrainFlattenTool = new TerrainFlattenTool();
+    private TerrainSmoothTool terrainSmoothTool = new TerrainSmoothTool();
+
+    private Vector3f flattenPoint = new Vector3f(0, 10, 0);
+
+    private boolean leftMouseDown = false;
+    private boolean overUI = false;
+
     @Override
     protected void init() {
 
@@ -86,10 +124,33 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
         hierarchyPanel = new HierarchyPanel(hudPanel);
         hierarchyPanel.leftCenter(EditorUtils.TOOLBAR_WIDTH, 0);
-        
+
+        objectAddPanel = new ObjectAddPanel(hudPanel);
+        objectAddPanel.leftCenter(EditorUtils.TOOLBAR_WIDTH, 0);
+
+        terrainPanel = new TerrainPanel(hudPanel);
+        terrainPanel.leftCenter(EditorUtils.TOOLBAR_WIDTH, 0);
+        terrainPanel.addHeightMapButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                importTexture(uid);
+            }
+
+        });
+
+        terrainPanel.addTerrainTexturesButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                System.out.println("Selected Texture: " + uid);
+                importTexture(uid);
+            }
+
+        });
+
+        terrainDialog = new TerrainDialog(window);
+
         touchPickListener = new TouchPickListener("scene-control", camera, rootNode);
         touchPickListener.setPickListener(this);
-        
 
     }
 
@@ -102,7 +163,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         initEnvironment();
 
         initCameras();
-        
+
         initGizmos();
     }
 
@@ -110,8 +171,35 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
     protected void show() {
         baseApplication.getMessageManager().addMessageListener(this);
         toolbarPanel.reset();
-        hierarchyPanel.hide();
+        hidePanels();
         touchPickListener.registerWithInput(inputManager);
+    }
+
+    protected void showPanel(Panel panel) {
+        hidePanels();
+
+        panel.show();
+
+        if (panel.equals(hierarchyPanel)) {
+            hierarchyPanel.reload(editNode);
+
+        }
+
+        if (panel.equals(terrainPanel)) {
+            terrainPanel.setTerrain(getTerrain());
+            if (terrainPanel.getTerrain() != null) {
+                touchPickListener.setTargetNode(getTerrain());
+
+            }
+
+        }
+
+    }
+
+    protected void hidePanels() {
+        hierarchyPanel.hide();
+        objectAddPanel.hide();
+        terrainPanel.hide();
     }
 
     @Override
@@ -125,12 +213,19 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
     }
 
     protected void newScene() {
-        rootNode.detachAllChildren();
+        if (editNode != null) {
+            editNode.removeFromParent();
 
-        initGrid();
+        } else {
+            initGrid();
+        }
 
         editNode = new Node("root");
         rootNode.attachChild(editNode);
+
+        loadAmbientLight();
+        loadDirectionalLight();
+        loadProbeLight();
 
     }
 
@@ -148,14 +243,14 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         Line line = new Line(new Vector3f(-gridLines * lineSpacing * 0.5f, 0, 0), new Vector3f(gridLines * lineSpacing * 0.5f, 0, 0));
         Geometry g = new Geometry("gridlinex", line);
         SpatialUtils.addColor(g, EditorUtils.theme.getXAxisColor(), true);
-        g.getMaterial().getAdditionalRenderState().setLineWidth(2);
+        g.getMaterial().getAdditionalRenderState().setLineWidth(3);
         g.setShadowMode(RenderQueue.ShadowMode.Off);
         rootNode.attachChild(g);
 
         line = new Line(new Vector3f(0, 0, -gridLines * lineSpacing * 0.5f), new Vector3f(0, 0, gridLines * lineSpacing * 0.5f));
         g = new Geometry("gridlinez", line);
         SpatialUtils.addColor(g, EditorUtils.theme.getZAxisColor(), true);
-        g.getMaterial().getAdditionalRenderState().setLineWidth(2);
+        g.getMaterial().getAdditionalRenderState().setLineWidth(3);
         g.setShadowMode(RenderQueue.ShadowMode.Off);
         rootNode.attachChild(g);
 
@@ -163,7 +258,8 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         lineSpacing = 10;
         grid = new Grid(gridLines, gridLines, lineSpacing);
         gridGeom = new Geometry("gridlarge", grid);
-        SpatialUtils.addColor(gridGeom, EditorUtils.theme.getPanelColor(), true);
+        SpatialUtils.addColor(gridGeom, ColorRGBA.Gray, true);
+        gridGeom.getMaterial().getAdditionalRenderState().setLineWidth(1);
         gridGeom.move(-gridLines * lineSpacing * 0.5f, 0.01f, -gridLines * lineSpacing * 0.5f);
         gridGeom.setShadowMode(RenderQueue.ShadowMode.Off);
         rootNode.attachChild(gridGeom);
@@ -201,7 +297,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         chaseCamera.setRotationSpeed(0);
         chaseCamera.setZoomSensitivity(4);
         chaseCamera.setMinDistance(cameraDistance / 5f);
-        chaseCamera.setMaxDistance(cameraDistance * 5f);
+        chaseCamera.setMaxDistance(cameraDistance * 100f);
 
         chaseCamera.setDragToRotate(true);
         chaseCamera.setRotationSensitivity(4);
@@ -218,20 +314,29 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 //
 //        baseApplication.getViewPort().addProcessor(fpp);
 //    }
-    private void initEnvironment() {
-        lightProbe = SpatialUtils.loadLightProbe(rootNode, "Models/Probes/Sky_Cloudy.j3o");
-
+    private void loadAmbientLight() {
         ambientLight = new AmbientLight();
-        ambientLight.setColor(ColorRGBA.LightGray);
-        rootNode.addLight(ambientLight);
+        ambientLight.setColor(ColorRGBA.DarkGray);
+        editNode.addLight(ambientLight);
+    }
 
+    private void loadDirectionalLight() {
         sunLight = new DirectionalLight();
-        sunLight.setColor(ColorRGBA.White);
+        sunLight.setColor(ColorRGBA.LightGray);
         sunLight.setDirection(new Vector3f(0.6f, -0.8f, -0.6f).normalizeLocal());
-        rootNode.addLight(sunLight);
+        editNode.addLight(sunLight);
+    }
+
+    private void loadProbeLight() {
+        lightProbe = SpatialUtils.loadLightProbe(editNode, "Models/Probes/Sky_Cloudy.j3o");
+        lightProbe.setAreaType(LightProbe.AreaType.Spherical);
+        lightProbe.getArea().setRadius(2000);
+        lightProbe.getArea().setCenter(new Vector3f(0, 0, 0));
+    }
+
+    private void initEnvironment() {
 
 //        sky = SpatialUtils.addSkySphere(rootNode, ColorUtils.rgb(52, 172, 224), ColorUtils.rgb(223, 249, 251), baseApplication.getCamera());
-
         shadowFilter = new DirectionalLightShadowFilter(baseApplication.getAssetManager(), 1024, 2);
         shadowFilter.setEdgeFilteringMode(EdgeFilteringMode.Dither);
         shadowFilter.setEdgesThickness(10);
@@ -242,12 +347,6 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
         fpp = new FilterPostProcessor(baseApplication.getAssetManager());
         baseApplication.getViewPort().addProcessor(fpp);
-
-//        fpp.addFilter(shadowFilter);
-        //Smooth edging
-        fXAAFilter = new FXAAFilter();
-        fXAAFilter.setEnabled(true);
-        fpp.addFilter(fXAAFilter);
 
         //SSAO Ambient oclussion at runtime
         basicSSAOFilter = new SSAOFilter();
@@ -260,7 +359,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
         //Water effect
         oceanFilter = new WaterFilter(rootNode, sunLight.getDirection());
-        oceanFilter.setWaterHeight(0);
+        oceanFilter.setWaterHeight(5);
         oceanFilter.setLightColor(sunLight.getColor().clone());
         oceanFilter.setWaterTransparency(0.9f);
         oceanFilter.setWaterColor(ColorUtils.rgb(52, 152, 219));
@@ -271,14 +370,23 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         oceanFilter.setFoamHardness(1f);
         oceanFilter.setFoamIntensity(0.5f);
         oceanFilter.setFoamExistence(new Vector3f(0.25f, 0.75f, 0.25f));
+        oceanFilter.setEnabled(false);
 //        oceanFilter.setShoreHardness(1.0f);
-//        fpp.addFilter(oceanFilter);
+        fpp.addFilter(oceanFilter);
+
+//        fpp.addFilter(shadowFilter);
+        //Smooth edging
+        fXAAFilter = new FXAAFilter();
+        fXAAFilter.setEnabled(true);
+        fpp.addFilter(fXAAFilter);
     }
-    
+
     protected void initGizmos() {
         transformGizmo = new Gizmo("GIZMO", camera, inputManager);
         transformGizmo.setGizmoListener(this);
-        
+
+        paintGizmo = new PaintGizmo("PAINT-GIZMO", camera, inputManager);
+
     }
 
     protected void save() {
@@ -305,6 +413,10 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
+            if (!selectedFile.getAbsolutePath().endsWith(EditorUtils.SPATIAL_EXTENSION)) {
+                selectedFile = new File(selectedFile.getAbsolutePath() + EditorUtils.SPATIAL_EXTENSION);
+
+            }
             System.out.println("Game to save: " + selectedFile);
             try {
                 EditorUtils.saveSpatial(editNode, selectedFile);
@@ -347,11 +459,13 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             baseApplication.getGameSaves().save();
 
             if (spatial != null) {
-                rootNode.detachAllChildren();
+                editNode.removeFromParent();
                 editNode = (Node) spatial;
                 rootNode.attachChild(editNode);
 
             }
+
+            hidePanels();
 
         }
     }
@@ -405,23 +519,112 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         } else if (Action.SAVE.equals(message)) {
             save();
 
+        } else if (Action.UI_OVER.equals(message)) {
+            overUI = true;
+
+        } else if (Action.UI_OFF.equals(message)) {
+            overUI = false;
+
         } else if (Action.ADD.equals(message)) {
-            addObject();
+
+            if (object == null) {
+                showPanel(objectAddPanel);
+
+            } else {
+                addObject((Spatial) object);
+
+            }
+
+        } else if (Action.TERRAIN.equals(message)) {
+            System.out.println("Show terrain dialog");
+            showPanel(terrainPanel);
+
+        } else if (Action.CREATE_TERRAIN.equals(message)) {
+            System.out.println("Create terrain: " + object);
+            TerrainAction terrainAction = (TerrainAction) object;
+
+            TerrainQuad existingTerrain = getTerrain();
+            if (existingTerrain != null) {
+                existingTerrain.removeFromParent();
+            }
+
+            TerrainQuad terrain = null;
+
+            if (terrainAction.getType() == TerrainAction.TYPE_FLAT) {
+                terrain = TerrainUtils.generateFlatTerrain(assetManager, camera, terrainAction.getTerrainSize());
+
+            } else if (terrainAction.getType() == TerrainAction.TYPE_ISLAND) {
+                terrain = TerrainUtils.generateIslandTerrain(assetManager, camera,
+                        terrainAction.getTerrainSize(), terrainAction.getIterations(),
+                        terrainAction.getMinRadius(), terrainAction.getMaxRadius(),
+                        terrainAction.getSeed());
+
+            } else if (terrainAction.getType() == TerrainAction.TYPE_MIDPOINT) {
+
+                terrain = TerrainUtils.generateMidpointTerrain(assetManager, camera,
+                        terrainAction.getTerrainSize(), terrainAction.getRange(),
+                        terrainAction.getPersistence(),
+                        terrainAction.getSeed());
+
+            } else if (terrainAction.getType() == TerrainAction.TYPE_IMAGE) {
+
+                if (terrainAction.getHeightMapTexture() != null) {
+                    terrain = TerrainUtils.generateImageTerrain(assetManager, camera, terrainAction.getHeightMapTexture().getImage());
+                }
+
+            }
+
+            if (terrain != null) {
+                Material material = null;
+
+                if (terrainAction.getTerrainMaterial() == TerrainAction.MATERIAL_PAINTABLE) {
+                    System.out.println("Generated generatePaintableTerrainMaterial");
+                    try {
+                        material = TerrainUtils.generatePaintableTerrainMaterial(assetManager, terrainAction.getTerrainSize());
+                    } catch (IOException ex) {
+                        Logger.getLogger(EditorScreen.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+
+                } else if (terrainAction.getTerrainMaterial() == TerrainAction.MATERIAL_HEIGHT_BASED) {
+                    System.out.println("Generated generateLitHeightBasedMaterial");
+                    material = TerrainUtils.generateLitHeightBasedMaterial(assetManager, terrainAction.getTerrainSize());
+
+                } else if (terrainAction.getTerrainMaterial() == TerrainAction.MATERIAL_PBR) {
+                    System.out.println("Generated generatePaintablePBRTerrainMaterial");
+                    try {
+                        material = TerrainUtils.generatePaintablePBRTerrainMaterial(assetManager, terrainAction.getTerrainSize());
+                    } catch (IOException ex) {
+                        Logger.getLogger(EditorScreen.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+
+                }
+
+                terrain.setMaterial(material);
+                editNode.attachChild(terrain);
+
+//                TangentBinormalGenerator.generate(terrain);
+            }
+
+            terrainPanel.setTerrain(getTerrain());
+
+        } else if (Action.WATER.equals(message)) {
+            System.out.println("Show water");
+            hidePanels();
+            oceanFilter.setEnabled(true);
 
         } else if (Action.IMPORT.equals(message)) {
             importObject();
 
         } else if (Action.HIERARCHY.equals(message)) {
-            hierarchyPanel.reload(editNode);
-            hierarchyPanel.show();
-            
+            showPanel(hierarchyPanel);
+
         } else if (Action.SELECT.equals(message)) {
             if (object == null) {
                 transformGizmo.setTarget(null);
                 transformGizmo.removeFromParent();
-                
+
             } else {
-                rootNode.attachChild(transformGizmo);                
+                rootNode.attachChild(transformGizmo);
                 Spatial spatial = (Spatial) object;
                 transformGizmo.setLocalTranslation(spatial.getWorldTranslation());
 //                transformGizmo.setLocalRotation(spatial.getWorldRotation());
@@ -431,18 +634,102 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
             }
 
+            paintGizmo.removeFromParent();
+
+        } else if (Action.PAINT.equals(message)) {
+            System.out.println("Prepaire to paint");
+
+            transformGizmo.setTarget(null);
+            transformGizmo.removeFromParent();
+
+            rootNode.attachChild(paintGizmo);
+
+        } else if (Action.AUTO_PAINT.equals(message)) {
+
+            TerrainAction terrainAction = (TerrainAction) object;
+
+            TerrainQuad terrain = getTerrain();
+            BoundingBox bb = (BoundingBox) terrain.getWorldBound();
+            System.out.println("Auto paint: " + terrain.getWorldBound());
+
+            int sizeX = (int) bb.getXExtent();
+            int addAmount = (int) terrainPanel.getPaintRadius();
+            CollisionResults results = new CollisionResults();
+            Ray ray = new Ray();
+
+//            float normalAngle = 0.8f;
+            for (int x = -sizeX; x < sizeX; x += 1) {
+
+                for (int z = -sizeX; z < sizeX; z += 1) {
+
+                    if ((x % addAmount == 0) && (z % addAmount == 0)) {
+                        float height = terrain.getHeight(new Vector2f(x, z));
+
+                        if (height >= terrainAction.getAutoStartHeight()) {
+                            results.clear();
+
+                            ray.setOrigin(new Vector3f(x, 300, z));
+                            ray.setDirection(new Vector3f(0, -1000, 0));
+
+                            // 3. Collect intersections between Ray and Shootables in results list.
+                            terrain.collideWith(ray, results);
+
+                            // 5. Use the results (we mark the hit object)
+                            if (results.size() > 0) {
+                                CollisionResult cr = results.getCollision(0);
+                                if (cr.getContactNormal().y <= terrainAction.getAutoPaintMax()
+                                        && cr.getContactNormal().y >= terrainAction.getAutoPaintMin()) {
+//                                System.out.println("Collison res = " + cr.getContactNormal());
+                                    terrainPaintTool.paintTexture(terrain, new Vector3f(x, height, z), terrainPanel.getPaintRadius(), terrainPanel.getPaintStrength(), terrainPanel.getSelectedLayer());
+
+                                }
+
+                            }
+                        }
+
+                    }
+                }
+            }
 
         } else {
-            hierarchyPanel.hide();
+            hidePanels();
         }
 
     }
 
-    private void addObject() {
-        Spatial box = SpatialUtils.addBox(editNode, 1, 1, 1);
-        box.setName("Box");
-        SpatialUtils.addColor(box, ColorRGBA.randomColor(), false);
-//        box.move(FastMath.nextRandomInt(-10, 10), 0, FastMath.nextRandomInt(-10, 10));
+    /**
+     * Helper method that will return the current terrain.
+     *
+     * @return
+     */
+    protected TerrainQuad getTerrain() {
+        TerrainQuad terrain = null;
+        for (int i = 0; i < editNode.getQuantity(); i++) {
+            Spatial s = editNode.getChild(i);
+
+            if (s instanceof TerrainQuad) {
+                terrain = (TerrainQuad) s;
+                break;
+            }
+
+        }
+
+        return terrain;
+    }
+
+    private void addObject(Spatial spatial) {
+
+        System.out.println("Trying to add: " + spatial.getName());
+
+        if (spatial.getName().equals("cube")) {
+            Spatial box = SpatialUtils.addBox(editNode, 5, 10, 5);
+            box.setName("Box");
+            SpatialUtils.addColor(box, ColorRGBA.randomColor(), false);
+
+        } else if (spatial.getName().equals("sky")) {
+            SpatialUtils.addSkySphere(editNode, ColorUtils.rgb(19, 15, 64), ColorUtils.rgb(199, 236, 238), camera);
+
+        }
 
     }
 
@@ -477,51 +764,150 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         return null;
     }
 
+    private void importTexture(String uid) {
+        System.out.println("TERRAIN BUTTON: " + uid);
+
+        JFileChooser fileChooser = new JFileChooser();
+        String destFolder = System.getProperty("user.home");
+        if (baseApplication.getGameSaves().getGameData().getProperties().get(EditorUtils.LAST_LOCATION) != null) {
+            destFolder = (String) baseApplication.getGameSaves().getGameData().getProperties().get(EditorUtils.LAST_LOCATION);
+        }
+
+        fileChooser.setCurrentDirectory(new File(destFolder));
+        fileChooser.setDialogTitle("Open Image");
+        FileFilter fileFilter = new FileFilter() {
+            @Override
+            public boolean accept(File file) {
+                return file != null && (EditorUtils.isCompatableTexture(file) || file.isDirectory());
+            }
+
+            @Override
+            public String getDescription() {
+                return EditorUtils.getCompatableTextureExtensions();
+            }
+        };
+        fileChooser.setFileFilter(fileFilter);
+        int result = fileChooser.showOpenDialog(null);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            System.out.println("Selected image: " + fileChooser.getSelectedFile());
+
+            File file = fileChooser.getSelectedFile();
+
+            baseApplication.getGameSaves().getGameData().getProperties().setProperty(EditorUtils.LAST_LOCATION, file.getPath());
+            baseApplication.getGameSaves().save();
+
+            assetManager.registerLocator(file.getParent(), FileLocator.class);
+            Texture texture = assetManager.loadTexture(file.getName());
+            texture.setKey(null); //Set the key to null so that it can be embedded
+
+            System.out.println("Texture: " + texture);
+
+            if (uid.contains("heightmap")) {
+                terrainPanel.setHeightmapTexture(texture);
+            } else {
+                terrainPanel.setTerrainMaterialTexture(uid, texture);
+            }
+
+        }
+
+    }
+
     @Override
     public void update(float tpf) {
         super.update(tpf);
-        
+
         if (isActive()) {
-            
+
             //Calculate distance scale
-            distanceScale = transformGizmo.getWorldTranslation().distance(camera.getLocation())/cameraDistance;
+            distanceScale = transformGizmo.getWorldTranslation().distance(camera.getLocation()) / cameraDistance;
 //            log("Distance scale: " + distanceScale);
             transformGizmo.setLocalScale(distanceScale);
-            
+
             //Check for input
             if (Input.get("camera-action") > 0) {
 //                log("Right mouse down");
                 chaseCamera.setRotationSpeed(8);
-                
+
             } else {
                 chaseCamera.setRotationSpeed(0);
-                
+
             }
-                      
+
         }
     }
-    
-    
 
     @Override
     public void picked(PickEvent pickEvent, float tpf) {
-        
+
         if (pickEvent.isRightButton()) {
             if (pickEvent.isKeyDown()) {
                 log("Camera rotate on");
-                
+
             } else {
                 log("Camera rotate off");
-                
+
             }
-            
+
         }
 
-        
+        if (pickEvent.isLeftButton()) {
+            leftMouseDown = pickEvent.isKeyDown();
+
+            if (pickEvent.getContactPoint() != null && paintGizmo.getParent() != null) {
+
+                flattenPoint.setY(pickEvent.getContactPoint().y);
+
+            }
+        }
+
     }
 
     @Override
     public void drag(PickEvent pickEvent, float tpf) {
+
+        if (pickEvent.getContactPoint() != null && paintGizmo.getParent() != null) {
+            paintGizmo.setLocalTranslation(pickEvent.getContactPoint());
+            paintGizmo.getLocalRotation().lookAt(pickEvent.getContactNormal(), Vector3f.UNIT_Y);
+            paintGizmo.setRadius(terrainPanel.getPaintRadius());
+
+            if (leftMouseDown && !overUI) {
+
+                if (terrainPanel.isPaintable() && terrainPanel.getTerrainAction().getTool() == TerrainAction.TOOL_PAINT) {
+                    terrainPaintTool.paintTexture(getTerrain(),
+                            paintGizmo.getWorldTranslation(),
+                            terrainPanel.getPaintRadius(),
+                            terrainPanel.getPaintStrength(),
+                            terrainPanel.getSelectedLayer());
+
+                } else if (terrainPanel.getTerrainAction().getTool() == TerrainAction.TOOL_RAISE) {
+                    terrainRaiseTool.modifyHeight(getTerrain(),
+                            paintGizmo.getWorldTranslation(),
+                            terrainPanel.getPaintRadius(),
+                            terrainPanel.getPaintStrength(),
+                            TerrainRaiseTool.Meshes.Sphere);
+
+                } else if (terrainPanel.getTerrainAction().getTool() == TerrainAction.TOOL_FLATTEN) {
+                    terrainFlattenTool.modifyHeight(getTerrain(), flattenPoint,
+                            paintGizmo.getWorldTranslation(),
+                            terrainPanel.getPaintRadius(),
+                            terrainPanel.getPaintStrength(),
+                            false,
+                            TerrainRaiseTool.Meshes.Sphere);
+
+                } else if (terrainPanel.getTerrainAction().getTool() == TerrainAction.TOOL_SMOOTH) {
+                    terrainSmoothTool.modifyHeight(getTerrain(),
+                            paintGizmo.getWorldTranslation(),
+                            terrainPanel.getPaintRadius(),
+                            terrainPanel.getPaintStrength(),
+                            TerrainRaiseTool.Meshes.Sphere);
+
+                }
+
+            }
+
+        }
+
     }
 
     @Override
@@ -529,7 +915,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         if (selectedSpatial != null) {
 //            selectedSpatial.setLocalTranslation(position.x, position.y, position.z);
 //            selectedSpatial.setLocalRotation(rotations.clone());
-            
+
         }
     }
 }

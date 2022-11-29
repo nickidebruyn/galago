@@ -209,6 +209,18 @@ public class MaterialUtils {
 
         }
     }
+    
+    public static void convertTextureToDepthRendering(Material material, String textureName) {
+        MatParamTexture matParam = material.getTextureParam(textureName);
+        
+        if (matParam != null && matParam.getTextureValue() != null) {
+            System.out.println("\t\tGOT TEXTURE BY NAME: " + textureName);
+            Texture texture = matParam.getTextureValue();
+            texture.setMagFilter(Texture.MagFilter.Nearest);
+            texture.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
+
+        }
+    }
 
     public static void convertTexturesToEmbedded(Spatial s) {
 
@@ -220,6 +232,49 @@ public class MaterialUtils {
                     Material material = ((Geometry) spatial).getMaterial();
                     System.out.println("\tMaterial...: " + material.getMaterialDef().getAssetName());
                     if (isLightingMaterial(material)) {
+                        convertTextureToEmbeddedByName(material, "DiffuseMap");
+
+                    } else if (isUnshadedMaterial(material)) {
+                        convertTextureToEmbeddedByName(material, "ColorMap");
+
+                    } else if (isPBRLightingMaterial(material)) {
+                        convertTextureToEmbeddedByName(material, "MetallicRoughnessMap");
+                        convertTextureToEmbeddedByName(material, "NormalMap");
+                        convertTextureToEmbeddedByName(material, "BaseColorMap");
+                        convertTextureToEmbeddedByName(material, "EmissiveMap");
+                        convertTextureToEmbeddedByName(material, "LightMap");
+
+                    }
+
+                }
+            }
+        };
+        s.depthFirstTraversal(sceneGraphVisitor);
+
+    }
+    
+    public static void convertTexturesToDepthRendering(Spatial s) {
+
+        SceneGraphVisitor sceneGraphVisitor = new SceneGraphVisitor() {
+            @Override
+            public void visit(Spatial spatial) {
+                if (spatial instanceof Geometry) {
+                    System.out.println("convertTexturesToEmbedded.....:" + spatial.getName());
+                    Material material = ((Geometry) spatial).getMaterial();
+                    System.out.println("\tMaterial...: " + material.getMaterialDef().getAssetName());
+                    if (isTerrainLightingMaterial(material)) {
+                        convertTextureToDepthRendering(material, "DiffuseMap");
+                        convertTextureToDepthRendering(material, "NormalMap");
+                        convertTextureToDepthRendering(material, "DiffuseMap_1");
+                        convertTextureToDepthRendering(material, "NormalMap_1");
+                        convertTextureToDepthRendering(material, "DiffuseMap_2");
+                        convertTextureToDepthRendering(material, "NormalMap_2");                        
+                        convertTextureToDepthRendering(material, "DiffuseMap_3");
+                        convertTextureToDepthRendering(material, "NormalMap_3");                        
+//                        convertTextureToDepthRendering(material, "DiffuseMap_4");
+//                        convertTextureToDepthRendering(material, "NormalMap_4");
+                        
+                    } else if (isLightingMaterial(material)) {
                         convertTextureToEmbeddedByName(material, "DiffuseMap");
 
                     } else if (isUnshadedMaterial(material)) {
@@ -273,5 +328,9 @@ public class MaterialUtils {
 
     public static boolean isPBRLightingMaterial(Material material) {
         return material != null && material.getMaterialDef().getAssetName().endsWith("/PBRLighting.j3md");
+    }
+    
+    public static boolean isTerrainLightingMaterial(Material material) {
+        return material != null && material.getMaterialDef().getAssetName().endsWith("/TerrainLighting.j3md");
     }
 }

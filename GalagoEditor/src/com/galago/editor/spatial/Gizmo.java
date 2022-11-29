@@ -237,7 +237,7 @@ public class Gizmo extends Node implements PickListener {
     @Override
     public void drag(PickEvent pickEvent, float tpf) {
 
-        if (pickEvent.isLeftButton() && dragging && pickEvent.getContactPoint() != null) {
+        if (pickEvent.isLeftButton() && dragging && pickEvent.getContactPoint() != null && target != null) {
 
 //            float dis = pickEvent.getContactPoint().distance(downClickPos);
 //            Debug.log("Distance = " + dis);

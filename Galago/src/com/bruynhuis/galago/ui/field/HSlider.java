@@ -25,13 +25,13 @@ import java.util.List;
  */
 public class HSlider extends Panel {
 
-    private float value = 0f;
-    private float minValue = 0f;
-    private float maxValue = 100f;
-    private float incrementValue = 1f;
-    private Image buttonImage;
-    private Label label;
-    private ControlButton touchButton;
+    protected float value = 0f;
+    protected float minValue = 0f;
+    protected float maxValue = 100f;
+    protected float incrementValue = 1f;
+    protected Image buttonImage;
+    protected Label label;
+    protected ControlButton touchButton;
     private String labelText = "";
     private boolean calculateValue = false;
     private List<ValueChangeListener> valueChangeListeners = new ArrayList<ValueChangeListener>();
@@ -39,7 +39,7 @@ public class HSlider extends Panel {
     
     private float percentage = 0f;
     private float NATIVE_WIDTH = 264;
-    private float PADDING = 10f;
+    protected float PADDING = 2f;
     private float HALFSIZE = (NATIVE_WIDTH*0.5f)-PADDING; //This is half the amount
     
     public HSlider(Panel parent, float width) {

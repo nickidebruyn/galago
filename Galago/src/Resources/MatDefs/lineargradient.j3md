@@ -5,6 +5,8 @@ MaterialDef Colored LinearGradient {
         Color StartColor (Color)
         Color EndColor (Color)
         Float Angle: 0.0
+        Float MinStep: 0.0
+        Float MaxStep: 1.0
     }
 
     Technique {

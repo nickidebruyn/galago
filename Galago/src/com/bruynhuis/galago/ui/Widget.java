@@ -40,6 +40,7 @@ public abstract class Widget implements Savable {
     protected Node widgetNode;
     protected ArrayList<Effect> effects = new ArrayList<Effect>();
     protected boolean lockScaling = false;
+    protected boolean visible = true;
 
     /**
      *
@@ -156,6 +157,7 @@ public abstract class Widget implements Savable {
      * @param visible
      */
     public void setVisible(boolean visible) {
+        this.visible = visible;
         if (visible && widgetNode.getCullHint().equals(Spatial.CullHint.Always)) {
             widgetNode.setCullHint(Spatial.CullHint.Never);
 
@@ -166,7 +168,7 @@ public abstract class Widget implements Savable {
     }
 
     public boolean isVisible() {
-        return widgetNode.getCullHint().equals(Spatial.CullHint.Never);
+        return this.visible || widgetNode.getCullHint().equals(Spatial.CullHint.Never);
     }
 
     /**
