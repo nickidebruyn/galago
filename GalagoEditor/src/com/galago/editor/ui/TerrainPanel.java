@@ -54,6 +54,8 @@ public class TerrainPanel extends Panel {
     private TouchButton heightMapButton;
     private ButtonGroup baseTextureButton;
     private SliderField baseTextureScale;
+    private SliderField textureRoughness;
+    private SliderField textureMetallic;
     private SliderField slopeScale;
     private SliderField startHeight;
     private SliderField endHeight;
@@ -69,6 +71,8 @@ public class TerrainPanel extends Panel {
     private String selectedNormalMap = "NormalMap";
     private String selectedTextureScale = "DiffuseMap_0_scale";
     private String selectedRegion = "region1";
+    private String selectedRoughness = "Roughness_0";
+    private String selectedMetallic = "Metallic_0";
 
     private float triScale = 100;
 
@@ -270,6 +274,8 @@ public class TerrainPanel extends Panel {
                     selectedDiffuseMap = "AlbedoMap_" + index;
                     selectedNormalMap = "NormalMap_" + index;
                     selectedTextureScale = "AlbedoMap_" + index + "_scale";
+                    selectedRoughness =  "Roughness_" + index;
+                    selectedMetallic =  "Metallic_" + index;
 
                 } else {
                     if (index == 0) {
@@ -322,6 +328,26 @@ public class TerrainPanel extends Panel {
                     terrain.getMaterial().setFloat(selectedTextureScale, value / triScale);
                 }
 
+            }
+
+        });
+        
+        textureRoughness = createLabeledSliderDecimal("Roughness", 0, 1, 0.1f);
+        textureRoughness.setDecimals(true);
+        textureRoughness.addValueChangeListener(new ValueChangeListener() {
+            @Override
+            public void doValueChange(float value) {
+                terrain.getMaterial().setFloat(selectedRoughness, value);
+            }
+
+        });
+        
+        textureMetallic = createLabeledSliderDecimal("Metallic", 0, 1, 0.1f);
+        textureMetallic.setDecimals(true);
+        textureMetallic.addValueChangeListener(new ValueChangeListener() {
+            @Override
+            public void doValueChange(float value) {
+                terrain.getMaterial().setFloat(selectedMetallic, value);
             }
 
         });
@@ -638,6 +664,8 @@ public class TerrainPanel extends Panel {
             terrainLayersButton.getParent().setVisible(false);
             baseTextureButton.getButton1().getParent().setVisible(false);
             baseTextureScale.getParent().setVisible(false);
+            textureRoughness.getParent().setVisible(false);
+            textureMetallic.getParent().setVisible(false);
             startHeight.getParent().setVisible(false);
             endHeight.getParent().setVisible(false);
             slopeScale.getParent().setVisible(false);
@@ -681,6 +709,8 @@ public class TerrainPanel extends Panel {
                 terrainLayersButton.getParent().setVisible(terrainAction.getTool() == TerrainAction.TOOL_PAINT);
                 baseTextureButton.getButton2().setVisible(false);
                 baseTextureScale.getParent().setVisible(selectedRegion != null && terrainAction.getTool() == TerrainAction.TOOL_PAINT);
+                textureRoughness.getParent().setVisible(false);
+                textureMetallic.getParent().setVisible(false);
                 startHeight.getParent().setVisible(selectedRegion != null && terrainAction.getTool() == TerrainAction.TOOL_PAINT);
                 endHeight.getParent().setVisible(selectedRegion != null && terrainAction.getTool() == TerrainAction.TOOL_PAINT);
                 slopeScale.getParent().setVisible(slopeSelected && terrainAction.getTool() == TerrainAction.TOOL_PAINT);
@@ -709,6 +739,13 @@ public class TerrainPanel extends Panel {
 
                 terrainLayersButton.getParent().setVisible(terrainAction.getTool() == TerrainAction.TOOL_PAINT);
                 baseTextureButton.getButton2().getParent().setVisible(terrainAction.getTool() == TerrainAction.TOOL_PAINT);
+                
+                textureRoughness.getParent().setVisible(isPBRMaterial() && terrainAction.getTool() == TerrainAction.TOOL_PAINT);
+                textureMetallic.getParent().setVisible(isPBRMaterial() && terrainAction.getTool() == TerrainAction.TOOL_PAINT);
+                if (isPBRMaterial()) {
+                    textureRoughness.setValue(terrain.getMaterial().getParamValue(selectedRoughness));
+                    textureMetallic.setValue(terrain.getMaterial().getParamValue(selectedMetallic));
+                }
 
                 startHeight.getParent().setVisible(false);
                 endHeight.getParent().setVisible(false);
