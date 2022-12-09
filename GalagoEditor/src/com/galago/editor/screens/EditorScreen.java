@@ -15,12 +15,13 @@ import com.bruynhuis.galago.util.SpatialUtils;
 import com.galago.editor.spatial.Gizmo;
 import com.galago.editor.spatial.GizmoListener;
 import com.galago.editor.spatial.PaintGizmo;
-import com.galago.editor.ui.HierarchyPanel;
-import com.galago.editor.ui.ObjectAddPanel;
-import com.galago.editor.ui.TerrainPanel;
-import com.galago.editor.ui.ToolbarPanel;
+import com.galago.editor.ui.panels.HierarchyPanel;
+import com.galago.editor.ui.panels.ObjectAddPanel;
+import com.galago.editor.ui.panels.TerrainPanel;
+import com.galago.editor.ui.panels.ToolbarPanel;
 import com.galago.editor.ui.actions.TerrainAction;
 import com.galago.editor.ui.dialogs.TerrainDialog;
+import com.galago.editor.ui.panels.WaterPanel;
 import com.galago.editor.utils.Action;
 import com.galago.editor.utils.MaterialUtils;
 import com.galago.editor.utils.TerrainFlattenTool;
@@ -78,6 +79,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
     private HierarchyPanel hierarchyPanel;
     private ObjectAddPanel objectAddPanel;
     private TerrainPanel terrainPanel;
+    private WaterPanel waterPanel;
 
     private TerrainDialog terrainDialog;
 
@@ -147,6 +149,9 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
         });
 
+        waterPanel = new WaterPanel(hudPanel);
+        waterPanel.leftCenter(EditorUtils.TOOLBAR_WIDTH, 0);
+
         terrainDialog = new TerrainDialog(window);
 
         touchPickListener = new TouchPickListener("scene-control", camera, rootNode);
@@ -194,12 +199,18 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
         }
 
+        if (panel.equals(waterPanel)) {
+            waterPanel.setWaterFilter(oceanFilter);
+
+        }
+
     }
 
     protected void hidePanels() {
         hierarchyPanel.hide();
         objectAddPanel.hide();
         terrainPanel.hide();
+        waterPanel.hide();
     }
 
     @Override
@@ -371,7 +382,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         oceanFilter.setFoamIntensity(0.5f);
         oceanFilter.setFoamExistence(new Vector3f(0.25f, 0.75f, 0.25f));
         oceanFilter.setEnabled(false);
-//        oceanFilter.setShoreHardness(1.0f);
+        oceanFilter.setShoreHardness(1.0f);
         fpp.addFilter(oceanFilter);
 
 //        fpp.addFilter(shadowFilter);
@@ -609,8 +620,12 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
         } else if (Action.WATER.equals(message)) {
             System.out.println("Show water");
-            hidePanels();
-            oceanFilter.setEnabled(true);
+
+            transformGizmo.setTarget(null);
+            transformGizmo.removeFromParent();
+
+//            oceanFilter.setEnabled(true);
+            showPanel(waterPanel);
 
         } else if (Action.IMPORT.equals(message)) {
             importObject();
@@ -738,27 +753,30 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             System.out.println("Importing model: " + selectedFile);
             System.out.println("Parent: " + selectedFile.getParent());
             System.out.println("FileName: " + selectedFile.getName());
+            
             baseApplication.getAssetManager().registerLocator(selectedFile.getParent(), FileLocator.class);
-            Spatial spatial = baseApplication.getAssetManager().loadModel(selectedFile.getName());
-            System.out.println("Model (" + spatial.getName() + ") successfully imported.");
+            Spatial m = baseApplication.getAssetManager().loadModel(selectedFile.getName());            
+            
+            System.out.println("Model (" + m.getName() + ") successfully imported.");
+            
             if (selectedFile.getName().endsWith(".obj")) {
-                spatial.setName(selectedFile.getName().replace(".obj", ""));
+                m.setName(selectedFile.getName().replace(".obj", ""));
 
             } else if (selectedFile.getName().endsWith(".fbx")) {
-                spatial.setName(selectedFile.getName().replace(".fbx", ""));
+                m.setName(selectedFile.getName().replace(".fbx", ""));
 
             } else if (selectedFile.getName().endsWith(".gltf")) {
-                spatial.setName(selectedFile.getName().replace(".gltf", ""));
+                m.setName(selectedFile.getName().replace(".gltf", ""));
 
             } else {
-                spatial.setName(selectedFile.getName());
+                m.setName(selectedFile.getName());
 
             }
 
             //NB
-            MaterialUtils.convertTexturesToEmbedded(spatial);
-            editNode.attachChild(spatial);
-            return spatial;
+            MaterialUtils.convertTexturesToEmbedded(m);
+            editNode.attachChild(m);
+            return m;
         }
 
         return null;

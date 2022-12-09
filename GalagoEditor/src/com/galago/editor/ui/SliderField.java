@@ -40,7 +40,7 @@ public class SliderField extends Panel {
     private float HALFSIZE = (NATIVE_WIDTH * 0.5f) - PADDING; //This is half the amount
 
     public SliderField(Panel parent, float min, float max, float increment) {
-        this(parent, "Interface/slider.png", "Interface/slider-button.png", 150, 38);
+        this(parent, "Interface/slider.png", "Interface/slider-button.png", 128, 38);
 
         setMinValue(min);
         setMaxValue(max);
@@ -156,7 +156,7 @@ public class SliderField extends Panel {
     public void setValue(float value) {
         this.value = value;
         if (decimals) {
-            this.label.setText(labelText + String.format("%.2f", value));
+            this.label.setText(labelText + String.format("%.4f", value));
         } else {
             this.label.setText((int) value + "");
         }
@@ -172,7 +172,7 @@ public class SliderField extends Panel {
     public void setLabelText(String labelText) {
         this.labelText = labelText;
         if (decimals) {
-            this.label.setText(labelText + String.format("%.2f", value));
+            this.label.setText(labelText + String.format("%.4f", value));
         } else {
             this.label.setText((int) value + "");
         }

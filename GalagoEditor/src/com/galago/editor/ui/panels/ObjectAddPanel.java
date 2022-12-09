@@ -1,4 +1,4 @@
-package com.galago.editor.ui;
+package com.galago.editor.ui.panels;
 
 import com.bruynhuis.galago.ui.Image;
 import com.bruynhuis.galago.ui.TextAlign;
@@ -6,6 +6,7 @@ import com.bruynhuis.galago.ui.button.TouchButton;
 import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
 import com.bruynhuis.galago.ui.panel.Panel;
 import com.bruynhuis.galago.ui.panel.VFlowPanel;
+import com.galago.editor.ui.TreeButton;
 import com.galago.editor.utils.Action;
 import com.galago.editor.utils.EditorUtils;
 import com.jme3.scene.Node;

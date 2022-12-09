@@ -1,10 +1,11 @@
-package com.galago.editor.ui;
+package com.galago.editor.ui.panels;
 
 import com.bruynhuis.galago.ui.Image;
 import com.bruynhuis.galago.ui.Widget;
 import com.bruynhuis.galago.ui.button.TouchButton;
 import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
 import com.bruynhuis.galago.ui.panel.Panel;
+import com.galago.editor.ui.ToolbarButton;
 import com.galago.editor.utils.Action;
 import com.galago.editor.utils.EditorUtils;
 

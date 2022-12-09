@@ -1,4 +1,4 @@
-package com.galago.editor.ui;
+package com.galago.editor.ui.panels;
 
 import com.bruynhuis.galago.ui.Image;
 import com.bruynhuis.galago.ui.Label;
@@ -11,6 +11,11 @@ import com.bruynhuis.galago.ui.listener.TouchButtonListener;
 import com.bruynhuis.galago.ui.listener.ValueChangeListener;
 import com.bruynhuis.galago.ui.panel.Panel;
 import com.bruynhuis.galago.ui.panel.VFlowPanel;
+import com.galago.editor.ui.Button;
+import com.galago.editor.ui.ButtonGroup;
+import com.galago.editor.ui.LongField;
+import com.galago.editor.ui.SliderField;
+import com.galago.editor.ui.SpinnerButton;
 import com.galago.editor.ui.actions.TerrainAction;
 import com.galago.editor.utils.Action;
 import com.galago.editor.utils.EditorUtils;
@@ -489,13 +494,13 @@ public class TerrainPanel extends Panel {
         Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, 32);
         flowPanel.add(panel);
 
-        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.4f, 32);
+        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, 32);
         label.setAlignment(TextAlign.LEFT);
         label.setVerticalAlignment(TextAlign.CENTER);
         label.leftCenter(5, 0);
 
         SpinnerButton spinner = new SpinnerButton(panel, id, options);
-        spinner.rightCenter(0, 0);
+        spinner.rightCenter(5, 0);
 
         return spinner;
     }
@@ -504,13 +509,13 @@ public class TerrainPanel extends Panel {
         Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, 32);
         flowPanel.add(panel);
 
-        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.4f, 32);
+        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, 32);
         label.setAlignment(TextAlign.LEFT);
         label.setVerticalAlignment(TextAlign.CENTER);
         label.leftCenter(5, 0);
 
         SliderField field = new SliderField(panel, min, max, increment);
-        field.rightCenter(0, 0);
+        field.rightCenter(5, 0);
 
         return field;
     }
@@ -519,13 +524,13 @@ public class TerrainPanel extends Panel {
         Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, 32);
         flowPanel.add(panel);
 
-        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.4f, 32);
+        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, 32);
         label.setAlignment(TextAlign.LEFT);
         label.setVerticalAlignment(TextAlign.CENTER);
         label.leftCenter(5, 0);
 
         SliderField field = new SliderField(panel, min, max, increment);
-        field.rightCenter(0, 0);
+        field.rightCenter(5, 0);
 
         return field;
     }
@@ -534,13 +539,13 @@ public class TerrainPanel extends Panel {
         Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, 32);
         flowPanel.add(panel);
 
-        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.4f, 32);
+        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, 32);
         label.setAlignment(TextAlign.LEFT);
         label.setVerticalAlignment(TextAlign.CENTER);
         label.leftCenter(5, 0);
 
         LongField field = new LongField(panel, id);
-        field.rightCenter(0, 0);
+        field.rightCenter(5, 0);
 
         return field;
     }
@@ -549,7 +554,7 @@ public class TerrainPanel extends Panel {
         Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, 80);
         flowPanel.add(panel);
 
-        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.4f, 60);
+        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, 60);
         label.setAlignment(TextAlign.LEFT);
         label.setVerticalAlignment(TextAlign.CENTER);
         label.leftTop(5, 5);
@@ -570,7 +575,7 @@ public class TerrainPanel extends Panel {
         Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, 80);
         flowPanel.add(panel);
 
-        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.4f, 60);
+        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, 60);
         label.setAlignment(TextAlign.LEFT);
         label.setVerticalAlignment(TextAlign.CENTER);
         label.leftTop(5, 5);

@@ -243,6 +243,10 @@ public class MaterialUtils {
                         convertTextureToEmbeddedByName(material, "BaseColorMap");
                         convertTextureToEmbeddedByName(material, "EmissiveMap");
                         convertTextureToEmbeddedByName(material, "LightMap");
+                        
+//                        System.out.println("Metalicness: " + material.getParamValue("BaseColor"));
+                        material.setTexture("MetallicRoughnessMap", null);
+//                        material.setFloat("Roughness", 0f);
 
                     }
 
