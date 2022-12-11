@@ -7,6 +7,7 @@ import com.jme3.material.MatParamTexture;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector2f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
@@ -133,6 +134,31 @@ public class MaterialUtils {
         mat.setTexture("DiffuseMap", texture1);
         return mat;
     }
+    
+    public static Material createGrassMaterial(AssetManager assetManager, String texture, float windStrength, Vector2f windDirection) {
+        Texture texture1 = assetManager.loadTexture(texture);
+//        texture1.setWrap(Texture.WrapMode.Repeat);
+        Material mat = new Material(assetManager, "Resources/MatDefs/Grass.j3md");  // create a simple material
+//        mat.setBoolean("UseMaterialColors", true);  // Set some parameters, e.g. blue.
+//        mat.setColor("Ambient", ColorRGBA.White);   // ... color of this object
+//        mat.setColor("Diffuse", ColorRGBA.White);   // ... color of light being reflected
+//        mat.setColor("Specular", ColorRGBA.White);
+//        mat.setColor("GlowColor", ColorRGBA.Black);
+//        mat.setFloat("Shininess", 2f);
+        texture1.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
+        mat.setTexture("DiffuseMap", texture1);
+        mat.setVector2("WindDirection", windDirection);
+        mat.setFloat("WindStrength", windStrength);
+
+        mat.setTransparent(true);
+        mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        mat.setColor("Color", new ColorRGBA(1f, 1f, 1f, 1f));
+        mat.setFloat("Time", 0);
+        mat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+        mat.setFloat("AlphaDiscardThreshold", 0.55f);
+        
+        return mat;
+    }    
 
     public static Material createUnshadedCartoonMaterial(AssetManager assetManager, ColorRGBA colorRGBA, ColorRGBA edgeColorRGBA, float edgeSize) {
         System.out.println("Create toon material with color: " + colorRGBA);
@@ -239,13 +265,28 @@ public class MaterialUtils {
 
                     } else if (isPBRLightingMaterial(material)) {
                         convertTextureToEmbeddedByName(material, "MetallicRoughnessMap");
+                        convertTextureToEmbeddedByName(material, "MetallicMap");
+                        convertTextureToEmbeddedByName(material, "RoughnessMap");                        
                         convertTextureToEmbeddedByName(material, "NormalMap");
+                        convertTextureToEmbeddedByName(material, "SpecularMap");
                         convertTextureToEmbeddedByName(material, "BaseColorMap");
                         convertTextureToEmbeddedByName(material, "EmissiveMap");
                         convertTextureToEmbeddedByName(material, "LightMap");
+                        convertTextureToEmbeddedByName(material, "GlossinessMap");
+                        convertTextureToEmbeddedByName(material, "SpecularGlossinessMap");
+                        convertTextureToEmbeddedByName(material, "ParallaxMap");
+                        convertTextureToEmbeddedByName(material, "ShadowMap0");
+                        convertTextureToEmbeddedByName(material, "ShadowMap1");
+                        convertTextureToEmbeddedByName(material, "ShadowMap2");
+                        convertTextureToEmbeddedByName(material, "ShadowMap3");
+                        convertTextureToEmbeddedByName(material, "ShadowMap4");
+                        convertTextureToEmbeddedByName(material, "ShadowMap5");
+                        convertTextureToEmbeddedByName(material, "ShadowMap6");
+                        convertTextureToEmbeddedByName(material, "ShadowMap7");
+                                
                         
 //                        System.out.println("Metalicness: " + material.getParamValue("BaseColor"));
-                        material.setTexture("MetallicRoughnessMap", null);
+//                        material.setTexture("MetallicRoughnessMap", null);
 //                        material.setFloat("Roughness", 0f);
 
                     }

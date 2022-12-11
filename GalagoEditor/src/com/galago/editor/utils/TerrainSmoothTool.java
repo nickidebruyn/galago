@@ -4,6 +4,7 @@ import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.terrain.Terrain;
+import com.jme3.terrain.geomipmap.TerrainQuad;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,7 +14,7 @@ import java.util.List;
  */
 public class TerrainSmoothTool {
 
-    public void modifyHeight(Terrain terrain, Vector3f worldLoc, float radius, float height, TerrainRaiseTool.Meshes mesh) {
+    public void modifyHeight(TerrainQuad terrain, Vector3f worldLoc, float radius, float height, TerrainRaiseTool.Meshes mesh) {
 
         int radiusStepsX = (int) (radius / ((Node) terrain).getLocalScale().x);
         int radiusStepsZ = (int) (radius / ((Node) terrain).getLocalScale().z);
@@ -75,6 +76,8 @@ public class TerrainSmoothTool {
         terrain.adjustHeight(locs, heights);
 
         ((Node) terrain).updateModelBound(); // or else we won't collide with it where we just edited
+        
+        TerrainUtils.updateVegetationBatches(terrain, worldLoc, radius);
     }
 
     private boolean isNaN(float val) {

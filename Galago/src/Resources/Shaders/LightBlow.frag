@@ -131,7 +131,7 @@ uniform vec4 m_Diffuse;
   uniform sampler2D m_ColorRamp;
 #endif
 
- uniform float m_AlphaDiscardThreshold;
+uniform float m_AlphaDiscardThreshold;
 
 #ifdef HQ_ATTENUATION
 uniform vec4 g_LightPosition;

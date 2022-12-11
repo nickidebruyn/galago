@@ -4,7 +4,7 @@ import com.galago.editor.utils.TerrainRaiseTool.Meshes;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
-import com.jme3.terrain.Terrain;
+import com.jme3.terrain.geomipmap.TerrainQuad;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class TerrainFlattenTool {
 
-    public void modifyHeight(Terrain terrain, Vector3f level, Vector3f worldLoc, float radius, float height, boolean precision, TerrainRaiseTool.Meshes mesh) {
+    public void modifyHeight(TerrainQuad terrain, Vector3f level, Vector3f worldLoc, float radius, float height, boolean precision, TerrainRaiseTool.Meshes mesh) {
         if (level == null) {
             return;
         }
@@ -87,6 +87,8 @@ public class TerrainFlattenTool {
         }
 
         ((Node) terrain).updateModelBound(); // or else we won't collide with it where we just edited
+
+        TerrainUtils.updateVegetationBatches(terrain, worldLoc, radius);
 
     }
 

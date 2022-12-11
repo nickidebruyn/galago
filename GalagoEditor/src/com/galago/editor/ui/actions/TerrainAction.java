@@ -18,10 +18,13 @@ public class TerrainAction {
     public static final int TOOL_RAISE = 1; //RAISE TERRAIN
     public static final int TOOL_FLATTEN = 2; //FLATTEN TERRAIN
     public static final int TOOL_SMOOTH = 3; //SMOOTH TERRAIN
+    public static final int TOOL_GRASS1 = 4; //PAINT GRASS1
     
     public static final int MATERIAL_PAINTABLE = 0; //TERRAIN Material Paintable
     public static final int MATERIAL_HEIGHT_BASED = 1; //TERRAIN Material Height based
     public static final int MATERIAL_PBR = 2; //TERRAIN Material PBR Paintable
+    
+    public static final String BATCH_GRASS1 = "BATCH-GRASS1"; //GRASS1 BATCH
 
     private int type = TYPE_FLAT;
     private int terrainSize = 256;

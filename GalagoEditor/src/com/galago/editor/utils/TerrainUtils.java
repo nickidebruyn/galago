@@ -2,6 +2,7 @@ package com.galago.editor.utils;
 
 import com.galago.editor.terrain.FlatHeightmap;
 import com.galago.editor.terrain.IslandHeightMap;
+import com.galago.editor.ui.actions.TerrainAction;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.TextureKey;
 import com.jme3.asset.plugins.FileLocator;
@@ -9,6 +10,9 @@ import com.jme3.material.Material;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
+import com.jme3.scene.BatchNode;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.SceneGraphVisitorAdapter;
 import com.jme3.system.JmeSystem;
 import com.jme3.terrain.geomipmap.TerrainGrid;
 import com.jme3.terrain.geomipmap.TerrainGridLodControl;
@@ -52,10 +56,12 @@ public class TerrainUtils {
     public static final String L3_TERRAIN_TEXTURE = "Textures/terrain/dirt.jpg";
     public static final String L3_TERRAIN_TEXTURE_NORMAL = "Textures/terrain/dirt_normal.png";
 
-    public static final float DEFAULT_TEXTURE_SCALE = 64f/100f;
+    public static final float DEFAULT_TEXTURE_SCALE = 64f / 100f;
     public static final int NUM_ALPHA_TEXTURES = 3;
     protected final int MAX_DIFFUSE = 12;
     protected final int MAX_TEXTURES = 16 - NUM_ALPHA_TEXTURES; // 16 max (diffuse and normal), minus the ones we are reserving
+
+    private static Vector2f tempVec = new Vector2f();
 
     public static TerrainGrid generateTerrainGrid(AssetManager assetManager, Camera camera) {
 
@@ -158,7 +164,7 @@ public class TerrainUtils {
     public static Material generateLitHeightBasedMaterial(AssetManager assetManager, int size) {
 
         final float scale = 124;
-        
+
         int sizePlusOne = size + 1;
 
         Material terrainMaterial = new Material(assetManager, "MatDefs/HeightBasedTerrainLighting.j3md");
@@ -291,7 +297,7 @@ public class TerrainUtils {
 
         return mat;
     }
-    
+
     public static Material generatePaintablePBRTerrainMaterial(AssetManager assetManager, int alphaTextureSize) throws IOException {
         Material mat = new Material(assetManager, "Common/MatDefs/Terrain/PBRTerrain.j3md");
 
@@ -356,7 +362,7 @@ public class TerrainUtils {
         mat.setTexture("NormalMap_1", normalTexture);
         mat.setFloat("AlbedoMap_1_scale", DEFAULT_TEXTURE_SCALE);
         mat.setFloat("Roughness_1", 1);
-        mat.setFloat("Metallic_1", 0);        
+        mat.setFloat("Metallic_1", 0);
         MaterialUtils.convertTextureToEmbeddedByName(mat, "AlbedoMap_1");
         MaterialUtils.convertTextureToEmbeddedByName(mat, "NormalMap_1");
 
@@ -369,7 +375,7 @@ public class TerrainUtils {
         mat.setTexture("NormalMap_2", normalTexture);
         mat.setFloat("AlbedoMap_2_scale", DEFAULT_TEXTURE_SCALE);
         mat.setFloat("Roughness_2", 1);
-        mat.setFloat("Metallic_2", 0);        
+        mat.setFloat("Metallic_2", 0);
         MaterialUtils.convertTextureToEmbeddedByName(mat, "AlbedoMap_2");
         MaterialUtils.convertTextureToEmbeddedByName(mat, "NormalMap_2");
 
@@ -382,14 +388,14 @@ public class TerrainUtils {
         mat.setTexture("NormalMap_3", normalTexture);
         mat.setFloat("AlbedoMap_3_scale", DEFAULT_TEXTURE_SCALE);
         mat.setFloat("Roughness_3", 1);
-        mat.setFloat("Metallic_3", 0);        
+        mat.setFloat("Metallic_3", 0);
         MaterialUtils.convertTextureToEmbeddedByName(mat, "AlbedoMap_3");
         MaterialUtils.convertTextureToEmbeddedByName(mat, "NormalMap_3");
 
         mat.setBoolean("useTriPlanarMapping", true);
 
         return mat;
-    }    
+    }
 
     /**
      * Size must only be 256/512/1024
@@ -480,7 +486,7 @@ public class TerrainUtils {
 //    terrain.setMaterial(generateHeightBasedMaterial(assetManager));
 //    terrain.setMaterial(generateLitHeightBasedMaterial(assetManager));
 //    terrain.setLocalTranslation(0, -100, 0);
-        terrain.setLocalScale(1f, 0.5f, 1f);
+        terrain.setLocalScale(1f, 0.25f, 1f);
 
         return terrain;
     }
@@ -572,25 +578,26 @@ public class TerrainUtils {
         return terrain;
     }
 
-    
-    
     /**
      * See if the X,Y coordinate is in the radius of the circle. It is assumed
-     * that the "grid" being tested is located at 0,0 and its dimensions are 2*radius.
+     * that the "grid" being tested is located at 0,0 and its dimensions are
+     * 2*radius.
+     *
      * @param x
      * @param z
      * @param radius
      * @return
      */
     public static boolean isInRadius(float x, float y, float radius) {
-        Vector2f point = new Vector2f(x,y);
+        Vector2f point = new Vector2f(x, y);
         // return true if the distance is less than equal to the radius
         return Math.abs(point.length()) <= radius;
     }
 
     /**
-     * See if the X,Y coordinate is inside the box. It is assumed
-     * that the "grid" being tested is located at 0,0 and its dimensions are 2*radius.
+     * See if the X,Y coordinate is inside the box. It is assumed that the
+     * "grid" being tested is located at 0,0 and its dimensions are 2*radius.
+     *
      * @param x
      * @param z
      * @param radius
@@ -599,16 +606,17 @@ public class TerrainUtils {
     public static boolean isInBox(final float x, final float y, final float radius) {
         return Math.abs(x) <= Math.abs(radius) && Math.abs(y) <= Math.abs(radius);
     }
-    
+
     /**
      * Based on the mesh type, chooses the proper way to see if the point is
-     * inside the marker mesh.It is assumed that the "grid" being tested is 
+     * inside the marker mesh.It is assumed that the "grid" being tested is
      * located at 0,0 and its dimensions are 2*radius.
+     *
      * @param x
      * @param y
      * @param radius
      * @param mesh
-     * @return 
+     * @return
      */
     public static boolean isInMesh(float x, float y, float radius, TerrainRaiseTool.Meshes mesh) {
         switch (mesh) {
@@ -622,10 +630,10 @@ public class TerrainUtils {
     }
 
     /**
-     * Interpolate the height value based on its distance from the center (how far along
-     * the radius it is).
-     * The farther from the center, the less the height will be.
-     * This produces a linear height falloff.
+     * Interpolate the height value based on its distance from the center (how
+     * far along the radius it is). The farther from the center, the less the
+     * height will be. This produces a linear height falloff.
+     *
      * @param radius of the tool
      * @param heightFactor potential height value to be adjusted
      * @param x location
@@ -638,20 +646,21 @@ public class TerrainUtils {
     }
 
     public static float calculateRadiusPercent(float radius, float x, float z) {
-         // find percentage for each 'unit' in radius
-        Vector2f point = new Vector2f(x,z);
+        // find percentage for each 'unit' in radius
+        Vector2f point = new Vector2f(x, z);
         float val = Math.abs(point.length()) / radius;
         val = 1f - val;
         return val;
     }
-    
+
     public static int compareFloat(float a, float b, float epsilon) {
-        if (floatEquals(a, b, epsilon))
+        if (floatEquals(a, b, epsilon)) {
             return 0;
-        else if (floatLessThan(a, b, epsilon))
+        } else if (floatLessThan(a, b, epsilon)) {
             return -1;
-        else
+        } else {
             return 1;
+        }
     }
 
     public static boolean floatEquals(float a, float b, float epsilon) {
@@ -664,5 +673,24 @@ public class TerrainUtils {
 
     public static boolean floatGreaterThan(float a, float b, float epsilon) {
         return a - b > epsilon;
-    }    
+    }
+
+    public static void updateVegetationBatches(TerrainQuad terrain, Vector3f worldLoc, float radius) {
+
+        BatchNode grass1Node = (BatchNode) terrain.getChild(TerrainAction.BATCH_GRASS1);
+        grass1Node.depthFirstTraversal(new SceneGraphVisitorAdapter() {
+            @Override
+            public void visit(Geometry geom) {
+
+                if (worldLoc.distance(geom.getWorldTranslation()) < radius) {
+                    tempVec.set(geom.getLocalTranslation().x, geom.getLocalTranslation().z);
+                    geom.setLocalTranslation(geom.getLocalTranslation().x, terrain.getHeight(tempVec), geom.getLocalTranslation().z);
+                }
+
+            }
+
+        });
+
+    }
+
 }

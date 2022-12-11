@@ -12,6 +12,7 @@ import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
 import com.bruynhuis.galago.ui.panel.Panel;
 import com.bruynhuis.galago.util.ColorUtils;
 import com.bruynhuis.galago.util.SpatialUtils;
+import com.galago.editor.camera.EditorFlyCamAppState;
 import com.galago.editor.spatial.Gizmo;
 import com.galago.editor.spatial.GizmoListener;
 import com.galago.editor.spatial.PaintGizmo;
@@ -25,11 +26,12 @@ import com.galago.editor.ui.panels.WaterPanel;
 import com.galago.editor.utils.Action;
 import com.galago.editor.utils.MaterialUtils;
 import com.galago.editor.utils.TerrainFlattenTool;
+import com.galago.editor.utils.TerrainGrassTool;
 import com.galago.editor.utils.TerrainPaintTool;
 import com.galago.editor.utils.TerrainRaiseTool;
 import com.galago.editor.utils.TerrainSmoothTool;
 import com.galago.editor.utils.TerrainUtils;
-import com.jme3.app.FlyCamAppState;
+import com.jme3.asset.ModelKey;
 import com.jme3.asset.plugins.FileLocator;
 import com.jme3.bounding.BoundingBox;
 import com.jme3.collision.CollisionResult;
@@ -49,6 +51,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.scene.BatchNode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
@@ -96,7 +99,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
     protected SSAOFilter basicSSAOFilter;
 
     protected ChaseCamera chaseCamera;
-    protected FlyCamAppState flyCamAppState;
+    protected EditorFlyCamAppState flyCamAppState;
     protected float cameraDistance = 24f;
     protected float distanceScale = 0f;
 
@@ -112,6 +115,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
     private TerrainRaiseTool terrainRaiseTool = new TerrainRaiseTool();
     private TerrainFlattenTool terrainFlattenTool = new TerrainFlattenTool();
     private TerrainSmoothTool terrainSmoothTool = new TerrainSmoothTool();
+    private TerrainGrassTool terrainGrassTool = new TerrainGrassTool();
 
     private Vector3f flattenPoint = new Vector3f(0, 10, 0);
 
@@ -178,6 +182,13 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         toolbarPanel.reset();
         hidePanels();
         touchPickListener.registerWithInput(inputManager);
+
+        flyCamAppState.setEnabled(true);
+        flyCamAppState.getCamera().setDragToRotate(true);
+        flyCamAppState.getCamera().setMoveSpeed(15f);
+        flyCamAppState.getCamera().setRotationSpeed(3f);
+
+        chaseCamera.setEnabled(false);
     }
 
     protected void showPanel(Panel panel) {
@@ -279,8 +290,8 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
     private void initCameras() {
         //Load the fly cam
-//        flyCamAppState = new FlyCamAppState();
-//        baseApplication.getStateManager().attach(flyCamAppState);
+        flyCamAppState = new EditorFlyCamAppState();
+        baseApplication.getStateManager().attach(flyCamAppState);
 
         chaseCameraTarget = new Node("chasecam-target");
         rootNode.attachChild(chaseCameraTarget);
@@ -327,13 +338,13 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 //    }
     private void loadAmbientLight() {
         ambientLight = new AmbientLight();
-        ambientLight.setColor(ColorRGBA.DarkGray);
+        ambientLight.setColor(ColorRGBA.Gray);
         editNode.addLight(ambientLight);
     }
 
     private void loadDirectionalLight() {
         sunLight = new DirectionalLight();
-        sunLight.setColor(ColorRGBA.LightGray);
+        sunLight.setColor(ColorRGBA.White);
         sunLight.setDirection(new Vector3f(0.6f, -0.8f, -0.6f).normalizeLocal());
         editNode.addLight(sunLight);
     }
@@ -404,6 +415,9 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         JFileChooser fileChooser = new JFileChooser();
 
         String destFolder = System.getProperty("user.home");
+        if (baseApplication.getGameSaves().getGameData().getProperties().get(EditorUtils.LAST_LOCATION) != null) {
+            destFolder = (String) baseApplication.getGameSaves().getGameData().getProperties().get(EditorUtils.LAST_LOCATION);
+        }
 
         fileChooser.setCurrentDirectory(new File(destFolder));
         fileChooser.setDialogTitle("Save Game As");
@@ -611,6 +625,22 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 }
 
                 terrain.setMaterial(material);
+
+                //2022-12-10: Terrain batch nodes such as grass/trees/etc
+                //We attach the vegetation batches for each on the terrain
+                BatchNode grassNode1 = new BatchNode(TerrainAction.BATCH_GRASS1);
+                float heightScale = 1f / terrain.getLocalScale().y;
+                grassNode1.setLocalScale(1, heightScale, 1);
+                terrain.attachChild(grassNode1);
+
+                Node grassNode = (Node) assetManager.loadModel("Models/vegetation/grass1.j3o");
+//                Material grassMat = MaterialUtils.createGrassMaterial(assetManager, "Textures/vegetation/grass-blades.png", 0.5f, new Vector2f(1f, 1f));
+//                grassNode.setMaterial(grassMat);
+
+                grassNode1.setUserData(EditorUtils.MODEL, grassNode.getChild(0));
+                MaterialUtils.convertTextureToEmbeddedByName(((Geometry) grassNode.getChild(0)).getMaterial(), "DiffuseMap");
+//                MaterialUtils.convertTextureToEmbeddedByName(((Geometry)grassNode.getChild(0)).getMaterial(), "NormalMap");                
+
                 editNode.attachChild(terrain);
 
 //                TangentBinormalGenerator.generate(terrain);
@@ -628,7 +658,13 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             showPanel(waterPanel);
 
         } else if (Action.IMPORT.equals(message)) {
+//            baseApplication.enqueue(new Runnable() {
+//                @Override
+//                public void run() {
             importObject();
+//                }
+//
+//            });
 
         } else if (Action.HIERARCHY.equals(message)) {
             showPanel(hierarchyPanel);
@@ -637,12 +673,18 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             if (object == null) {
                 transformGizmo.setTarget(null);
                 transformGizmo.removeFromParent();
+                flyCamAppState.setEnabled(true);
+                chaseCamera.setEnabled(false);
 
             } else {
                 rootNode.attachChild(transformGizmo);
                 Spatial spatial = (Spatial) object;
                 transformGizmo.setLocalTranslation(spatial.getWorldTranslation());
 //                transformGizmo.setLocalRotation(spatial.getWorldRotation());
+
+                flyCamAppState.setEnabled(false);
+                chaseCamera.setEnabled(true);
+
                 chaseCameraTarget.setLocalTranslation(spatial.getWorldTranslation().clone());
                 selectedSpatial = spatial;
                 transformGizmo.setTarget(spatial);
@@ -753,12 +795,21 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             System.out.println("Importing model: " + selectedFile);
             System.out.println("Parent: " + selectedFile.getParent());
             System.out.println("FileName: " + selectedFile.getName());
-            
+
             baseApplication.getAssetManager().registerLocator(selectedFile.getParent(), FileLocator.class);
-            Spatial m = baseApplication.getAssetManager().loadModel(selectedFile.getName());            
-            
+            ModelKey key = new ModelKey(selectedFile.getName());
+            Spatial m = baseApplication.getAssetManager().loadModel(key);
+
             System.out.println("Model (" + m.getName() + ") successfully imported.");
-            
+
+            baseApplication.getAssetManager().deleteFromCache(key);
+            baseApplication.getAssetManager().unregisterLocator(selectedFile.getParent(), FileLocator.class);
+
+            //Name the file the name of the folder
+            if (selectedFile.getParentFile() != null) {
+                selectedFile = selectedFile.getParentFile();
+            }
+
             if (selectedFile.getName().endsWith(".obj")) {
                 m.setName(selectedFile.getName().replace(".obj", ""));
 
@@ -776,6 +827,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             //NB
             MaterialUtils.convertTexturesToEmbedded(m);
             editNode.attachChild(m);
+
             return m;
         }
 
@@ -821,10 +873,19 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
             System.out.println("Texture: " + texture);
 
-            if (uid.contains("heightmap")) {
-                terrainPanel.setHeightmapTexture(texture);
+            if (terrainPanel.getTerrainAction().getTool() == TerrainAction.TOOL_GRASS1) {
+                //2022-12-10: If the tool that is selected is the grass tool then we should set the texture to grass file selected
+                //The uid in this case will be the DiffuseMap or NormalMap
+                terrainPanel.setGrassTexture(uid, texture);
+
             } else {
-                terrainPanel.setTerrainMaterialTexture(uid, texture);
+                //2022-11-01: Set the texture on the terrain
+                if (uid.contains("heightmap")) {
+                    terrainPanel.setHeightmapTexture(texture);
+                } else {
+                    //The uid in this case will be the DiffuseMap or NormalMap
+                    terrainPanel.setTerrainMaterialTexture(uid, texture);
+                }
             }
 
         }
@@ -919,6 +980,14 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                             terrainPanel.getPaintRadius(),
                             terrainPanel.getPaintStrength(),
                             TerrainRaiseTool.Meshes.Sphere);
+
+                } else if (terrainPanel.getTerrainAction().getTool() == TerrainAction.TOOL_GRASS1) {
+                    terrainGrassTool.paintGrass(getTerrain(),
+                            terrainPanel.getSelectedBatchLayer(),
+                            paintGizmo.getWorldTranslation(),
+                            terrainPanel.getPaintRadius(),
+                            terrainPanel.getPaintStrength(),
+                            terrainPanel.getSelectedGrass());
 
                 }
 

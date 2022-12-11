@@ -5,6 +5,9 @@ import com.galago.editor.themes.EditorTheme;
 import com.jme3.asset.AssetManager;
 import com.jme3.export.binary.BinaryExporter;
 import com.jme3.export.binary.BinaryImporter;
+import com.jme3.scene.BatchNode;
+import com.jme3.scene.Node;
+import com.jme3.scene.SceneGraphVisitorAdapter;
 import com.jme3.scene.Spatial;
 import java.io.File;
 import java.io.IOException;
@@ -22,6 +25,7 @@ public class EditorUtils {
     public static float HIERARCHYBAR_WIDTH = 256f;
     public static EditorTheme theme = new DefaultTheme();
     public static String LAST_LOCATION = "LAST_LOCATION";
+    public static String MODEL = "MODEL";
 
     public static boolean isCompatableModel(File file) {
         return file.getPath().endsWith(".obj") || file.getPath().endsWith(".gltf") || file.getPath().endsWith(".fbx") || file.getPath().endsWith(".j3o");
@@ -71,6 +75,19 @@ public class EditorUtils {
             System.out.println("Found spatial: " + spatial.getName());
             
             MaterialUtils.convertTexturesToDepthRendering(spatial);
+            
+            //Do some extra trix to the scene
+            spatial.depthFirstTraversal(new SceneGraphVisitorAdapter() {
+                @Override
+                public void visit(Node node) {
+                    if (node instanceof BatchNode) {
+                        ((BatchNode)node).batch();
+                        
+                    }
+                }
+                                
+                
+            });
             
             return spatial;
 

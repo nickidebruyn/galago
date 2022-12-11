@@ -1,0 +1,35 @@
+MaterialDef Grass {
+ 
+    MaterialParameters {
+
+        Texture2D DiffuseMap
+        Texture2D Noise
+        Vector4 Color
+        Float Time
+        Float WindStrength
+        Vector2 WindDirection
+        Boolean Use_VertexColor
+        Vector3 CamPos
+        // Apha threshold for fragment discarding
+        Float AlphaDiscardThreshold (AlphaTestFallOff)
+    }
+ 
+    Technique {
+        LightMode SinglePass
+        VertexShader GLSL100:   Resources/Shaders/Grass.vert
+        FragmentShader GLSL100: Resources/Shaders/Grass.frag
+ 
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldViewMatrix
+            Time
+        }
+ 
+        Defines {
+            TEXTURE : DiffuseMap
+            VERTEX_COLOR : Use_VertexColor
+        }
+ 
+    } 
+ 
+}

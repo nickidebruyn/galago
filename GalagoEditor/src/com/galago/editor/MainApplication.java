@@ -15,6 +15,9 @@ import com.bruynhuis.galago.resource.TextureManager;
 import com.bruynhuis.galago.util.ColorUtils;
 import com.galago.editor.screens.EditorScreen;
 import com.jme3.input.controls.MouseButtonTrigger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.UnsupportedLookAndFeelException;
 
 /**
  *
@@ -23,11 +26,25 @@ import com.jme3.input.controls.MouseButtonTrigger;
 public class MainApplication extends Base3DApplication {
 
     public static void main(String[] args) {
+        
+        try {
+            javax.swing.UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+            
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(MainApplication.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            Logger.getLogger(MainApplication.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            Logger.getLogger(MainApplication.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (UnsupportedLookAndFeelException ex) {
+            Logger.getLogger(MainApplication.class.getName()).log(Level.SEVERE, null, ex);
+        }
+                
         new MainApplication();
     }
 
     public MainApplication() {
-        super("Scene Editor", 1920, 1020, "galago-editor.save", "Interface/Fonts/NotoSansCJKHK.fnt", null, false);
+        super("Scene Editor", 1920, 1020, "galago-editor.save", "Interface/Fonts/NotoSansCJKHK.fnt", null, true);
     }
 
     @Override
@@ -41,7 +58,7 @@ public class MainApplication extends Base3DApplication {
         
         showScreen(EditorScreen.NAME);
         
-//        showStats();
+        showStats();
         
         System.out.println(getContext().getRenderer().getCaps());
     }
