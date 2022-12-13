@@ -18,6 +18,7 @@ import com.galago.tests.screens.ButtonLayoutsScreen;
 import com.galago.tests.screens.CombatScreen;
 import com.galago.tests.screens.EggScreen;
 import com.galago.tests.screens.FireScreen;
+import com.galago.tests.screens.GrassScreen;
 import com.galago.tests.screens.GridPanelScreen;
 import com.galago.tests.screens.InputGuiScreen;
 import com.galago.tests.screens.JoystickRawScreen;
@@ -70,21 +71,21 @@ public class MainApplication extends Base3DApplication {
     protected boolean isPhysicsEnabled() {
         return true;
     }
-    
-    @Override
-    protected void initPhysics() {        
-        //Don't load if it already exist
-        if (bulletAppState != null) {
-            return;
-        }
-        /**
-         * Set up Physics
-         */
-        bulletAppState = new BulletAppState(new Vector3f(-100, 0, -100), new Vector3f(100, 100, 100));
-        stateManager.attach(bulletAppState);
-//        bulletAppState.getPhysicsSpace().setAccuracy(1f/80f);
-//        bulletAppState.getPhysicsSpace().setMaxSubSteps(2);
-    }
+
+//    @Override
+//    protected void initPhysics() {
+//        //Don't load if it already exist
+//        if (bulletAppState != null) {
+//            return;
+//        }
+//        /**
+//         * Set up Physics
+//         */
+//        bulletAppState = new BulletAppState(new Vector3f(-100, 0, -100), new Vector3f(100, 100, 100));
+//        stateManager.attach(bulletAppState);
+////        bulletAppState.getPhysicsSpace().setAccuracy(1f/80f);
+////        bulletAppState.getPhysicsSpace().setMaxSubSteps(2);
+//    }
 
     @Override
     protected void initScreens(ScreenManager screenManager) {
@@ -114,6 +115,7 @@ public class MainApplication extends Base3DApplication {
         screenManager.loadScreen(CombatScreen.NAME, new CombatScreen());
         screenManager.loadScreen(SplatMarkerScreen.NAME, new SplatMarkerScreen());
         screenManager.loadScreen(ParticleEditor.NAME, new ParticleEditor());
+        screenManager.loadScreen(GrassScreen.NAME, new GrassScreen());
 
     }
 

@@ -69,8 +69,9 @@ public class MenuScreen extends AbstractScreen {
         addSceneButton(gridPanel, CombatScreen.NAME, "Combat");
         addSceneButton(gridPanel, SplatMarkerScreen.NAME, "Splat Mask");
         addSceneButton(gridPanel, ParticleEditor.NAME, "Particle Editor");
+        addSceneButton(gridPanel, GrassScreen.NAME, "Grass Shader");
 
-        gridPanel.layout(8, 3);
+        gridPanel.layout(9, 3);
 
         statsButton = new TouchButton(hudPanel, "statsButton", "Stats");
         statsButton.rightBottom(2, 2);

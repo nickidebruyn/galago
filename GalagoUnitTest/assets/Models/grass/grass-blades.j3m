@@ -1,0 +1,16 @@
+Material MyMaterial : Resources/MatDefs/Grass.j3md {
+    MaterialParameters {
+        UseWind :  true
+        DiffuseMap : Flip Repeat 
+        Shininess :  1
+        ParallaxHeight :  0.05
+        DistanceFalloff :  48
+        UseDiscard :  true
+        UseDarkening :  true
+        UseTaper :  true
+    }
+    AdditionalRenderState {
+      Blend PremultAlpha
+      FaceCull Off
+    }
+}
