@@ -45,6 +45,7 @@ public class TerrainAction {
     private float autoPaintMin = 0f;
     private float autoPaintMax = 1f;
     private float autoStartHeight = 0f;
+    private float scaleFactor = 1f;
 
     public int getType() {
         return type;
@@ -156,6 +157,14 @@ public class TerrainAction {
 
     public void setTool(int tool) {
         this.tool = tool;
+    }
+
+    public float getScaleFactor() {
+        return scaleFactor;
+    }
+
+    public void setScaleFactor(float scaleFactor) {
+        this.scaleFactor = scaleFactor;
     }
     
 }

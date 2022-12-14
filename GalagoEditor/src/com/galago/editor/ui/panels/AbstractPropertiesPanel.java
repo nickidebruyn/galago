@@ -5,14 +5,13 @@ import com.bruynhuis.galago.ui.Label;
 import com.bruynhuis.galago.ui.TextAlign;
 import com.bruynhuis.galago.ui.button.TouchButton;
 import com.bruynhuis.galago.ui.effect.TouchEffect;
-import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
 import com.bruynhuis.galago.ui.panel.Panel;
 import com.bruynhuis.galago.ui.panel.VFlowPanel;
 import com.galago.editor.ui.ButtonGroup;
+import com.galago.editor.ui.ColorButton;
 import com.galago.editor.ui.LongField;
 import com.galago.editor.ui.SliderField;
 import com.galago.editor.ui.SpinnerButton;
-import com.galago.editor.utils.Action;
 import com.galago.editor.utils.EditorUtils;
 
 /**
@@ -38,22 +37,21 @@ public abstract class AbstractPropertiesPanel extends Panel {
 
         flowPanel.layout();
 
-        hoverButton = new TouchButton(this, name + "-hover", "Interface/blank.png", EditorUtils.HIERARCHYBAR_WIDTH, parent.getWindow().getHeight());
-        hoverButton.centerTop(0, 0);
-        hoverButton.setTransparency(0.1f);
-        hoverButton.addTouchButtonListener(new TouchButtonAdapter() {
-            @Override
-            public void doHoverOff(float touchX, float touchY, float tpf, String uid) {
-                window.getApplication().getMessageManager().sendMessage(Action.UI_OFF, null);
-            }
-
-            @Override
-            public void doHoverOver(float touchX, float touchY, float tpf, String uid) {
-                window.getApplication().getMessageManager().sendMessage(Action.UI_OVER, null);
-            }
-
-        });
-
+//        hoverButton = new TouchButton(this, name + "-hover", "Interface/blank.png", EditorUtils.HIERARCHYBAR_WIDTH, parent.getWindow().getHeight());
+//        hoverButton.centerTop(0, 0);
+//        hoverButton.setTransparency(0.1f);
+//        hoverButton.addTouchButtonListener(new TouchButtonAdapter() {
+//            @Override
+//            public void doHoverOff(float touchX, float touchY, float tpf, String uid) {
+//                window.getApplication().getMessageManager().sendMessage(Action.UI_OFF, null);
+//            }
+//
+//            @Override
+//            public void doHoverOver(float touchX, float touchY, float tpf, String uid) {
+//                window.getApplication().getMessageManager().sendMessage(Action.UI_OVER, null);
+//            }
+//
+//        });
         parent.add(this);
 
     }
@@ -86,6 +84,21 @@ public abstract class AbstractPropertiesPanel extends Panel {
 
         return spinner;
     }
+    
+    protected ColorButton createLabeledColorButton(String text, String id) {
+        Panel p = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, 32);
+        flowPanel.add(p);
+
+        Label label = new Label(p, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, 32);
+        label.setAlignment(TextAlign.LEFT);
+        label.setVerticalAlignment(TextAlign.CENTER);
+        label.leftCenter(5, 0);
+
+        ColorButton button = new ColorButton(p, id);
+        button.rightCenter(5, 0);
+
+        return button;
+    }    
 
     protected SliderField createLabeledSlider(String text, int min, int max, int increment) {
         Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, 32);

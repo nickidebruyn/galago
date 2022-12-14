@@ -3,125 +3,158 @@ package com.galago.editor.ui.panels;
 import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
 import com.bruynhuis.galago.ui.listener.ValueChangeListener;
 import com.bruynhuis.galago.ui.panel.Panel;
+import com.galago.editor.ui.ColorButton;
 import com.galago.editor.ui.SliderField;
 import com.galago.editor.ui.SpinnerButton;
-import com.galago.editor.ui.actions.TerrainAction;
-import com.jme3.water.WaterFilter;
+import com.galago.editor.utils.Action;
+import com.galago.editor.utils.MaterialUtils;
+import com.jme3.light.AmbientLight;
+import com.jme3.light.DirectionalLight;
+import com.jme3.light.LightProbe;
+import com.jme3.material.Material;
+import com.jme3.math.ColorRGBA;
+import com.jme3.scene.Geometry;
+import java.awt.Color;
+import javax.swing.JColorChooser;
 
 /**
  *
  * @author ndebruyn
  */
-public class WaterPanel extends AbstractPropertiesPanel {
+public class SkyPanel extends AbstractPropertiesPanel {
 
-    private WaterFilter waterFilter;
+    private static final String TOP_COLOR = "StartColor";
+    private static final String BOTTOM_COLOR = "EndColor";
+    private static final String MIN_STEP = "MinStep";
+    private static final String MAX_STEP = "MaxStep";
 
-    private SpinnerButton onOffButton;
-    private SliderField heightField;
-    private SliderField transparencyField;
-    private SliderField waveScaleField;
-    private SliderField shininessField;
-    private SliderField speedField;
-    private SliderField maxAmplitudeField;
-    private SliderField foamHardnessField;
-    private SliderField foamIntensityField;
-    private SliderField shoreHardnessField;
+    private Geometry sky;
+    private Material skyMaterial;
+    private AmbientLight ambientLight;
+    private DirectionalLight sunLight;
+    private LightProbe lightProbe;
+    
+    private SpinnerButton ambientLightOnOffButton;
+    private SpinnerButton sunLightOnOffButton;
+    private SpinnerButton environmentLightOnOffButton;
 
-    public WaterPanel(Panel parent) {
-        super(parent, "water");
+    private SpinnerButton skyOnOffButton;
+    private ColorButton topColorButton;
+    private ColorButton bottomColorButton;
+    private SliderField minField;
+    private SliderField maxField;
+
+    public SkyPanel(Panel parent) {
+        super(parent, "sky");
     }
 
     @Override
     protected void init() {
-
-        createHeader("water", "Water Settings");
         
-        onOffButton = createLabeledSpinner("Enabled", "water-enabled", new String[]{"Off", "On"});
-        onOffButton.addTouchButtonListener(new TouchButtonAdapter() {
+        createHeader("ambient-light", "Global Light");
+
+        ambientLightOnOffButton = createLabeledSpinner("Enabled", "ambient-enabled", new String[]{"Off", "On"});
+        ambientLightOnOffButton.addTouchButtonListener(new TouchButtonAdapter() {
             @Override
             public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
-                System.out.println("Selected water enabled: " + onOffButton.getIndex());
-                
-                waterFilter.setEnabled(onOffButton.getIndex() == 1);
+                System.out.println("Selected ambient enabled: " + ambientLightOnOffButton.getIndex());
+                //window.getApplication().getMessageManager().sendMessage(Action.ADD_AMBIENT, null);
+                ambientLight.setEnabled(!ambientLight.isEnabled());
+                reload();
+            }
+        });
+        
+        createHeader("sun-light", "Sun Light");
 
+        sunLightOnOffButton = createLabeledSpinner("Enabled", "sun-enabled", new String[]{"Off", "On"});
+        sunLightOnOffButton.addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                System.out.println("Selected sun enabled: " + sunLightOnOffButton.getIndex());
+//                window.getApplication().getMessageManager().sendMessage(Action.ADD_SUN, null);
+                sunLight.setEnabled(!sunLight.isEnabled());
+                reload();
+            }
+        });
+        
+        createHeader("environment-light", "Environment Light");
+
+        environmentLightOnOffButton = createLabeledSpinner("Enabled", "environment-enabled", new String[]{"Off", "On"});
+        environmentLightOnOffButton.addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                System.out.println("Selected environment enabled: " + environmentLightOnOffButton.getIndex());
+//                window.getApplication().getMessageManager().sendMessage(Action.ADD_SUN, null);
+                lightProbe.setEnabled(!lightProbe.isEnabled());
+                reload();
+            }
+        });        
+
+        createHeader("sky", "Sky Settings");
+
+        skyOnOffButton = createLabeledSpinner("Enabled", "sky-enabled", new String[]{"Off", "On"});
+        skyOnOffButton.addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                System.out.println("Selected sky enabled: " + skyOnOffButton.getIndex());
+                window.getApplication().getMessageManager().sendMessage(Action.ADD_SKY, null);
                 reload();
             }
         });
 
-        heightField = createLabeledSliderDecimal("Height", -10, 10, 0.1f);
-        heightField.addValueChangeListener(new ValueChangeListener() {
+        topColorButton = createLabeledColorButton("Top Color", "top-color-button");
+        topColorButton.addTouchButtonListener(new TouchButtonAdapter() {
             @Override
-            public void doValueChange(float value) {
-                waterFilter.setWaterHeight(value);
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                Color currentColor = MaterialUtils.convertColor((ColorRGBA) skyMaterial.getParamValue(TOP_COLOR));
+                Color newColor = JColorChooser.showDialog(null, "Choose a color", currentColor);
+                System.out.println("Color: " + newColor);
+                if (newColor != null) {
+                    ColorRGBA colorRGBA = MaterialUtils.convertColor(newColor);
+                    skyMaterial.setColor(TOP_COLOR, colorRGBA);
+                    topColorButton.setColor(colorRGBA);
+                }
 
             }
 
         });
 
-        transparencyField = createLabeledSliderDecimal("Opacity", 0, 1, 0.1f);
-        transparencyField.addValueChangeListener(new ValueChangeListener() {
+        bottomColorButton = createLabeledColorButton("Bottom Color", "bottom-color-button");
+        bottomColorButton.addTouchButtonListener(new TouchButtonAdapter() {
             @Override
-            public void doValueChange(float value) {
-                waterFilter.setWaterTransparency(value);
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                Color currentColor = MaterialUtils.convertColor((ColorRGBA) skyMaterial.getParamValue(BOTTOM_COLOR));
+                Color newColor = JColorChooser.showDialog(null, "Choose a color", currentColor);
+                System.out.println("Color: " + newColor);
+
+                if (newColor != null) {
+                    ColorRGBA colorRGBA = MaterialUtils.convertColor(newColor);
+                    skyMaterial.setColor(BOTTOM_COLOR, colorRGBA);
+                    bottomColorButton.setColor(colorRGBA);
+                }
 
             }
 
         });
 
-        waveScaleField = createLabeledSliderDecimal("Wave scale", 0, 0.01f, 0.001f);
-        waveScaleField.addValueChangeListener(new ValueChangeListener() {
+        minField = createLabeledSliderDecimal("Min", 0, 1, 0.1f);
+        minField.addValueChangeListener(new ValueChangeListener() {
             @Override
             public void doValueChange(float value) {
-                waterFilter.setWaveScale(value);
+                skyMaterial.setFloat(MIN_STEP, value);
+
             }
+
         });
 
-        shininessField = createLabeledSliderDecimal("Shininess", 0, 2, 0.1f);
-        shininessField.addValueChangeListener(new ValueChangeListener() {
+        maxField = createLabeledSliderDecimal("Max", 0, 1, 0.1f);
+        maxField.addValueChangeListener(new ValueChangeListener() {
             @Override
             public void doValueChange(float value) {
-                waterFilter.setShininess(value);
+                skyMaterial.setFloat(MAX_STEP, value);
+
             }
-        });
-        
-        speedField = createLabeledSliderDecimal("Speed", 0, 2, 0.01f);
-        speedField.addValueChangeListener(new ValueChangeListener() {
-            @Override
-            public void doValueChange(float value) {
-                waterFilter.setSpeed(value);
-            }
-        });
-        
-        maxAmplitudeField = createLabeledSliderDecimal("Amplitude", 0, 2, 0.01f);
-        maxAmplitudeField.addValueChangeListener(new ValueChangeListener() {
-            @Override
-            public void doValueChange(float value) {
-                waterFilter.setMaxAmplitude(value);
-            }
-        });
-        
-        foamHardnessField = createLabeledSliderDecimal("Foam hardness", 0, 2, 0.01f);
-        foamHardnessField.addValueChangeListener(new ValueChangeListener() {
-            @Override
-            public void doValueChange(float value) {
-                waterFilter.setFoamHardness(value);
-            }
-        });
-        
-        foamIntensityField = createLabeledSliderDecimal("Foam intensity", 0, 2, 0.01f);
-        foamIntensityField.addValueChangeListener(new ValueChangeListener() {
-            @Override
-            public void doValueChange(float value) {
-                waterFilter.setFoamIntensity(value);
-            }
-        });
-        
-        shoreHardnessField = createLabeledSliderDecimal("Shore hardness", 0, 2, 0.01f);
-        shoreHardnessField.addValueChangeListener(new ValueChangeListener() {
-            @Override
-            public void doValueChange(float value) {
-                waterFilter.setShoreHardness(value);
-            }
+
         });
 
     }
@@ -129,42 +162,71 @@ public class WaterPanel extends AbstractPropertiesPanel {
     @Override
     protected void reload() {
         
-        boolean enabled = waterFilter != null && waterFilter.isEnabled();
+        //Set the light values
+        sunLightOnOffButton.setSelection(sunLight != null && sunLight.isEnabled() ? 1 : 0);
+        ambientLightOnOffButton.setSelection(ambientLight != null && ambientLight.isEnabled() ? 1 : 0);
+        environmentLightOnOffButton.setSelection(lightProbe != null && lightProbe.isEnabled() ? 1 : 0);
 
-        heightField.getParent().setVisible(enabled);
-        transparencyField.getParent().setVisible(enabled);
-        waveScaleField.getParent().setVisible(enabled);
-        shininessField.getParent().setVisible(enabled);
-        speedField.getParent().setVisible(enabled);
-        maxAmplitudeField.getParent().setVisible(enabled);
-        foamHardnessField.getParent().setVisible(enabled);
-        foamIntensityField.getParent().setVisible(enabled);
-        shoreHardnessField.getParent().setVisible(enabled);
-        
-        onOffButton.setSelection(enabled ? 1 : 0);
+        //Set the sky settings
+        boolean enabled = sky != null && sky.getParent() != null;
+
+        topColorButton.getParent().setVisible(enabled);
+        bottomColorButton.getParent().setVisible(enabled);
+        minField.getParent().setVisible(enabled);
+        maxField.getParent().setVisible(enabled);
+
+        skyOnOffButton.setSelection(enabled ? 1 : 0);
 
         if (enabled) {
-            heightField.setValue(waterFilter.getWaterHeight());
-            transparencyField.setValue(waterFilter.getWaterTransparency());
-            waveScaleField.setValue(waterFilter.getWaveScale());
-            shininessField.setValue(waterFilter.getShininess());
-            speedField.setValue(waterFilter.getSpeed());
-            maxAmplitudeField.setValue(waterFilter.getMaxAmplitude());
-            foamHardnessField.setValue(waterFilter.getFoamHardness());
-            foamIntensityField.setValue(waterFilter.getFoamIntensity());
-            shoreHardnessField.setValue(waterFilter.getShoreHardness());
+            topColorButton.setColor((ColorRGBA) skyMaterial.getParamValue(TOP_COLOR));
+            bottomColorButton.setColor((ColorRGBA) skyMaterial.getParamValue(BOTTOM_COLOR));
+            minField.setValue(skyMaterial.getParamValue(MIN_STEP));
+            maxField.setValue(skyMaterial.getParamValue(MAX_STEP));
 
         }
 
     }
 
-    public WaterFilter getWaterFilter() {
-        return waterFilter;
+    public Geometry getSky() {
+        return sky;
     }
 
-    public void setWaterFilter(WaterFilter waterFilter) {
-        this.waterFilter = waterFilter;
+    public void setSky(Geometry sky) {
+        this.sky = sky;
 
+        if (this.sky != null) {
+            this.skyMaterial = this.sky.getMaterial();
+        } else {
+            this.skyMaterial = null;
+        }
+
+        this.reload();
+    }
+
+    public AmbientLight getAmbientLight() {
+        return ambientLight;
+    }
+
+    public void setAmbientLight(AmbientLight ambientLight) {
+        this.ambientLight = ambientLight;
+        this.reload();
+    }
+
+    public DirectionalLight getSunLight() {
+        return sunLight;
+    }
+
+    public void setSunLight(DirectionalLight sunLight) {
+        this.sunLight = sunLight;
+        this.reload();
+    }
+
+    public LightProbe getLightProbe() {
+        return lightProbe;
+    }
+
+    public void setLightProbe(LightProbe lightProbe) {
+        this.lightProbe = lightProbe;
         this.reload();
     }
 

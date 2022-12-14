@@ -87,8 +87,7 @@ public class ObjectAddPanel extends Panel {
         selectedItem.hide();
         
         addItem(new Node("cube"), 1, 0);
-        addItem(new Node("terrain"), 1, 0);
-        addItem(new Node("sky"), 1, 2);
+        addItem(new Node("sphere"), 1, 1);
 
         hierarchyTree.layout();
     }

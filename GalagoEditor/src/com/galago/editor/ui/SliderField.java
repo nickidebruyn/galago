@@ -47,7 +47,7 @@ public class SliderField extends Panel {
         setIncrementValue(increment);
 
         label.centerTop(0, -4);
-        label.setFontSize(12);
+        label.setFontSize(13);
 
     }
 

@@ -11,6 +11,7 @@ import com.galago.editor.utils.Action;
 import com.galago.editor.utils.EditorUtils;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.terrain.Terrain;
 
 /**
  *
@@ -80,10 +81,15 @@ public class HierarchyPanel extends Panel {
         hierarchyTree.clear();
         selectedItem.hide();
 
+        int c = 0;
         if (node != null && node.getQuantity() > 0) {
             for (int i = 0; i < node.getQuantity(); i++) {
                 Spatial s = node.getChild(i);
-                addHierarchyItem(s, 1, i);
+                
+                if (!(s instanceof Terrain)) {
+                    addHierarchyItem(s, 1, c);
+                    c++;
+                }                
 
             }
 

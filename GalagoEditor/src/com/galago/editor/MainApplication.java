@@ -17,6 +17,7 @@ import com.galago.editor.screens.EditorScreen;
 import com.jme3.input.controls.MouseButtonTrigger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 /**
@@ -26,9 +27,10 @@ import javax.swing.UnsupportedLookAndFeelException;
 public class MainApplication extends Base3DApplication {
 
     public static void main(String[] args) {
-        
+
         try {
-            javax.swing.UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+//            javax.swing.UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+            javax.swing.UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
             
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(MainApplication.class.getName()).log(Level.SEVERE, null, ex);
@@ -39,7 +41,6 @@ public class MainApplication extends Base3DApplication {
         } catch (UnsupportedLookAndFeelException ex) {
             Logger.getLogger(MainApplication.class.getName()).log(Level.SEVERE, null, ex);
         }
-                
         new MainApplication();
     }
 
@@ -55,11 +56,10 @@ public class MainApplication extends Base3DApplication {
     @Override
     protected void postInitApp() {
         registerInputMappings("camera-action", new MouseButtonTrigger(1));
-        
+
         showScreen(EditorScreen.NAME);
-        
+
 //        showStats();
-        
 //        System.out.println(getContext().getRenderer().getCaps());
     }
 

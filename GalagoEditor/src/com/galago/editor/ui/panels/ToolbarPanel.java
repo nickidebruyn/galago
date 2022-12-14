@@ -23,6 +23,7 @@ public class ToolbarPanel extends Panel {
     private ToolbarButton addButton;
     private ToolbarButton terrainButton;
     private ToolbarButton waterButton;
+    private ToolbarButton skyButton;
     private ToolbarButton importButton;
     private ToolbarButton settingsButton;
     private ToolbarButton helpButton;
@@ -30,6 +31,7 @@ public class ToolbarPanel extends Panel {
     private ToolbarButton openButton;
     private ToolbarButton newButton;
     private ToolbarButton statsButton;
+    private ToolbarButton gridButton;
 
     private ToolbarButton selectedButton;
 
@@ -91,9 +93,10 @@ public class ToolbarPanel extends Panel {
         addButton = addButtonTop(Action.ADD, "Interface/plus.png", "Add object");
         terrainButton = addButtonTop(Action.TERRAIN, "Interface/terrain.png", "Terrain");
         waterButton = addButtonTop(Action.WATER, "Interface/water.png", "Water");
+        skyButton = addButtonTop(Action.SKY, "Interface/sky.png", "Sky");
         importButton = addButtonTop(Action.IMPORT, "Interface/import.png", "Import object");
         statsButton = addButtonTop(Action.STATS, "Interface/stats.png", "Statistics");
-        
+        gridButton = addButtonTop(Action.GRID, "Interface/grid.png", "Show/Hide grid");        
 
         helpButton = addButtonBottom(Action.HELP, "Interface/question.png", "Help");
         settingsButton = addButtonBottom(Action.SETTINGS, "Interface/settings.png", "Settings");

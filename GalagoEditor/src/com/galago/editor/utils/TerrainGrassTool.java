@@ -24,11 +24,11 @@ public class TerrainGrassTool {
     private CollisionResults results = new CollisionResults();
     private Ray ray = new Ray();
 
-    public void paintGrass(TerrainQuad terrain, BatchNode grassLayer, Vector3f worldLoc, float radius, float density, Geometry grass) {
+    public void paintGrass(TerrainQuad terrain, BatchNode grassLayer, Vector3f worldLoc, float radius, float density, float scale, Geometry grass) {
 
         if (density > 0) {
             //Paint grass
-            count = (int) (density * 10);
+            count = (int) (density * radius*10);
 
             if (lastLocation.distance(worldLoc) >= radius && count >= 1) {
 
@@ -56,12 +56,12 @@ public class TerrainGrassTool {
                         if (cr.getContactNormal().y <= 1.0f
                                 && cr.getContactNormal().y >= 0.9f) {
 
-                            System.out.println("Painting grass: " + grass + "; position: " + loc);
+//                            System.out.println("Painting grass: " + grass + "; position: " + loc);
 
                             Geometry painted = grass.clone();
                             painted.setMaterial(grass.getMaterial());
                             painted.setLocalTranslation(loc);
-                            painted.setLocalScale(1f + FastMath.nextRandomInt(-5, 5) * 0.1f);
+                            painted.setLocalScale(scale + FastMath.nextRandomInt(-5, 5) * 0.1f);
                             grassLayer.attachChild(painted);
 
                         }

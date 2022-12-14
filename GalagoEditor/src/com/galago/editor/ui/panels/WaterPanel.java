@@ -3,10 +3,14 @@ package com.galago.editor.ui.panels;
 import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
 import com.bruynhuis.galago.ui.listener.ValueChangeListener;
 import com.bruynhuis.galago.ui.panel.Panel;
+import com.galago.editor.ui.ColorButton;
 import com.galago.editor.ui.SliderField;
 import com.galago.editor.ui.SpinnerButton;
-import com.galago.editor.ui.actions.TerrainAction;
+import com.galago.editor.utils.MaterialUtils;
+import com.jme3.math.ColorRGBA;
 import com.jme3.water.WaterFilter;
+import java.awt.Color;
+import javax.swing.JColorChooser;
 
 /**
  *
@@ -26,6 +30,7 @@ public class WaterPanel extends AbstractPropertiesPanel {
     private SliderField foamHardnessField;
     private SliderField foamIntensityField;
     private SliderField shoreHardnessField;
+    private ColorButton waterColorButton;
 
     public WaterPanel(Panel parent) {
         super(parent, "water");
@@ -35,13 +40,13 @@ public class WaterPanel extends AbstractPropertiesPanel {
     protected void init() {
 
         createHeader("water", "Water Settings");
-        
+
         onOffButton = createLabeledSpinner("Enabled", "water-enabled", new String[]{"Off", "On"});
         onOffButton.addTouchButtonListener(new TouchButtonAdapter() {
             @Override
             public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
                 System.out.println("Selected water enabled: " + onOffButton.getIndex());
-                
+
                 waterFilter.setEnabled(onOffButton.getIndex() == 1);
 
                 reload();
@@ -83,7 +88,7 @@ public class WaterPanel extends AbstractPropertiesPanel {
                 waterFilter.setShininess(value);
             }
         });
-        
+
         speedField = createLabeledSliderDecimal("Speed", 0, 2, 0.01f);
         speedField.addValueChangeListener(new ValueChangeListener() {
             @Override
@@ -91,7 +96,7 @@ public class WaterPanel extends AbstractPropertiesPanel {
                 waterFilter.setSpeed(value);
             }
         });
-        
+
         maxAmplitudeField = createLabeledSliderDecimal("Amplitude", 0, 2, 0.01f);
         maxAmplitudeField.addValueChangeListener(new ValueChangeListener() {
             @Override
@@ -99,7 +104,7 @@ public class WaterPanel extends AbstractPropertiesPanel {
                 waterFilter.setMaxAmplitude(value);
             }
         });
-        
+
         foamHardnessField = createLabeledSliderDecimal("Foam hardness", 0, 2, 0.01f);
         foamHardnessField.addValueChangeListener(new ValueChangeListener() {
             @Override
@@ -107,7 +112,7 @@ public class WaterPanel extends AbstractPropertiesPanel {
                 waterFilter.setFoamHardness(value);
             }
         });
-        
+
         foamIntensityField = createLabeledSliderDecimal("Foam intensity", 0, 2, 0.01f);
         foamIntensityField.addValueChangeListener(new ValueChangeListener() {
             @Override
@@ -115,7 +120,7 @@ public class WaterPanel extends AbstractPropertiesPanel {
                 waterFilter.setFoamIntensity(value);
             }
         });
-        
+
         shoreHardnessField = createLabeledSliderDecimal("Shore hardness", 0, 2, 0.01f);
         shoreHardnessField.addValueChangeListener(new ValueChangeListener() {
             @Override
@@ -124,11 +129,28 @@ public class WaterPanel extends AbstractPropertiesPanel {
             }
         });
 
+        waterColorButton = createLabeledColorButton("Color", "color-button");
+        waterColorButton.addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                Color currentColor = MaterialUtils.convertColor(waterFilter.getWaterColor());
+                Color newColor = JColorChooser.showDialog(null, "Choose a color", currentColor);
+                System.out.println("Color: " + newColor);
+                if (newColor != null) {
+                    ColorRGBA colorRGBA = MaterialUtils.convertColor(newColor);
+                    waterFilter.setWaterColor(colorRGBA);
+                    waterColorButton.setColor(colorRGBA);
+                }
+
+            }
+
+        });
+
     }
 
     @Override
     protected void reload() {
-        
+
         boolean enabled = waterFilter != null && waterFilter.isEnabled();
 
         heightField.getParent().setVisible(enabled);
@@ -140,7 +162,8 @@ public class WaterPanel extends AbstractPropertiesPanel {
         foamHardnessField.getParent().setVisible(enabled);
         foamIntensityField.getParent().setVisible(enabled);
         shoreHardnessField.getParent().setVisible(enabled);
-        
+        waterColorButton.getParent().setVisible(enabled);
+
         onOffButton.setSelection(enabled ? 1 : 0);
 
         if (enabled) {
@@ -153,6 +176,7 @@ public class WaterPanel extends AbstractPropertiesPanel {
             foamHardnessField.setValue(waterFilter.getFoamHardness());
             foamIntensityField.setValue(waterFilter.getFoamIntensity());
             shoreHardnessField.setValue(waterFilter.getShoreHardness());
+            waterColorButton.setColor(waterFilter.getWaterColor());
 
         }
 

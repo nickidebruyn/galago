@@ -72,6 +72,7 @@ public class TerrainPanel extends Panel {
 
     private SliderField paintRadius;
     private SliderField paintStrength;
+    private SliderField paintScale;
     private Button autoPainterButton;
     private SliderField autoPaintMin;
     private SliderField autoPaintMax;
@@ -429,6 +430,18 @@ public class TerrainPanel extends Panel {
 
         });
         paintStrength.setValue(1);
+        
+        paintScale = createLabeledSliderDecimal("Scale", 0.5f, 2f, 1f);
+        paintScale.setDecimals(true);
+        paintScale.addValueChangeListener(new ValueChangeListener() {
+            @Override
+            public void doValueChange(float value) {
+                terrainAction.setScaleFactor(value);
+
+            }
+
+        });
+        paintScale.setValue(1);
 
         autoPaintMin = createLabeledSlider("Auto min", 0, 1, 1);
         autoPaintMin.setDecimals(true);
@@ -683,6 +696,7 @@ public class TerrainPanel extends Panel {
             slopeScale.getParent().setVisible(false);
             paintRadius.getParent().setVisible(false);
             paintStrength.getParent().setVisible(false);
+            paintScale.getParent().setVisible(false);
             autoPainterButton.setVisible(false);
             autoPaintMin.getParent().setVisible(false);
             autoPaintMax.getParent().setVisible(false);
@@ -728,6 +742,9 @@ public class TerrainPanel extends Panel {
                 slopeScale.getParent().setVisible(slopeSelected && terrainAction.getTool() == TerrainAction.TOOL_PAINT);
                 paintRadius.getParent().setVisible(terrainAction.getTool() != TerrainAction.TOOL_PAINT);
                 paintStrength.getParent().setVisible(terrainAction.getTool() != TerrainAction.TOOL_PAINT);
+                paintScale.getParent().setVisible(terrainAction.getTool() != TerrainAction.TOOL_GRASS1
+                        || terrainAction.getTool() != TerrainAction.TOOL_GRASS2
+                        || terrainAction.getTool() != TerrainAction.TOOL_GRASS3);
                 autoPainterButton.setVisible(false);
                 autoPaintMin.getParent().setVisible(false);
                 autoPaintMax.getParent().setVisible(false);
@@ -767,6 +784,9 @@ public class TerrainPanel extends Panel {
                 slopeScale.getParent().setVisible(false);
                 paintRadius.getParent().setVisible(true);
                 paintStrength.getParent().setVisible(true);
+                paintScale.getParent().setVisible(terrainAction.getTool() == TerrainAction.TOOL_GRASS1 ||
+                                                  terrainAction.getTool() == TerrainAction.TOOL_GRASS2 ||
+                                                  terrainAction.getTool() == TerrainAction.TOOL_GRASS3);
 
 //                baseTextureButton.getButton2().setVisible(true);
                 setButtonTextureFromTerrain(selectedNormalMap, baseTextureButton.getButton2());

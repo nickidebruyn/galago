@@ -30,6 +30,9 @@ public class EditorUtils {
     public static EditorTheme theme = new DefaultTheme();
     public static String LAST_LOCATION = "LAST_LOCATION";
     public static String MODEL = "MODEL";
+    public static String POST_PROCESS_FILTER = "FPP";
+    public static String CAMERA_POSITION = "CAMERA_POSITION";
+    public static String CAMERA_ROTATION = "CAMERA_ROTATION";
 
     public static boolean isCompatableModel(File file) {
         return file.getPath().endsWith(".obj") || file.getPath().endsWith(".gltf") || file.getPath().endsWith(".fbx") || file.getPath().endsWith(".j3o");

@@ -184,7 +184,7 @@ public class SpatialUtils {
 
     public static Spatial addSkySphere(Node parent, ColorRGBA bottomColor, ColorRGBA topColor, Camera camera) {
 
-        Sphere sphere = new Sphere(20, 20, 100, false, true);
+        Sphere sphere = new Sphere(20, 20, 1000, false, true);
         Geometry sky = new Geometry("sky", sphere);
         sky.setQueueBucket(RenderQueue.Bucket.Sky);
         sky.setCullHint(Spatial.CullHint.Never);
