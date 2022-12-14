@@ -44,7 +44,7 @@ public class MainApplication extends Base3DApplication {
     }
 
     public MainApplication() {
-        super("Scene Editor", 1920, 1020, "galago-editor.save", "Interface/Fonts/NotoSansCJKHK.fnt", null, true);
+        super("Scene Editor", 1920, 1080, "galago-editor.save", "Interface/Fonts/NotoSansCJKHK.fnt", null, true);
     }
 
     @Override
@@ -58,9 +58,9 @@ public class MainApplication extends Base3DApplication {
         
         showScreen(EditorScreen.NAME);
         
-        showStats();
+//        showStats();
         
-        System.out.println(getContext().getRenderer().getCaps());
+//        System.out.println(getContext().getRenderer().getCaps());
     }
 
     @Override

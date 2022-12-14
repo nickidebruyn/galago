@@ -16,6 +16,7 @@ public class Action {
     public static final String AUTO_PAINT = "auto_paint";
     public static final String WATER = "water";
     public static final String IMPORT = "import";
+    public static final String STATS = "stats";
     public static final String NEW = "new";
     public static final String OPEN = "open";
     public static final String SAVE = "save";

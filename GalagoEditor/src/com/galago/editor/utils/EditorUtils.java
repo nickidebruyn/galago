@@ -10,7 +10,11 @@ import com.jme3.scene.Node;
 import com.jme3.scene.SceneGraphVisitorAdapter;
 import com.jme3.scene.Spatial;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  *
@@ -56,6 +60,10 @@ public class EditorUtils {
         try {
             exporter.save(spatial, file);
             System.out.println("Spatial " + file.getName() + " successfully saved!");
+            
+            //TODO: (2022-12-14) We can put this code back when we need compression on the files
+//            String gzipFile = file.getPath().replace(".j3o", ".j3g");            
+//            compressGzipFile(file.getPath(), gzipFile);
 
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -73,22 +81,21 @@ public class EditorUtils {
         try {
             Spatial spatial = (Spatial) importer.load(file);
             System.out.println("Found spatial: " + spatial.getName());
-            
+
             MaterialUtils.convertTexturesToDepthRendering(spatial);
-            
+
             //Do some extra trix to the scene
             spatial.depthFirstTraversal(new SceneGraphVisitorAdapter() {
                 @Override
                 public void visit(Node node) {
                     if (node instanceof BatchNode) {
-                        ((BatchNode)node).batch();
-                        
+                        ((BatchNode) node).batch();
+
                     }
                 }
-                                
-                
+
             });
-            
+
             return spatial;
 
         } catch (IOException e) {
@@ -96,6 +103,55 @@ public class EditorUtils {
         }
 
         return null;
+    }
+
+    /**
+     * Helper method to decompress a file to gzip
+     * @param gzipFile
+     * @param newFile 
+     */
+    private static void decompressGzipFile(String gzipFile, String newFile) {
+        try {
+            FileInputStream fis = new FileInputStream(gzipFile);
+            GZIPInputStream gis = new GZIPInputStream(fis);
+            FileOutputStream fos = new FileOutputStream(newFile);
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = gis.read(buffer)) != -1) {
+                fos.write(buffer, 0, len);
+            }
+            //close resources
+            fos.close();
+            gis.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    /**
+     * Helper method to compress a file to gzip
+     * @param file
+     * @param gzipFile 
+     */
+    private static void compressGzipFile(String file, String gzipFile) {
+        try {
+            FileInputStream fis = new FileInputStream(file);
+            FileOutputStream fos = new FileOutputStream(gzipFile);
+            GZIPOutputStream gzipOS = new GZIPOutputStream(fos);
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = fis.read(buffer)) != -1) {
+                gzipOS.write(buffer, 0, len);
+            }
+            //close resources
+            gzipOS.close();
+            fos.close();
+            fis.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
 }

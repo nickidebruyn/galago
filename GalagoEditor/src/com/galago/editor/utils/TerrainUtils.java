@@ -446,7 +446,7 @@ public class TerrainUtils {
 //    terrain.setMaterial(generateHeightBasedMaterial(assetManager));
 //    terrain.setMaterial(generateLitHeightBasedMaterial(assetManager));
 //    terrain.setLocalTranslation(0, -100, 0);
-        terrain.setLocalScale(1f, 0.25f, 1f);
+        terrain.setLocalScale(1f, 0.2f, 1f);
 
         return terrain;
     }
@@ -675,10 +675,17 @@ public class TerrainUtils {
         return a - b > epsilon;
     }
 
+    /**
+     * This method can be used to adjust all geometry on the terrain such as grass and rocks to be
+     * able to automatically adjust to the height of the terrain, for performance it will take into acount the radius of painting.
+     * @param terrain
+     * @param worldLoc
+     * @param radius 
+     */
     public static void updateVegetationBatches(TerrainQuad terrain, Vector3f worldLoc, float radius) {
 
-        BatchNode grass1Node = (BatchNode) terrain.getChild(TerrainAction.BATCH_GRASS1);
-        grass1Node.depthFirstTraversal(new SceneGraphVisitorAdapter() {
+//        BatchNode grass1Node = (BatchNode) terrain.getChild(TerrainAction.BATCH_GRASS1);
+        terrain.depthFirstTraversal(new SceneGraphVisitorAdapter() {
             @Override
             public void visit(Geometry geom) {
 

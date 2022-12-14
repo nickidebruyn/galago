@@ -19,6 +19,7 @@ import com.galago.editor.ui.SpinnerButton;
 import com.galago.editor.ui.actions.TerrainAction;
 import com.galago.editor.utils.Action;
 import com.galago.editor.utils.EditorUtils;
+import com.galago.editor.utils.MaterialUtils;
 import com.jme3.input.event.KeyInputEvent;
 import com.jme3.material.MatParamTexture;
 import com.jme3.material.Material;
@@ -51,7 +52,7 @@ public class TerrainPanel extends Panel {
     private String[] terrainMaterialTypes = {"Paintable", "Height Based", "PBR"};
     private String[] terrainTextureLayers = {"Base", "Layer 1", "Layer 2", "Layer 3"};
     private String[] terrainHeightBasedTextureLayers = {"Base", "Layer 1", "Layer 2", "Layer 3", "Slope"};
-    private String[] terrainToolTypesPaint = {"Paint", "Raise", "Flatten", "Smooth", "Grass"};
+    private String[] terrainToolTypesPaint = {"Paint", "Raise", "Flatten", "Smooth", "Grass 1x1", "Grass 1x2", "Grass 2x1"};
     private String[] terrainToolTypesHeight = {"Paint", "Raise", "Flatten", "Smooth"};
 
     private SliderField iterationsField;
@@ -476,21 +477,21 @@ public class TerrainPanel extends Panel {
 
         flowPanel.layout();
 
-        hoverButton = new TouchButton(this, "terrain-hover", "Interface/blank.png", EditorUtils.HIERARCHYBAR_WIDTH, parent.getWindow().getHeight());
-        hoverButton.centerTop(0, 0);
-        hoverButton.setTransparency(0.1f);
-        hoverButton.addTouchButtonListener(new TouchButtonAdapter() {
-            @Override
-            public void doHoverOff(float touchX, float touchY, float tpf, String uid) {
-                window.getApplication().getMessageManager().sendMessage(Action.UI_OFF, null);
-            }
-
-            @Override
-            public void doHoverOver(float touchX, float touchY, float tpf, String uid) {
-                window.getApplication().getMessageManager().sendMessage(Action.UI_OVER, null);
-            }
-
-        });
+//        hoverButton = new TouchButton(this, "terrain-hover", "Interface/blank.png", EditorUtils.HIERARCHYBAR_WIDTH, parent.getWindow().getHeight());
+//        hoverButton.centerTop(0, 0);
+//        hoverButton.setTransparency(0.1f);
+//        hoverButton.addTouchButtonListener(new TouchButtonAdapter() {
+//            @Override
+//            public void doHoverOff(float touchX, float touchY, float tpf, String uid) {
+//                window.getApplication().getMessageManager().sendMessage(Action.UI_OFF, null);
+//            }
+//
+//            @Override
+//            public void doHoverOver(float touchX, float touchY, float tpf, String uid) {
+//                window.getApplication().getMessageManager().sendMessage(Action.UI_OVER, null);
+//            }
+//
+//        });
 
         parent.add(this);
 
@@ -750,7 +751,9 @@ public class TerrainPanel extends Panel {
 
                 terrainLayersButton.getParent().setVisible(terrainAction.getTool() == TerrainAction.TOOL_PAINT);
                 baseTextureButton.getButton2().getParent().setVisible(terrainAction.getTool() == TerrainAction.TOOL_PAINT
-                        || terrainAction.getTool() == TerrainAction.TOOL_GRASS1);
+                        || terrainAction.getTool() == TerrainAction.TOOL_GRASS1 
+                        || terrainAction.getTool() == TerrainAction.TOOL_GRASS2
+                        || terrainAction.getTool() == TerrainAction.TOOL_GRASS3);
 
                 textureRoughness.getParent().setVisible(isPBRMaterial() && terrainAction.getTool() == TerrainAction.TOOL_PAINT);
                 textureMetallic.getParent().setVisible(isPBRMaterial() && terrainAction.getTool() == TerrainAction.TOOL_PAINT);
@@ -780,9 +783,26 @@ public class TerrainPanel extends Panel {
             if (terrainAction.getTool() == TerrainAction.TOOL_GRASS1) {
                 BatchNode grass1Node = (BatchNode) terrain.getChild(TerrainAction.BATCH_GRASS1);
                 Geometry grass1 = grass1Node.getUserData(EditorUtils.MODEL);
-                System.out.println("Grass1 = " + grass1.getMaterial());
                 setButtonTextureFromMaterial(grass1.getMaterial(), "DiffuseMap", baseTextureButton.getButton1());
                 selectedBatchLayer = grass1Node;
+
+                baseTextureButton.getButton1().setId("DiffuseMap");
+                baseTextureButton.getButton2().setId("NormalMap");
+
+            } else if (terrainAction.getTool() == TerrainAction.TOOL_GRASS2) {
+                BatchNode grass2Node = (BatchNode) terrain.getChild(TerrainAction.BATCH_GRASS2);
+                Geometry grass2 = grass2Node.getUserData(EditorUtils.MODEL);
+                setButtonTextureFromMaterial(grass2.getMaterial(), "DiffuseMap", baseTextureButton.getButton1());
+                selectedBatchLayer = grass2Node;
+
+                baseTextureButton.getButton1().setId("DiffuseMap");
+                baseTextureButton.getButton2().setId("NormalMap");
+
+            } else if (terrainAction.getTool() == TerrainAction.TOOL_GRASS3) {
+                BatchNode grass3Node = (BatchNode) terrain.getChild(TerrainAction.BATCH_GRASS3);
+                Geometry grass3 = grass3Node.getUserData(EditorUtils.MODEL);
+                setButtonTextureFromMaterial(grass3.getMaterial(), "DiffuseMap", baseTextureButton.getButton1());
+                selectedBatchLayer = grass3Node;
 
                 baseTextureButton.getButton1().setId("DiffuseMap");
                 baseTextureButton.getButton2().setId("NormalMap");
@@ -923,28 +943,31 @@ public class TerrainPanel extends Panel {
         return terrainAction;
     }
 
-    public void setGrassTexture(String textureMapName, Texture texture) {
+    public void setGrassTexture(String textureMapName, Texture texture, int grassTool, String batchName) {
         if (terrain != null && texture != null) {
 
-            if (terrainAction.getTool() == TerrainAction.TOOL_GRASS1) {
-                BatchNode grass1Node = (BatchNode) terrain.getChild(TerrainAction.BATCH_GRASS1);
+            if (terrainAction.getTool() == grassTool) {
+                BatchNode grass1Node = (BatchNode) terrain.getChild(batchName);
                 Geometry grass1 = grass1Node.getUserData(EditorUtils.MODEL);
                 Material m = grass1.getMaterial();
+                texture.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
                 m.setTexture(textureMapName, texture);
                 setButtonTextureFromMaterial(m, textureMapName, baseTextureButton.getButton1());
+                MaterialUtils.convertTextureToEmbeddedByName(m, "DiffuseMap");
                                 
                 grass1Node.depthFirstTraversal(new SceneGraphVisitorAdapter() {
                     @Override
                     public void visit(Geometry geom) {
-//                        System.out.println("Geomaterial: " + geom.getMaterial().getParamValue("DiffuseMap"));
-                        //2022-12-11: Set the texture on each material of each grass geometry                        
+                        //2022-12-11: Set the texture on each material of each grass geometry
                         geom.getMaterial().setTexture(textureMapName, texture);
+                        MaterialUtils.convertTextureToEmbeddedByName(geom.getMaterial(), "DiffuseMap");
                         
                     }
                     
                 });
                 
                 grass1Node.batch();
+                
 
             }
 

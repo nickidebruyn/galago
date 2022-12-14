@@ -1,0 +1,10 @@
+Material MyMaterial : Resources/MatDefs/Grass.j3md {
+    MaterialParameters {
+        DiffuseMap : Flip Repeat "Textures/vegetation/grass-blades.png"
+        AlphaDiscardThreshold : 0.6
+    }
+    AdditionalRenderState {
+      Blend Alpha
+      FaceCull Off
+    }
+}
