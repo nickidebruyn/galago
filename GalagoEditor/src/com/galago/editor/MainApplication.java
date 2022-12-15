@@ -45,7 +45,7 @@ public class MainApplication extends Base3DApplication {
     }
 
     public MainApplication() {
-        super("Scene Editor", 1920, 1080, "galago-editor.save", "Interface/Fonts/NotoSansCJKHK.fnt", null, true);
+        super("Scene Editor", 1920, 1080, "galago-editor.save", "Interface/Fonts/SourceCodePro.fnt", null, true);
     }
 
     @Override

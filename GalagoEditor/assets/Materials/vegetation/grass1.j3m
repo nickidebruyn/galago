@@ -1,10 +1,18 @@
 Material MyMaterial : Resources/MatDefs/Grass.j3md {
     MaterialParameters {
-        DiffuseMap : Flip Repeat "Textures/vegetation/grass-blades.png"
-        AlphaDiscardThreshold : 0.6
+        Shininess :  1
+        ParallaxHeight :  0.05
+        BackfaceShadows :  false
+        MoveFactor :  0.06
+        DiffuseMap : Repeat "Textures/vegetation/grass-blades.png"
+        AlphaDiscardThreshold : 0.4
     }
     AdditionalRenderState {
       Blend Alpha
       FaceCull Off
+      DepthWrite On
+      ColorWrite On
+      Wireframe Off
+      DepthTest On
     }
 }

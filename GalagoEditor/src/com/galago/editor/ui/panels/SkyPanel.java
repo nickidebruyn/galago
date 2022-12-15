@@ -43,6 +43,9 @@ public class SkyPanel extends AbstractPropertiesPanel {
     private ColorButton bottomColorButton;
     private SliderField minField;
     private SliderField maxField;
+    
+    private ColorButton ambientColorButton;
+    private ColorButton sunColorButton;
 
     public SkyPanel(Panel parent) {
         super(parent, "sky");
@@ -63,6 +66,22 @@ public class SkyPanel extends AbstractPropertiesPanel {
                 reload();
             }
         });
+        ambientColorButton = createLabeledColorButton("Color", "ambient-color-button");
+        ambientColorButton.addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                Color currentColor = MaterialUtils.convertColor(ambientLight.getColor());
+                Color newColor = JColorChooser.showDialog(null, "Choose a color", currentColor);
+                System.out.println("Color: " + newColor);
+                if (newColor != null) {
+                    ColorRGBA colorRGBA = MaterialUtils.convertColor(newColor);
+                    ambientLight.setColor(colorRGBA);
+                    ambientColorButton.setColor(colorRGBA);
+                }
+
+            }
+
+        });
         
         createHeader("sun-light", "Sun Light");
 
@@ -75,6 +94,22 @@ public class SkyPanel extends AbstractPropertiesPanel {
                 sunLight.setEnabled(!sunLight.isEnabled());
                 reload();
             }
+        });
+        sunColorButton = createLabeledColorButton("Color", "sun-color-button");
+        sunColorButton.addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                Color currentColor = MaterialUtils.convertColor(sunLight.getColor());
+                Color newColor = JColorChooser.showDialog(null, "Choose a color", currentColor);
+                System.out.println("Color: " + newColor);
+                if (newColor != null) {
+                    ColorRGBA colorRGBA = MaterialUtils.convertColor(newColor);
+                    sunLight.setColor(colorRGBA);
+                    sunColorButton.setColor(colorRGBA);
+                }
+
+            }
+
         });
         
         createHeader("environment-light", "Environment Light");
@@ -164,7 +199,15 @@ public class SkyPanel extends AbstractPropertiesPanel {
         
         //Set the light values
         sunLightOnOffButton.setSelection(sunLight != null && sunLight.isEnabled() ? 1 : 0);
+        
+        if (sunLightOnOffButton.getIndex() == 1)
+            sunColorButton.setColor(sunLight.getColor());
+        
         ambientLightOnOffButton.setSelection(ambientLight != null && ambientLight.isEnabled() ? 1 : 0);
+        
+        if (ambientLightOnOffButton.getIndex() == 1)
+            ambientColorButton.setColor(ambientLight.getColor());
+        
         environmentLightOnOffButton.setSelection(lightProbe != null && lightProbe.isEnabled() ? 1 : 0);
 
         //Set the sky settings

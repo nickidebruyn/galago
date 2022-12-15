@@ -613,6 +613,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                     
                     oceanFilter = filterPostProcessor.getFilter(WaterFilter.class);
                     oceanFilter.setLightDirection(sunLight.getDirection());
+                    oceanFilter.setLightColor(sunLight.getColor());
                     
                     fpp = filterPostProcessor;
                 }
@@ -802,6 +803,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 grassNode1.setLocalScale(1, heightScale, 1);
                 terrain.attachChild(grassNode1);
                 Node grassModel1 = (Node) assetManager.loadModel("Models/vegetation/grass1.j3o");
+                grassModel1.getChild(0).setMaterial(MaterialUtils.createGrassMaterial(assetManager, "Textures/vegetation/grass-blades.png", 0.8f, new Vector2f(0, 0)));
                 grassNode1.setUserData(EditorUtils.MODEL, grassModel1.getChild(0));
                 MaterialUtils.convertTextureToEmbeddedByName(((Geometry) grassModel1.getChild(0)).getMaterial(), "DiffuseMap");
 
@@ -810,6 +812,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 grassNode2.setLocalScale(1, heightScale, 1);
                 terrain.attachChild(grassNode2);
                 Node grassModel2 = (Node) assetManager.loadModel("Models/vegetation/grass2.j3o");
+                grassModel2.getChild(0).setMaterial(MaterialUtils.createGrassMaterial(assetManager, "Textures/vegetation/grass-blades2.png", 0.8f, new Vector2f(0, 0)));
                 grassNode2.setUserData(EditorUtils.MODEL, grassModel2.getChild(0));
                 MaterialUtils.convertTextureToEmbeddedByName(((Geometry) grassModel2.getChild(0)).getMaterial(), "DiffuseMap");
 
@@ -818,6 +821,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 grassNode3.setLocalScale(1, heightScale, 1);
                 terrain.attachChild(grassNode3);
                 Node grassModel3 = (Node) assetManager.loadModel("Models/vegetation/grass3.j3o");
+                grassModel3.getChild(0).setMaterial(MaterialUtils.createGrassMaterial(assetManager, "Textures/vegetation/grass-blades3.png", 0.8f, new Vector2f(0, 0)));
                 grassNode3.setUserData(EditorUtils.MODEL, grassModel3.getChild(0));
                 MaterialUtils.convertTextureToEmbeddedByName(((Geometry) grassModel3.getChild(0)).getMaterial(), "DiffuseMap");
 

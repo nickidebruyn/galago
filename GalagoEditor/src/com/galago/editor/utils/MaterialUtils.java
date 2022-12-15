@@ -137,23 +137,24 @@ public class MaterialUtils {
     
     public static Material createGrassMaterial(AssetManager assetManager, String texture, float windStrength, Vector2f windDirection) {
         Texture texture1 = assetManager.loadTexture(texture);
-//        texture1.setWrap(Texture.WrapMode.Repeat);
+        
         Material mat = new Material(assetManager, "Resources/MatDefs/Grass.j3md");  // create a simple material
-//        mat.setBoolean("UseMaterialColors", true);  // Set some parameters, e.g. blue.
-//        mat.setColor("Ambient", ColorRGBA.White);   // ... color of this object
-//        mat.setColor("Diffuse", ColorRGBA.White);   // ... color of light being reflected
-//        mat.setColor("Specular", ColorRGBA.White);
-//        mat.setColor("GlowColor", ColorRGBA.Black);
-//        mat.setFloat("Shininess", 2f);
-        texture1.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
-        mat.setTexture("DiffuseMap", texture1);
         mat.setVector2("WindDirection", windDirection);
         mat.setFloat("WindStrength", windStrength);
+//        mat.setTransparent(true);
 
-        mat.setTransparent(true);
+//        Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");  // create a simple material
+        texture1.setWrap(Texture.WrapAxis.S, Texture.WrapMode.Repeat);
+        mat.setTexture("DiffuseMap", texture1);
+
         mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-        mat.setColor("Color", new ColorRGBA(1f, 1f, 1f, 1f));
-        mat.setFloat("Time", 0);
+//        mat.setBoolean("BackfaceShadows", true);
+//        mat.setBoolean("VertexLighting", true);
+        mat.setBoolean("UseMaterialColors", true);
+        mat.setColor("Ambient", ColorRGBA.White);   // ... color of this object
+        mat.setColor("Diffuse", ColorRGBA.White);   // ... color of light being reflected
+        mat.setColor("Specular", ColorRGBA.White);
+        mat.setColor("GlowColor", ColorRGBA.Black);
         mat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
         mat.setFloat("AlphaDiscardThreshold", 0.55f);
         
@@ -242,7 +243,7 @@ public class MaterialUtils {
         if (matParam != null && matParam.getTextureValue() != null) {
             System.out.println("\t\tGOT TEXTURE BY NAME: " + textureName);
             Texture texture = matParam.getTextureValue();
-            texture.setMagFilter(Texture.MagFilter.Nearest);
+            texture.setMagFilter(Texture.MagFilter.Bilinear);
             texture.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
 
         }

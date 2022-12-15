@@ -30,7 +30,11 @@ public class WaterPanel extends AbstractPropertiesPanel {
     private SliderField foamHardnessField;
     private SliderField foamIntensityField;
     private SliderField shoreHardnessField;
+    private SliderField causticsIntensityField;
+    private SliderField reflectionDisplacementField;
     private ColorButton waterColorButton;
+    private ColorButton deepWaterColorButton;
+    private SliderField refractionStrengthField;
 
     public WaterPanel(Panel parent) {
         super(parent, "water");
@@ -53,7 +57,7 @@ public class WaterPanel extends AbstractPropertiesPanel {
             }
         });
 
-        heightField = createLabeledSliderDecimal("Height", -10, 10, 0.1f);
+        heightField = createLabeledSliderDecimal("Height", -10, 50, 0.1f);
         heightField.addValueChangeListener(new ValueChangeListener() {
             @Override
             public void doValueChange(float value) {
@@ -128,6 +132,30 @@ public class WaterPanel extends AbstractPropertiesPanel {
                 waterFilter.setShoreHardness(value);
             }
         });
+        
+        causticsIntensityField = createLabeledSliderDecimal("Caustics", 0, 1, 0.1f);
+        causticsIntensityField.addValueChangeListener(new ValueChangeListener() {
+            @Override
+            public void doValueChange(float value) {
+                waterFilter.setCausticsIntensity(value);
+            }
+        });
+        
+        reflectionDisplacementField = createLabeledSliderDecimal("Reflection blur", 0, 50, 1f);
+        reflectionDisplacementField.addValueChangeListener(new ValueChangeListener() {
+            @Override
+            public void doValueChange(float value) {
+                waterFilter.setReflectionDisplace(value);
+            }
+        });
+        
+        refractionStrengthField = createLabeledSliderDecimal("Refraction Strength", 0, 1, 0.1f);
+        refractionStrengthField.addValueChangeListener(new ValueChangeListener() {
+            @Override
+            public void doValueChange(float value) {
+                waterFilter.setRefractionStrength(value);
+            }
+        });
 
         waterColorButton = createLabeledColorButton("Color", "color-button");
         waterColorButton.addTouchButtonListener(new TouchButtonAdapter() {
@@ -140,6 +168,23 @@ public class WaterPanel extends AbstractPropertiesPanel {
                     ColorRGBA colorRGBA = MaterialUtils.convertColor(newColor);
                     waterFilter.setWaterColor(colorRGBA);
                     waterColorButton.setColor(colorRGBA);
+                }
+
+            }
+
+        });
+        
+        deepWaterColorButton = createLabeledColorButton("Deep Color", "deep-color-button");
+        deepWaterColorButton.addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                Color currentColor = MaterialUtils.convertColor(waterFilter.getDeepWaterColor());
+                Color newColor = JColorChooser.showDialog(null, "Choose a color", currentColor);
+                System.out.println("Color: " + newColor);
+                if (newColor != null) {
+                    ColorRGBA colorRGBA = MaterialUtils.convertColor(newColor);
+                    waterFilter.setDeepWaterColor(colorRGBA);
+                    deepWaterColorButton.setColor(colorRGBA);
                 }
 
             }
@@ -162,7 +207,11 @@ public class WaterPanel extends AbstractPropertiesPanel {
         foamHardnessField.getParent().setVisible(enabled);
         foamIntensityField.getParent().setVisible(enabled);
         shoreHardnessField.getParent().setVisible(enabled);
+        causticsIntensityField.getParent().setVisible(enabled);
+        reflectionDisplacementField.getParent().setVisible(enabled);
+        refractionStrengthField.getParent().setVisible(enabled);
         waterColorButton.getParent().setVisible(enabled);
+        deepWaterColorButton.getParent().setVisible(enabled);
 
         onOffButton.setSelection(enabled ? 1 : 0);
 
@@ -176,7 +225,11 @@ public class WaterPanel extends AbstractPropertiesPanel {
             foamHardnessField.setValue(waterFilter.getFoamHardness());
             foamIntensityField.setValue(waterFilter.getFoamIntensity());
             shoreHardnessField.setValue(waterFilter.getShoreHardness());
+            causticsIntensityField.setValue(waterFilter.getCausticsIntensity());
+            reflectionDisplacementField.setValue(waterFilter.getReflectionDisplace());
+            refractionStrengthField.setValue(waterFilter.getRefractionStrength());
             waterColorButton.setColor(waterFilter.getWaterColor());
+            deepWaterColorButton.setColor(waterFilter.getDeepWaterColor());
 
         }
 
