@@ -1004,12 +1004,12 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         System.out.println("Trying to add: " + spatial.getName());
 
         if (spatial.getName().equals("cube")) {
-            Spatial box = SpatialUtils.addBox(editNode, 5, 10, 5);
+            Spatial box = SpatialUtils.addBox(editNode, 1, 1, 1);
             box.setName("Box");
             SpatialUtils.addColor(box, ColorRGBA.randomColor(), false);
 
         } else if (spatial.getName().equals("sphere")) {
-            Spatial sphere = SpatialUtils.addSphere(editNode, 40, 40, 5);
+            Spatial sphere = SpatialUtils.addSphere(editNode, 40, 40, 1);
             SpatialUtils.addPBRColor(sphere, ColorRGBA.Orange);
 
         }
