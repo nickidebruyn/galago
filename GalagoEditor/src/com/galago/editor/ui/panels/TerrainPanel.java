@@ -27,6 +27,8 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.BatchNode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.SceneGraphVisitorAdapter;
+import com.jme3.scene.Spatial;
+import com.jme3.scene.instancing.InstancedNode;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.texture.Texture;
 
@@ -52,7 +54,7 @@ public class TerrainPanel extends Panel {
     private String[] terrainMaterialTypes = {"Paintable", "Height Based", "PBR"};
     private String[] terrainTextureLayers = {"Base", "Layer 1", "Layer 2", "Layer 3"};
     private String[] terrainHeightBasedTextureLayers = {"Base", "Layer 1", "Layer 2", "Layer 3", "Slope"};
-    private String[] terrainToolTypesPaint = {"Paint", "Raise", "Flatten", "Smooth", "Grass 1x1", "Grass 1x2", "Grass 2x1"};
+    private String[] terrainToolTypesPaint = {"Paint", "Raise", "Flatten", "Smooth", "Grass 1x1", "Grass 1x2", "Grass 2x1", "Trees 1"};
     private String[] terrainToolTypesHeight = {"Paint", "Raise", "Flatten", "Smooth"};
 
     private SliderField iterationsField;
@@ -86,6 +88,7 @@ public class TerrainPanel extends Panel {
     private String selectedMetallic = "Metallic_0";
 
     private BatchNode selectedBatchLayer;
+    private InstancedNode selectedInstancedNode;
 
     private float triScale = 100;
 
@@ -430,7 +433,7 @@ public class TerrainPanel extends Panel {
 
         });
         paintStrength.setValue(1);
-        
+
         paintScale = createLabeledSliderDecimal("Scale", 0.5f, 2f, 1f);
         paintScale.setDecimals(true);
         paintScale.addValueChangeListener(new ValueChangeListener() {
@@ -505,7 +508,6 @@ public class TerrainPanel extends Panel {
 //            }
 //
 //        });
-
         parent.add(this);
 
     }
@@ -768,7 +770,7 @@ public class TerrainPanel extends Panel {
 
                 terrainLayersButton.getParent().setVisible(terrainAction.getTool() == TerrainAction.TOOL_PAINT);
                 baseTextureButton.getButton2().getParent().setVisible(terrainAction.getTool() == TerrainAction.TOOL_PAINT
-                        || terrainAction.getTool() == TerrainAction.TOOL_GRASS1 
+                        || terrainAction.getTool() == TerrainAction.TOOL_GRASS1
                         || terrainAction.getTool() == TerrainAction.TOOL_GRASS2
                         || terrainAction.getTool() == TerrainAction.TOOL_GRASS3);
 
@@ -784,9 +786,10 @@ public class TerrainPanel extends Panel {
                 slopeScale.getParent().setVisible(false);
                 paintRadius.getParent().setVisible(true);
                 paintStrength.getParent().setVisible(true);
-                paintScale.getParent().setVisible(terrainAction.getTool() == TerrainAction.TOOL_GRASS1 ||
-                                                  terrainAction.getTool() == TerrainAction.TOOL_GRASS2 ||
-                                                  terrainAction.getTool() == TerrainAction.TOOL_GRASS3);
+                paintScale.getParent().setVisible(terrainAction.getTool() == TerrainAction.TOOL_GRASS1
+                        || terrainAction.getTool() == TerrainAction.TOOL_GRASS2
+                        || terrainAction.getTool() == TerrainAction.TOOL_GRASS3
+                        || terrainAction.getTool() == TerrainAction.TOOL_TREES1);
 
 //                baseTextureButton.getButton2().setVisible(true);
                 setButtonTextureFromTerrain(selectedNormalMap, baseTextureButton.getButton2());
@@ -826,6 +829,15 @@ public class TerrainPanel extends Panel {
 
                 baseTextureButton.getButton1().setId("DiffuseMap");
                 baseTextureButton.getButton2().setId("NormalMap");
+
+            } else if (terrainAction.getTool() == TerrainAction.TOOL_TREES1) {
+                InstancedNode trees1Node = (InstancedNode) terrain.getChild(TerrainAction.BATCH_TREES1);
+                Spatial tree1 = trees1Node.getUserData(EditorUtils.MODEL);
+//                setButtonTextureFromMaterial(grass3.getMaterial(), "DiffuseMap", baseTextureButton.getButton1());
+                selectedInstancedNode = trees1Node;
+
+//                baseTextureButton.getButton1().setId("DiffuseMap");
+//                baseTextureButton.getButton2().setId("NormalMap");
 
             }
 
@@ -974,20 +986,19 @@ public class TerrainPanel extends Panel {
                 m.setTexture(textureMapName, texture);
                 setButtonTextureFromMaterial(m, textureMapName, baseTextureButton.getButton1());
                 MaterialUtils.convertTextureToEmbeddedByName(m, "DiffuseMap");
-                                
+
                 grass1Node.depthFirstTraversal(new SceneGraphVisitorAdapter() {
                     @Override
                     public void visit(Geometry geom) {
                         //2022-12-11: Set the texture on each material of each grass geometry
                         geom.getMaterial().setTexture(textureMapName, texture);
                         MaterialUtils.convertTextureToEmbeddedByName(geom.getMaterial(), "DiffuseMap");
-                        
+
                     }
-                    
+
                 });
-                
+
                 grass1Node.batch();
-                
 
             }
 
@@ -1001,6 +1012,14 @@ public class TerrainPanel extends Panel {
 
     public BatchNode getSelectedBatchLayer() {
         return selectedBatchLayer;
+    }
+
+    public InstancedNode getSelectedInstancedNode() {
+        return selectedInstancedNode;
+    }
+    
+    public Spatial getSelectedModel() {
+        return selectedInstancedNode.getUserData(EditorUtils.MODEL);
     }
 
 }

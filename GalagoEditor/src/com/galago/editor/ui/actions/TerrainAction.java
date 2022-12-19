@@ -21,6 +21,7 @@ public class TerrainAction {
     public static final int TOOL_GRASS1 = 4; //PAINT GRASS1
     public static final int TOOL_GRASS2 = 5; //PAINT GRASS2
     public static final int TOOL_GRASS3 = 6; //PAINT GRASS3
+    public static final int TOOL_TREES1 = 7; //PAINT TREES1
     
     public static final int MATERIAL_PAINTABLE = 0; //TERRAIN Material Paintable
     public static final int MATERIAL_HEIGHT_BASED = 1; //TERRAIN Material Height based

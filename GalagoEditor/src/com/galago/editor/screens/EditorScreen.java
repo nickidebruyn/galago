@@ -33,6 +33,7 @@ import com.galago.editor.utils.Action;
 import com.galago.editor.utils.MaterialUtils;
 import com.galago.editor.utils.TerrainFlattenTool;
 import com.galago.editor.utils.TerrainGrassTool;
+import com.galago.editor.utils.TerrainModelTool;
 import com.galago.editor.utils.TerrainPaintTool;
 import com.galago.editor.utils.TerrainRaiseTool;
 import com.galago.editor.utils.TerrainSmoothTool;
@@ -129,6 +130,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
     private TerrainFlattenTool terrainFlattenTool = new TerrainFlattenTool();
     private TerrainSmoothTool terrainSmoothTool = new TerrainSmoothTool();
     private TerrainGrassTool terrainGrassTool = new TerrainGrassTool();
+    private TerrainModelTool terrainModelTool = new TerrainModelTool();
 
     private Vector3f flattenPoint = new Vector3f(0, 10, 0);
 
@@ -832,12 +834,12 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 terrain.attachChild(treeNode1);
                 Node treeModel1 = (Node) assetManager.loadModel("Models/trees/low_poly_pine/scene.j3o");
                 treeNode1.setUserData(EditorUtils.MODEL, treeModel1);
-                
-                for (int i = 0; i < 1000; i++) {
-                    Spatial clone = treeModel1.clone(false);
-                    clone.setLocalTranslation(FastMath.nextRandomInt(-200, 200), 0, FastMath.nextRandomInt(-200, 200));
-                    treeNode1.attachChild(clone);
-                }
+//                
+//                for (int i = 0; i < 1000; i++) {
+//                    Spatial clone = treeModel1.clone(false);
+//                    clone.setLocalTranslation(FastMath.nextRandomInt(-200, 200), 0, FastMath.nextRandomInt(-200, 200));
+//                    treeNode1.attachChild(clone);
+//                }
                                 
                 treeNode1.instance();
                 //TODO:
@@ -1266,6 +1268,15 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                             terrainPanel.getPaintStrength(),
                             terrainPanel.getTerrainAction().getScaleFactor(),
                             terrainPanel.getSelectedGrass());
+
+                } else if (terrainPanel.getTerrainAction().getTool() == TerrainAction.TOOL_TREES1) {
+                    terrainModelTool.paintModel(getTerrain(),
+                            terrainPanel.getSelectedInstancedNode(),
+                            paintGizmo.getWorldTranslation(),
+                            terrainPanel.getPaintRadius(),
+                            terrainPanel.getPaintStrength(),
+                            terrainPanel.getTerrainAction().getScaleFactor(),
+                            terrainPanel.getSelectedModel());
 
                 }
 

@@ -379,4 +379,30 @@ public class MaterialUtils {
     public static boolean isTerrainLightingMaterial(Material material) {
         return material != null && material.getMaterialDef().getAssetName().endsWith("/TerrainLighting.j3md");
     }
+
+    public static void setInstancingOnAllMaterials(Spatial spatial) {
+        SceneGraphVisitor sceneGraphVisitor = new SceneGraphVisitor() {
+            @Override
+            public void visit(Spatial spatial) {
+                if (spatial instanceof Geometry) {
+                    System.out.println("convertTexturesToEmbedded.....:" + spatial.getName());
+                    Material material = ((Geometry) spatial).getMaterial();
+                    System.out.println("\tMaterial...: " + material.getMaterialDef().getAssetName());
+                    
+                    if (isLightingMaterial(material)) {
+                        material.setBoolean("UseInstancing", true);
+
+                    } else if (isUnshadedMaterial(material)) {
+                        material.setBoolean("UseInstancing", true);
+
+                    } else if (isPBRLightingMaterial(material)) {
+                        material.setBoolean("UseInstancing", true);
+
+                    }
+
+                }
+            }
+        };
+        spatial.depthFirstTraversal(sceneGraphVisitor);        
+    }
 }
