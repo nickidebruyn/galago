@@ -749,7 +749,13 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         
         //Listens to all other type of input mappings
         if (Input.hasMapping(name)) {
-            Input.set(name, isPressed ? 1 : 0);
+            if (isPressed) {
+                Input.set(name, 1);
+            } else {
+                Input.set(name, -1);
+            }
+        } else {
+            Input.set(name, 0);
         }
 
     }

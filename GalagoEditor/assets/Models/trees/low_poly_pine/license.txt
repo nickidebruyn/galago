@@ -1,0 +1,11 @@
+Model Information:
+* title:	Low Poly Pine
+* source:	https://sketchfab.com/3d-models/low-poly-pine-107e3eab9dcb4e29a282c6709178752f
+* author:	Afloat Above the World (https://sketchfab.com/ilikecatsnotdogs)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Low Poly Pine" (https://sketchfab.com/3d-models/low-poly-pine-107e3eab9dcb4e29a282c6709178752f) by Afloat Above the World (https://sketchfab.com/ilikecatsnotdogs) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

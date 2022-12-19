@@ -29,6 +29,9 @@ public class TerrainAction {
     public static final String BATCH_GRASS1 = "BATCH-GRASS1"; //GRASS1 BATCH
     public static final String BATCH_GRASS2 = "BATCH-GRASS2"; //GRASS2 BATCH
     public static final String BATCH_GRASS3 = "BATCH-GRASS3"; //GRASS3 BATCH
+    
+    public static final String BATCH_TREES1 = "BATCH-TREES1"; //TREE1 BATCH
+    
 
     private int type = TYPE_FLAT;
     private int terrainSize = 256;

@@ -5,6 +5,7 @@
  */
 package com.galago.editor.spatial;
 
+import com.bruynhuis.galago.input.Input;
 import com.bruynhuis.galago.listener.PickEvent;
 import com.bruynhuis.galago.listener.PickListener;
 import com.bruynhuis.galago.listener.TouchPickListener;
@@ -20,10 +21,13 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
+import com.jme3.renderer.RenderManager;
+import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.control.AbstractControl;
 import com.jme3.scene.shape.Line;
 import com.jme3.scene.shape.Quad;
 
@@ -71,6 +75,7 @@ public class Gizmo extends Node implements PickListener {
     public static final int CAMERA = 2;
 
     private boolean dragging = false;
+    private boolean ctrlDown = false;
     private Node draggingPlane;
     private Vector3f constraints = new Vector3f(0, 0, 0);
 
@@ -142,10 +147,33 @@ public class Gizmo extends Node implements PickListener {
         transformLineGeometry.removeFromParent();
 
         this.setQueueBucket(RenderQueue.Bucket.Translucent);
+        
+        this.addControl(new AbstractControl() {
+            @Override
+            protected void controlUpdate(float f) {
+                
+                System.out.println("Cntrl down = " + Input.get("ctrl"));
+                
+                if (Input.get("ctrl") == 1) {
+                    ctrlDown = true;                    
+                } else if (Input.get("ctrl") == -1) {
+                    ctrlDown = false;
+                    
+                }
+                
+            }
+
+            @Override
+            protected void controlRender(RenderManager rm, ViewPort vp) {
+                
+            }
+            
+        
+        });
     }
 
     private Spatial loadRotateTool(String gName, ColorRGBA colorRGBA) {
-        Polygon pYXis = new Polygon(30, radius, 0.2f);
+        Polygon pYXis = new Polygon(30, radius, 0.12f);
         Geometry geom = new Geometry(name + gName, pYXis);
         Material m = SpatialUtils.addColor(geom, colorRGBA, true);
         m.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
@@ -258,6 +286,10 @@ public class Gizmo extends Node implements PickListener {
     }
 
     public void initiatePick(PickEvent pickEvent, Quaternion planeRotation, int type) {
+        if (target == null) {
+            return;
+            
+        }
         startScale = target.getLocalScale().clone();
         selectedGizmo = pickEvent.getContactObject();
         downClickPos = selectedGizmo.getWorldTranslation().clone();
@@ -297,6 +329,9 @@ public class Gizmo extends Node implements PickListener {
 
             } else if (selectedGizmo.equals(moveZAxisPos)) {
                 target.setLocalTranslation(mainGizmoPos.x, mainGizmoPos.y, mainGizmoPos.z + pos.z);
+                
+            } else if (ctrlDown && (selectedGizmo.equals(scaleXAxisNeg) || selectedGizmo.equals(scaleYAxisNeg) || selectedGizmo.equals(scaleZAxisNeg))) {
+                target.setLocalScale(startScale.x + pos.x, startScale.y + pos.x, startScale.z + pos.x);
 
             } else if (selectedGizmo.equals(scaleXAxisNeg)) {
                 target.setLocalScale(startScale.x + pos.x, startScale.y, startScale.z);

@@ -14,6 +14,7 @@ import com.bruynhuis.galago.resource.SoundManager;
 import com.bruynhuis.galago.resource.TextureManager;
 import com.bruynhuis.galago.util.ColorUtils;
 import com.galago.editor.screens.EditorScreen;
+import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -56,6 +57,7 @@ public class MainApplication extends Base3DApplication {
     @Override
     protected void postInitApp() {
         registerInputMappings("camera-action", new MouseButtonTrigger(1));
+        registerInputMappings("ctrl", new KeyTrigger(keyInput.KEY_LCONTROL));
 
         showScreen(EditorScreen.NAME);
 

@@ -64,6 +64,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.debug.Grid;
+import com.jme3.scene.instancing.InstancedNode;
 import com.jme3.scene.shape.Line;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.shadow.DirectionalLightShadowFilter;
@@ -419,12 +420,12 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
     private void loadDirectionalLight() {
         sunLight = new DirectionalLight();
         sunLight.setColor(ColorRGBA.White);
-        sunLight.setDirection(new Vector3f(0.6f, -0.8f, -0.6f).normalizeLocal());
+        sunLight.setDirection(new Vector3f(0.3f, -0.6f, -0.2f).normalizeLocal());
         editNode.addLight(sunLight);
     }
 
     private void loadProbeLight() {
-        lightProbe = SpatialUtils.loadLightProbe(editNode, "Models/Probes/Sky_Cloudy.j3o");
+        lightProbe = SpatialUtils.loadLightProbe(editNode, "Models/Probes/River_Road.j3o");
         lightProbe.setAreaType(LightProbe.AreaType.Spherical);
         lightProbe.getArea().setRadius(2000);
         lightProbe.getArea().setCenter(new Vector3f(0, 0, 0));
@@ -824,6 +825,24 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 grassModel3.getChild(0).setMaterial(MaterialUtils.createGrassMaterial(assetManager, "Textures/vegetation/grass-blades3.png", 0.8f, new Vector2f(0, 0)));
                 grassNode3.setUserData(EditorUtils.MODEL, grassModel3.getChild(0));
                 MaterialUtils.convertTextureToEmbeddedByName(((Geometry) grassModel3.getChild(0)).getMaterial(), "DiffuseMap");
+                
+                //TREE1:
+                InstancedNode treeNode1 = new InstancedNode(TerrainAction.BATCH_TREES1);
+                treeNode1.setLocalScale(1, heightScale, 1);
+                terrain.attachChild(treeNode1);
+                Node treeModel1 = (Node) assetManager.loadModel("Models/trees/low_poly_pine/scene.j3o");
+                treeNode1.setUserData(EditorUtils.MODEL, treeModel1);
+                
+                for (int i = 0; i < 1000; i++) {
+                    Spatial clone = treeModel1.clone(false);
+                    clone.setLocalTranslation(FastMath.nextRandomInt(-200, 200), 0, FastMath.nextRandomInt(-200, 200));
+                    treeNode1.attachChild(clone);
+                }
+                                
+                treeNode1.instance();
+                //TODO:
+//                MaterialUtils.convertTextureToEmbeddedByName(((Geometry) grassModel3.getChild(0)).getMaterial(), "DiffuseMap");
+                
 
                 editNode.attachChild(terrain);
 
@@ -1200,14 +1219,14 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                             terrainPanel.getSelectedLayer());
 
                 } else if (terrainPanel.getTerrainAction().getTool() == TerrainAction.TOOL_RAISE) {
-                    terrainRaiseTool.modifyHeight(getTerrain(),
+                    terrainRaiseTool.modifyHeight(editNode,
                             paintGizmo.getWorldTranslation(),
                             terrainPanel.getPaintRadius(),
                             terrainPanel.getPaintStrength(),
                             TerrainRaiseTool.Meshes.Sphere);
 
                 } else if (terrainPanel.getTerrainAction().getTool() == TerrainAction.TOOL_FLATTEN) {
-                    terrainFlattenTool.modifyHeight(getTerrain(), flattenPoint,
+                    terrainFlattenTool.modifyHeight(editNode, flattenPoint,
                             paintGizmo.getWorldTranslation(),
                             terrainPanel.getPaintRadius(),
                             terrainPanel.getPaintStrength(),
@@ -1215,7 +1234,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                             TerrainRaiseTool.Meshes.Sphere);
 
                 } else if (terrainPanel.getTerrainAction().getTool() == TerrainAction.TOOL_SMOOTH) {
-                    terrainSmoothTool.modifyHeight(getTerrain(),
+                    terrainSmoothTool.modifyHeight(editNode,
                             paintGizmo.getWorldTranslation(),
                             terrainPanel.getPaintRadius(),
                             terrainPanel.getPaintStrength(),
