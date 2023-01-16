@@ -24,6 +24,7 @@ import com.jme3.input.event.KeyInputEvent;
 import com.jme3.material.MatParamTexture;
 import com.jme3.material.Material;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.BatchNode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.SceneGraphVisitorAdapter;
@@ -31,6 +32,8 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.instancing.InstancedNode;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.texture.Texture;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -65,6 +68,7 @@ public class TerrainPanel extends Panel {
     private LongField seedField;
     private TouchButton heightMapButton;
     private ButtonGroup baseTextureButton;
+    private TouchButton baseModelButton;
     private SliderField baseTextureScale;
     private SliderField textureRoughness;
     private SliderField textureMetallic;
@@ -330,6 +334,8 @@ public class TerrainPanel extends Panel {
         });
 
         baseTextureButton = createLabeledTextureButtonGroup("Textures", "DiffuseMap", "NormalMap");
+
+        baseModelButton = createLabeledModelButton("Model", "terrain-model");
 
         baseTextureScale = createLabeledSlider("Scale", 1, 256, 1);
         baseTextureScale.setDecimals(false);
@@ -623,6 +629,27 @@ public class TerrainPanel extends Panel {
         return new ButtonGroup(button1, button2);
     }
 
+    private TouchButton createLabeledModelButton(String text, String id) {
+        Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, 80);
+        flowPanel.add(panel);
+
+        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, 60);
+        label.setAlignment(TextAlign.LEFT);
+        label.setVerticalAlignment(TextAlign.CENTER);
+        label.leftTop(5, 5);
+
+        Image img = new Image(panel, "Interface/texture-button.png", 70, 70);
+        img.setBackgroundColor(EditorUtils.theme.getButtonColor());
+        img.rightTop(0, 10);
+
+        TouchButton button = new TouchButton(panel, id, "Interface/texture-button.png", 60, 60);
+        button.rightTop(5, 15);
+        button.addEffect(new TouchEffect(button));
+        button.getPicture().setMaterial(button.getPicture().getMaterial().clone());
+
+        return button;
+    }
+
     @Override
     public void show() {
         super.show();
@@ -690,6 +717,7 @@ public class TerrainPanel extends Panel {
             terrainToolsButton.getParent().setVisible(false);
             terrainLayersButton.getParent().setVisible(false);
             baseTextureButton.getButton1().getParent().setVisible(false);
+            baseModelButton.getParent().setVisible(false);
             baseTextureScale.getParent().setVisible(false);
             textureRoughness.getParent().setVisible(false);
             textureMetallic.getParent().setVisible(false);
@@ -803,6 +831,8 @@ public class TerrainPanel extends Panel {
 
             setButtonTextureFromTerrain(selectedDiffuseMap, baseTextureButton.getButton1());
 
+            baseModelButton.getParent().setVisible(terrainAction.getTool() == TerrainAction.TOOL_TREES1);
+
             if (terrainAction.getTool() == TerrainAction.TOOL_GRASS1) {
                 BatchNode grass1Node = (BatchNode) terrain.getChild(TerrainAction.BATCH_GRASS1);
                 Geometry grass1 = grass1Node.getUserData(EditorUtils.MODEL);
@@ -838,7 +868,6 @@ public class TerrainPanel extends Panel {
 
 //                baseTextureButton.getButton1().setId("DiffuseMap");
 //                baseTextureButton.getButton2().setId("NormalMap");
-
             }
 
         }
@@ -931,14 +960,10 @@ public class TerrainPanel extends Panel {
         this.baseTextureButton.getButton1().addTouchButtonListener(buttonListener);
         this.baseTextureButton.getButton2().addTouchButtonListener(buttonListener);
 
-//        this.layer1TextureButton.getButton1().addTouchButtonListener(buttonListener);
-//        this.layer1TextureButton.getButton2().addTouchButtonListener(buttonListener);
-//
-//        this.layer2TextureButton.getButton1().addTouchButtonListener(buttonListener);
-//        this.layer2TextureButton.getButton2().addTouchButtonListener(buttonListener);
-//
-//        this.layer3TextureButton.getButton1().addTouchButtonListener(buttonListener);
-//        this.layer3TextureButton.getButton2().addTouchButtonListener(buttonListener);
+    }
+
+    public void addTerrainModelButtonListener(TouchButtonListener buttonListener) {
+        this.baseModelButton.addTouchButtonListener(buttonListener);
     }
 
     public int getSelectedLayer() {
@@ -1006,6 +1031,57 @@ public class TerrainPanel extends Panel {
 
     }
 
+    public void setInstanceModel(Spatial spatial) {
+        System.out.println("Setting instance model: " + spatial.getName());
+
+        if (selectedInstancedNode != null) {
+
+            MaterialUtils.setInstancingOnAllMaterials(spatial);
+            MaterialUtils.convertTexturesToEmbedded(spatial);
+            selectedInstancedNode.setUserData(EditorUtils.MODEL, spatial);
+
+//            List<Spatial> removeList = new ArrayList<>();
+            List<Spatial> addList = new ArrayList<>();
+
+            for (int i = 0; i < selectedInstancedNode.getQuantity(); i++) {
+                Spatial removedObj = selectedInstancedNode.getChild(i);
+//                removeList.add(removedObj);
+
+                Spatial clone = spatial.clone(false);
+                clone.setLocalRotation(removedObj.getLocalRotation().clone());
+                clone.setLocalScale(removedObj.getLocalScale().clone());
+                clone.setLocalTranslation(removedObj.getLocalTranslation().clone());
+                addList.add(clone);
+
+            }
+
+//            for (int i = 0; i < removeList.size(); i++) {
+//                Spatial rem = removeList.get(i);
+//                if (rem.getParent() != null) {
+//                    rem.removeFromParent();
+//                }
+//
+//            }
+            selectedInstancedNode.removeFromParent();
+            InstancedNode instancedNode = new InstancedNode(selectedInstancedNode.getName());
+            instancedNode.setQueueBucket(RenderQueue.Bucket.Transparent);
+            instancedNode.setLocalScale(selectedInstancedNode.getLocalScale().clone());
+            instancedNode.setUserData(EditorUtils.MODEL, spatial);            
+            terrain.attachChild(instancedNode);
+            selectedInstancedNode = instancedNode;            
+
+            for (int i = 0; i < addList.size(); i++) {
+                Spatial add = addList.get(i);
+                selectedInstancedNode.attachChild(add);
+
+            }
+
+            selectedInstancedNode.instance();
+
+        }
+
+    }
+
     public Geometry getSelectedGrass() {
         return selectedBatchLayer.getUserData(EditorUtils.MODEL);
     }
@@ -1017,7 +1093,7 @@ public class TerrainPanel extends Panel {
     public InstancedNode getSelectedInstancedNode() {
         return selectedInstancedNode;
     }
-    
+
     public Spatial getSelectedModel() {
         return selectedInstancedNode.getUserData(EditorUtils.MODEL);
     }

@@ -171,6 +171,15 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             }
 
         });
+        
+        terrainPanel.addTerrainModelButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                System.out.println("Selected model: " + uid);
+                importModel();
+            }
+
+        });
 
         waterPanel = new WaterPanel(hudPanel);
         waterPanel.leftCenter(EditorUtils.TOOLBAR_WIDTH, 0);
@@ -669,11 +678,47 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 baseApplication.getGameSaves().save();
 
                 for (int i = 0; i < selectedFiles.length; i++) {
-                    importModelFromFile(selectedFiles[i]);
+                    importModelFromFile(selectedFiles[i], false);
                 }
             }
         }
     }
+    
+    protected void importModel() {
+        JFileChooser fileChooser = new JFileChooser();
+        String destFolder = System.getProperty("user.home");
+        if (baseApplication.getGameSaves().getGameData().getProperties().get(EditorUtils.LAST_LOCATION) != null) {
+            destFolder = (String) baseApplication.getGameSaves().getGameData().getProperties().get(EditorUtils.LAST_LOCATION);
+        }
+
+        fileChooser.setCurrentDirectory(new File(destFolder));
+//        fileChooser.setMultiSelectionEnabled(true);
+        fileChooser.setFileFilter(new FileFilter() {
+            @Override
+            public boolean accept(File file) {
+                return EditorUtils.isCompatableModel(file) || file.isDirectory();
+            }
+
+            @Override
+            public String getDescription() {
+                return EditorUtils.getCompatableModelExtensions();
+            }
+        });
+
+        int result = fileChooser.showOpenDialog(null);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+
+            if (selectedFile != null) {
+                baseApplication.getGameSaves().getGameData().getProperties().setProperty(EditorUtils.LAST_LOCATION, selectedFile.getPath());
+                baseApplication.getGameSaves().save();
+
+                importModelFromFile(selectedFile, true);
+            }
+        }
+    }
+    
 
     @Override
     public void messageReceived(String message, Object object) {
@@ -830,10 +875,12 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 
                 //TREE1:
                 InstancedNode treeNode1 = new InstancedNode(TerrainAction.BATCH_TREES1);
+                treeNode1.setQueueBucket(RenderQueue.Bucket.Transparent);
                 treeNode1.setLocalScale(1, heightScale, 1);
                 terrain.attachChild(treeNode1);
-                Node treeModel1 = (Node) assetManager.loadModel("Models/trees/low_poly_pine/scene.j3o");
+                Node treeModel1 = (Node) assetManager.loadModel("Models/trees/pine_tree/scene.j3o");
                 treeNode1.setUserData(EditorUtils.MODEL, treeModel1);
+                MaterialUtils.convertTexturesToEmbedded(treeModel1);
 //                
 //                for (int i = 0; i < 1000; i++) {
 //                    Spatial clone = treeModel1.clone(false);
@@ -1037,7 +1084,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
     }
 
-    private Spatial importModelFromFile(File selectedFile) {
+    private Spatial importModelFromFile(File selectedFile, boolean terrainModel) {
         if (selectedFile != null && EditorUtils.isCompatableModel(selectedFile)) {
             System.out.println("Importing model: " + selectedFile);
             System.out.println("Parent: " + selectedFile.getParent());
@@ -1073,7 +1120,13 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
             //NB
             MaterialUtils.convertTexturesToEmbedded(m);
-            editNode.attachChild(m);
+            
+            if (terrainModel) {
+                terrainPanel.setInstanceModel(m);
+            } else {
+                editNode.attachChild(m);
+            }
+            
 
             return m;
         }

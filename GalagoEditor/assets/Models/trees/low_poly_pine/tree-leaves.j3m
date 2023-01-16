@@ -1,0 +1,9 @@
+Material MyMaterial : Common/MatDefs/Light/PBRLighting.j3md {
+    MaterialParameters {
+        UseInstancing : true
+        BaseColorMap : "Models/trees/low_poly_pine/textures/Material.001_baseColor.png"
+    }
+    AdditionalRenderState {
+
+    }
+}

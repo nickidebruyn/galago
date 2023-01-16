@@ -6,9 +6,11 @@ import com.jme3.asset.AssetManager;
 import com.jme3.export.binary.BinaryExporter;
 import com.jme3.export.binary.BinaryImporter;
 import com.jme3.scene.BatchNode;
+import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.SceneGraphVisitorAdapter;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.instancing.InstancedNode;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -63,11 +65,10 @@ public class EditorUtils {
         try {
             exporter.save(spatial, file);
             System.out.println("Spatial " + file.getName() + " successfully saved!");
-            
+
             //TODO: (2022-12-14) We can put this code back when we need compression on the files
 //            String gzipFile = file.getPath().replace(".j3o", ".j3g");            
 //            compressGzipFile(file.getPath(), gzipFile);
-
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -110,8 +111,9 @@ public class EditorUtils {
 
     /**
      * Helper method to decompress a file to gzip
+     *
      * @param gzipFile
-     * @param newFile 
+     * @param newFile
      */
     private static void decompressGzipFile(String gzipFile, String newFile) {
         try {
@@ -134,8 +136,9 @@ public class EditorUtils {
 
     /**
      * Helper method to compress a file to gzip
+     *
      * @param file
-     * @param gzipFile 
+     * @param gzipFile
      */
     private static void compressGzipFile(String file, String gzipFile) {
         try {
@@ -154,6 +157,25 @@ public class EditorUtils {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+    }
+
+    public static void dumpScene(Spatial s) {
+        System.out.println("************************* SCENE DUMP ******************************");
+        s.depthFirstTraversal(new SceneGraphVisitorAdapter() {
+            @Override
+            public void visit(Node node) {
+                System.out.println("NODE: " + node.getName());
+
+            }
+
+            @Override
+            public void visit(Geometry geom) {
+                System.out.println("\tGEOM: " + geom.getName());
+
+            }
+
+        });
 
     }
 

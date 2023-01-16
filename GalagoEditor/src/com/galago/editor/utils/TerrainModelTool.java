@@ -6,11 +6,11 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.SceneGraphVisitorAdapter;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.instancing.InstancedNode;
 import com.jme3.terrain.geomipmap.TerrainQuad;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 2022-12-19: The terrain model paint tool will paint a specified grass geomertry to
@@ -24,6 +24,7 @@ public class TerrainModelTool {
     private int count = 0;
     private CollisionResults results = new CollisionResults();
     private Ray ray = new Ray();
+    private List<Spatial> removeList = new ArrayList<>();
 
     public void paintModel(TerrainQuad terrain, InstancedNode instanceNode, Vector3f worldLoc, float radius, float density, float scale, Spatial model) {
 
@@ -55,13 +56,13 @@ public class TerrainModelTool {
                     if (results.size() > 0) {
                         CollisionResult cr = results.getClosestCollision();
                         if (cr.getContactNormal().y <= 1.0f
-                                && cr.getContactNormal().y >= 0.9f) {
+                                && cr.getContactNormal().y >= 0.96f) {
 
-                            System.out.println("Painting tree: " + model.getName() + "; position: " + loc);
+//                            System.out.println("Painting tree: " + model.getName() + "; position: " + loc);
 
                             Spatial painted = model.clone(false);
                             painted.setLocalTranslation(loc);
-                            painted.setLocalScale(scale + FastMath.nextRandomInt(-5, 5) * 0.1f);
+                            painted.setLocalScale(scale + (FastMath.nextRandomInt(-3, 3) * 0.1f));
                             MaterialUtils.setInstancingOnAllMaterials(painted);
                             instanceNode.attachChild(painted);
 
@@ -78,23 +79,31 @@ public class TerrainModelTool {
 
         } else {
             //Remove mdoels
-//            System.out.println("Removing grass");            
-            instanceNode.depthFirstTraversal(new SceneGraphVisitorAdapter() {
-                @Override
-                public void visit(Geometry geom) {                    
-                    //TODO: Need to find a solution to remove models
-//                    if (!geom.getName().contains("batch") && worldLoc.distance(geom.getWorldTranslation()) < radius) {
-////                        System.out.println("Removing: " + geom.getName());
-//                        geom.removeFromParent();
-//                    }
-
+//            System.out.println("Removing grass");
+            removeList.clear();
+            for (int i = 0; i < instanceNode.getQuantity(); i++) {
+                Spatial removedObj = instanceNode.getChild(i);
+                if (worldLoc.distance(removedObj.getWorldTranslation()) < radius) {
+                    removeList.add(removedObj);
+                    
                 }
-
-            });
+                
+            }
+            
+            for (int i = 0; i < removeList.size(); i++) {
+                Spatial rem = removeList.get(i);
+                if (rem.getParent() != null) {
+                    rem.removeFromParent();
+                }
+                
+            }
             
             instanceNode.instance();
 
         }
+        
+        //DUMP SCENE
+        EditorUtils.dumpScene(instanceNode);
 
     }
 

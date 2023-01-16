@@ -11,6 +11,7 @@ Material MyMaterial : Common/MatDefs/Light/PBRLighting.j3md {
         EmissiveIntensity :  2.0
         Specular :  1.0 1.0 1.0 1.0
         UseInstancing : true
+        BaseColorMap : "Models/trees/low_poly_pine/textures/Material.002_baseColor.png"
     }
     AdditionalRenderState {
       PointSprite On
