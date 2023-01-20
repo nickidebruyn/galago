@@ -9,10 +9,13 @@ import com.bruynhuis.galago.ui.panel.Panel;
 import com.bruynhuis.galago.ui.panel.VFlowPanel;
 import com.galago.editor.ui.ButtonGroup;
 import com.galago.editor.ui.ColorButton;
+import com.galago.editor.ui.FloatField;
 import com.galago.editor.ui.LongField;
 import com.galago.editor.ui.SliderField;
 import com.galago.editor.ui.SpinnerButton;
+import com.galago.editor.ui.TextField;
 import com.galago.editor.utils.EditorUtils;
+import com.jme3.math.ColorRGBA;
 
 /**
  *
@@ -23,6 +26,7 @@ public abstract class AbstractPropertiesPanel extends Panel {
     protected VFlowPanel flowPanel;
     protected TouchButton header;
     protected TouchButton hoverButton;
+    protected float verticalSpacing = 32;
 
     public AbstractPropertiesPanel(Panel parent, String name) {
         super(parent, "Interface/panel-left.png", EditorUtils.HIERARCHYBAR_WIDTH, parent.getWindow().getHeight());
@@ -61,20 +65,21 @@ public abstract class AbstractPropertiesPanel extends Panel {
     protected abstract void reload();
 
     protected TouchButton createHeader(String uid, String text) {
-        TouchButton header = new TouchButton(flowPanel, uid, "Interface/hierarchy-header.png", EditorUtils.HIERARCHYBAR_WIDTH - 4, 32);
+        TouchButton header = new TouchButton(flowPanel, uid, "Interface/hierarchy-header.png", EditorUtils.HIERARCHYBAR_WIDTH - 4, verticalSpacing);
         header.setText(text);
         header.setTextColor(EditorUtils.theme.getHeaderTextColor());
         header.setBackgroundColor(EditorUtils.theme.getHeaderColor());
         header.setTextAlignment(TextAlign.LEFT);
+        header.setFontSize(16);
         return header;
     }
 
     protected SpinnerButton createLabeledSpinner(String text, String id, String[] ops) {
         System.out.println("Setting options: " + ops);
-        Panel p = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, 32);
+        Panel p = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, verticalSpacing);
         flowPanel.add(p);
 
-        Label label = new Label(p, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, 32);
+        Label label = new Label(p, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, verticalSpacing);
         label.setAlignment(TextAlign.LEFT);
         label.setVerticalAlignment(TextAlign.CENTER);
         label.leftCenter(5, 0);
@@ -84,12 +89,12 @@ public abstract class AbstractPropertiesPanel extends Panel {
 
         return spinner;
     }
-    
+
     protected ColorButton createLabeledColorButton(String text, String id) {
-        Panel p = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, 32);
+        Panel p = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, verticalSpacing);
         flowPanel.add(p);
 
-        Label label = new Label(p, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, 32);
+        Label label = new Label(p, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, verticalSpacing);
         label.setAlignment(TextAlign.LEFT);
         label.setVerticalAlignment(TextAlign.CENTER);
         label.leftCenter(5, 0);
@@ -98,13 +103,13 @@ public abstract class AbstractPropertiesPanel extends Panel {
         button.rightCenter(5, 0);
 
         return button;
-    }    
+    }
 
     protected SliderField createLabeledSlider(String text, int min, int max, int increment) {
-        Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, 32);
+        Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, verticalSpacing);
         flowPanel.add(panel);
 
-        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, 32);
+        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, verticalSpacing);
         label.setAlignment(TextAlign.LEFT);
         label.setVerticalAlignment(TextAlign.CENTER);
         label.leftCenter(5, 0);
@@ -116,10 +121,10 @@ public abstract class AbstractPropertiesPanel extends Panel {
     }
 
     protected SliderField createLabeledSliderDecimal(String text, float min, float max, float increment) {
-        Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, 32);
+        Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, verticalSpacing);
         flowPanel.add(panel);
 
-        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, 32);
+        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, verticalSpacing);
         label.setAlignment(TextAlign.LEFT);
         label.setVerticalAlignment(TextAlign.CENTER);
         label.leftCenter(5, 0);
@@ -132,15 +137,50 @@ public abstract class AbstractPropertiesPanel extends Panel {
     }
 
     protected LongField createLabeledLongInput(String text, String id) {
-        Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, 32);
+        Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, verticalSpacing);
         flowPanel.add(panel);
 
-        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, 32);
+        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, verticalSpacing);
         label.setAlignment(TextAlign.LEFT);
         label.setVerticalAlignment(TextAlign.CENTER);
         label.leftCenter(5, 0);
 
         LongField field = new LongField(panel, id);
+        field.rightCenter(5, 0);
+
+        return field;
+    }
+    
+    protected FloatField createLabeledFloatInput(String text, String id, float labelLeftPadding, ColorRGBA textColor) {
+        Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, verticalSpacing);
+        flowPanel.add(panel);
+
+        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, verticalSpacing);
+        label.setAlignment(TextAlign.LEFT);
+        label.setVerticalAlignment(TextAlign.CENTER);
+        label.leftCenter(labelLeftPadding, 0);
+        label.setTextColor(textColor);
+
+        FloatField field = new FloatField(panel, id);
+        field.rightCenter(5, 0);
+
+        return field;
+    }
+    
+    protected FloatField createLabeledFloatInput(String text, String id) {
+        return createLabeledFloatInput(text, id, 5, ColorRGBA.White);
+    }
+
+    protected TextField createLabeledTextInput(String text, String id) {
+        Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, verticalSpacing);
+        flowPanel.add(panel);
+
+        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, verticalSpacing);
+        label.setAlignment(TextAlign.LEFT);
+        label.setVerticalAlignment(TextAlign.CENTER);
+        label.leftCenter(5, 0);
+
+        TextField field = new TextField(panel, id);
         field.rightCenter(5, 0);
 
         return field;

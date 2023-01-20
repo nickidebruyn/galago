@@ -152,7 +152,7 @@ public class Gizmo extends Node implements PickListener {
             @Override
             protected void controlUpdate(float f) {
                 
-                System.out.println("Cntrl down = " + Input.get("ctrl"));
+//                System.out.println("Cntrl down = " + Input.get("ctrl"));
                 
                 if (Input.get("ctrl") == 1) {
                     ctrlDown = true;                    

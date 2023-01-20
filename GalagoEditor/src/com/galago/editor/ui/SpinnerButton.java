@@ -20,6 +20,7 @@ public class SpinnerButton extends Spinner {
         setFontSize(14);
         setTextColor(EditorUtils.theme.getButtonTextColor());
         addEffect(new TouchEffect(this));
+        
     }
 
 }

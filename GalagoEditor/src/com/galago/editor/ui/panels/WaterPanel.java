@@ -43,6 +43,8 @@ public class WaterPanel extends AbstractPropertiesPanel {
     @Override
     protected void init() {
 
+        verticalSpacing = 28;
+        
         createHeader("water", "Water Settings");
 
         onOffButton = createLabeledSpinner("Enabled", "water-enabled", new String[]{"Off", "On"});

@@ -5,7 +5,7 @@ package com.galago.editor.utils;
  * @author ndebruyn
  */
 public class Action {
-    
+
     public static final String SELECT = "select";
     public static final String PAINT = "paint";
     public static final String TRANSFORM = "transform";
@@ -27,8 +27,9 @@ public class Action {
     public static final String SAVE = "save";
     public static final String SETTINGS = "settings";
     public static final String HELP = "help";
-    
+
     public static final String UI_OVER = "ui_over";
     public static final String UI_OFF = "ui_off";
-    
+    public static final String UPDATE_OBJECT = "update_object";
+
 }

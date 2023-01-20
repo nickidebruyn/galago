@@ -27,6 +27,8 @@ import com.galago.editor.ui.panels.TerrainPanel;
 import com.galago.editor.ui.panels.ToolbarPanel;
 import com.galago.editor.ui.actions.TerrainAction;
 import com.galago.editor.ui.dialogs.TerrainDialog;
+import com.galago.editor.ui.panels.GeometryPropertiesPanel;
+import com.galago.editor.ui.panels.NodePropertiesPanel;
 import com.galago.editor.ui.panels.SkyPanel;
 import com.galago.editor.ui.panels.WaterPanel;
 import com.galago.editor.utils.Action;
@@ -71,6 +73,7 @@ import com.jme3.scene.shape.Sphere;
 import com.jme3.shadow.DirectionalLightShadowFilter;
 import com.jme3.shadow.DirectionalLightShadowRenderer;
 import com.jme3.shadow.EdgeFilteringMode;
+import com.jme3.terrain.geomipmap.TerrainPatch;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.texture.Texture;
 import com.jme3.water.WaterFilter;
@@ -95,6 +98,8 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
     private TerrainPanel terrainPanel;
     private WaterPanel waterPanel;
     private SkyPanel skyPanel;
+    private GeometryPropertiesPanel geometryPropertiesPanel;
+    private NodePropertiesPanel nodePropertiesPanel;
     private Label statusLabel;
     private TouchButton messageBubble;
 
@@ -140,6 +145,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
     private boolean overUI = false;
     private boolean statsVisible = false;
     private boolean gridVisible = true;
+    private String activeToolbarItem;
 
     @Override
     protected void init() {
@@ -171,7 +177,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             }
 
         });
-        
+
         terrainPanel.addTerrainModelButtonListener(new TouchButtonAdapter() {
             @Override
             public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
@@ -186,6 +192,12 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
         skyPanel = new SkyPanel(hudPanel);
         skyPanel.leftCenter(EditorUtils.TOOLBAR_WIDTH, 0);
+
+        geometryPropertiesPanel = new GeometryPropertiesPanel(hudPanel);
+        geometryPropertiesPanel.leftCenter(EditorUtils.TOOLBAR_WIDTH, 0);
+
+        nodePropertiesPanel = new NodePropertiesPanel(hudPanel);
+        nodePropertiesPanel.leftCenter(EditorUtils.TOOLBAR_WIDTH, 0);
 
         statusLabel = new Label(hudPanel, "Status: None", 16, 600, 30);
         statusLabel.setAlignment(TextAlign.RIGHT);
@@ -281,6 +293,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             activateFlyCam();
 
         } else if (panel.equals(skyPanel)) {
+            skyPanel.setShadowFilter(shadowFilter);
             skyPanel.setAmbientLight(ambientLight);
             skyPanel.setSunLight(sunLight);
             skyPanel.setLightProbe(lightProbe);
@@ -290,6 +303,12 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             transformGizmo.removeFromParent();
             paintGizmo.removeFromParent();
             activateFlyCam();
+
+        } else if (panel.equals(geometryPropertiesPanel)) {
+            geometryPropertiesPanel.setGeometry((Geometry) selectedSpatial);
+
+        } else if (panel.equals(nodePropertiesPanel)) {
+            nodePropertiesPanel.setNode((Node) selectedSpatial);
 
         } else {
             transformGizmo.setTarget(null);
@@ -308,6 +327,8 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         terrainPanel.hide();
         waterPanel.hide();
         skyPanel.hide();
+        geometryPropertiesPanel.hide();
+        nodePropertiesPanel.hide();
     }
 
     @Override
@@ -482,7 +503,9 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         oceanFilter.setShoreHardness(1.0f);
         fpp.addFilter(oceanFilter);
 
-//        fpp.addFilter(shadowFilter);
+        shadowFilter.setEnabled(false);
+        fpp.addFilter(shadowFilter);
+
         //Smooth edging
         fXAAFilter = new FXAAFilter();
         fXAAFilter.setEnabled(true);
@@ -542,11 +565,11 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             }
             System.out.println("Game to save: " + selectedFile);
             try {
-                
+
                 editNode.setUserData(EditorUtils.POST_PROCESS_FILTER, fpp);
                 editNode.setUserData(EditorUtils.CAMERA_POSITION, camera.getLocation());
                 editNode.setUserData(EditorUtils.CAMERA_ROTATION, camera.getRotation());
-                
+
                 EditorUtils.saveSpatial(editNode, selectedFile);
                 showMessage("File successfully saved!");
                 baseApplication.getGameSaves().getGameData().getProperties().setProperty(EditorUtils.LAST_LOCATION, selectedFile.getPath());
@@ -594,49 +617,73 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 editNode.removeFromParent();
                 editNode = (Node) spatial;
                 rootNode.attachChild(editNode);
-                
+
                 //Set the lights.
                 //Please remember that this editor only handles 1 of each of these lights,
                 //Ambient, Directions, LightProbe
                 for (int i = 0; i < editNode.getLocalLightList().size(); i++) {
                     Light light = editNode.getLocalLightList().get(i);
                     if (light instanceof AmbientLight) {
-                        this.ambientLight = (AmbientLight)light;
-                        
+                        this.ambientLight = (AmbientLight) light;
+
                     } else if (light instanceof DirectionalLight) {
-                        this.sunLight = (DirectionalLight)light;
-                        
+                        this.sunLight = (DirectionalLight) light;
+
                     } else if (light instanceof LightProbe) {
-                        this.lightProbe = (LightProbe)light;
-                        
+                        this.lightProbe = (LightProbe) light;
+
                     } else {
                         //TODO: What to do with other lights
                     }
-                    
-                }                
-                
+
+                }
+
                 //Set the fpp
                 if (editNode.getUserData(EditorUtils.POST_PROCESS_FILTER) != null) {
                     System.out.println("FOUND FPP: -------------------------------------------");
                     FilterPostProcessor filterPostProcessor = editNode.getUserData(EditorUtils.POST_PROCESS_FILTER);
-                    
+
                     baseApplication.getViewPort().removeProcessor(fpp);
                     baseApplication.getViewPort().addProcessor(filterPostProcessor);
-                    
+
                     oceanFilter = filterPostProcessor.getFilter(WaterFilter.class);
-                    oceanFilter.setLightDirection(sunLight.getDirection());
-                    oceanFilter.setLightColor(sunLight.getColor());
-                    
+
+                    if (oceanFilter != null) {
+                        oceanFilter.setLightDirection(sunLight.getDirection());
+                        oceanFilter.setLightColor(sunLight.getColor());
+                    }
+
+                    DirectionalLightShadowFilter savedShadowFilter = filterPostProcessor.getFilter(DirectionalLightShadowFilter.class);
+                    if (savedShadowFilter != null) {
+                        filterPostProcessor.removeFilter(savedShadowFilter);
+                        
+                        shadowFilter.setEdgeFilteringMode(savedShadowFilter.getEdgeFilteringMode());
+                        shadowFilter.setEdgesThickness(savedShadowFilter.getEdgesThickness());
+                        shadowFilter.setEnabled(savedShadowFilter.isEnabled());
+                        shadowFilter.setEnabledStabilization(savedShadowFilter.isEnabledStabilization());
+                        shadowFilter.setLambda(savedShadowFilter.getLambda());
+                        shadowFilter.setName(savedShadowFilter.getName());
+                        shadowFilter.setRenderBackFacesShadows(savedShadowFilter.isRenderBackFacesShadows());
+                        shadowFilter.setShadowCompareMode(savedShadowFilter.getShadowCompareMode());
+                        shadowFilter.setShadowIntensity(savedShadowFilter.getShadowIntensity());
+                        shadowFilter.setShadowZExtend(savedShadowFilter.getShadowZExtend());
+                        shadowFilter.setShadowZFadeLength(savedShadowFilter.getShadowZFadeLength());
+                        shadowFilter.setLight(sunLight);
+                        
+                        filterPostProcessor.addFilter(shadowFilter);
+
+                    }
+
                     fpp = filterPostProcessor;
                 }
-                
+
                 //Set the camera
                 if (editNode.getUserData(EditorUtils.CAMERA_POSITION) != null) {
                     camera.setLocation(editNode.getUserData(EditorUtils.CAMERA_POSITION));
                     camera.setRotation(editNode.getUserData(EditorUtils.CAMERA_ROTATION));
-                    
-                }                
-                                
+
+                }
+
                 lastSavedFile = fileChooser.getSelectedFile();
                 showMessage("File successfully opened!");
 
@@ -683,7 +730,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             }
         }
     }
-    
+
     protected void importModel() {
         JFileChooser fileChooser = new JFileChooser();
         String destFolder = System.getProperty("user.home");
@@ -718,7 +765,6 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             }
         }
     }
-    
 
     @Override
     public void messageReceived(String message, Object object) {
@@ -737,14 +783,14 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
         } else if (Action.UI_OFF.equals(message)) {
             overUI = false;
-            
+
         } else if (Action.ADD_SKY.equals(message)) {
             if (getSky() == null) {
                 addSky();
             } else {
                 getSky().removeFromParent();
             }
-            
+
             showPanel(skyPanel);
 
         } else if (Action.ADD.equals(message)) {
@@ -872,7 +918,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 grassModel3.getChild(0).setMaterial(MaterialUtils.createGrassMaterial(assetManager, "Textures/vegetation/grass-blades3.png", 0.8f, new Vector2f(0, 0)));
                 grassNode3.setUserData(EditorUtils.MODEL, grassModel3.getChild(0));
                 MaterialUtils.convertTextureToEmbeddedByName(((Geometry) grassModel3.getChild(0)).getMaterial(), "DiffuseMap");
-                
+
                 //TREE1:
                 InstancedNode treeNode1 = new InstancedNode(TerrainAction.BATCH_TREES1);
                 treeNode1.setQueueBucket(RenderQueue.Bucket.Transparent);
@@ -887,11 +933,10 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 //                    clone.setLocalTranslation(FastMath.nextRandomInt(-200, 200), 0, FastMath.nextRandomInt(-200, 200));
 //                    treeNode1.attachChild(clone);
 //                }
-                                
+
                 treeNode1.instance();
                 //TODO:
 //                MaterialUtils.convertTextureToEmbeddedByName(((Geometry) grassModel3.getChild(0)).getMaterial(), "DiffuseMap");
-                
 
                 editNode.attachChild(terrain);
 
@@ -924,24 +969,20 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         } else if (Action.HIERARCHY.equals(message)) {
             showPanel(hierarchyPanel);
 
+        } else if (Action.UPDATE_OBJECT.equals(message)) {
+            transformGizmo.setLocalTranslation(selectedSpatial.getWorldTranslation());
+
         } else if (Action.SELECT.equals(message)) {
             if (object == null) {
-                transformGizmo.setTarget(null);
-                transformGizmo.removeFromParent();
-                activateFlyCam();
-                hidePanels();
+
+                this.clearSelectedObject();
+                this.setActiveToolbarItem(Action.SELECT);
 
             } else {
-                rootNode.attachChild(transformGizmo);
+
                 Spatial spatial = (Spatial) object;
-                transformGizmo.setLocalTranslation(spatial.getWorldTranslation());
-//                transformGizmo.setLocalRotation(spatial.getWorldRotation());
-
-                activateOrbitCam();
-
-                chaseCameraTarget.setLocalTranslation(spatial.getWorldTranslation().clone());
-                selectedSpatial = spatial;
-                transformGizmo.setTarget(spatial);
+                log("Spatial selection: " + spatial);
+                this.setSelectedObject(spatial);
 
             }
 
@@ -1120,13 +1161,12 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
             //NB
             MaterialUtils.convertTexturesToEmbedded(m);
-            
+
             if (terrainModel) {
                 terrainPanel.setInstanceModel(m);
             } else {
                 editNode.attachChild(m);
             }
-            
 
             return m;
         }
@@ -1243,9 +1283,24 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         if (pickEvent.isLeftButton()) {
             leftMouseDown = pickEvent.isKeyDown();
 
+            //If we are doing terrain editing
             if (pickEvent.getContactPoint() != null && paintGizmo.getParent() != null) {
-
                 flattenPoint.setY(pickEvent.getContactPoint().y);
+            }
+
+            //This is when we want to select an object in the scene
+            if (isObjectSelectionActive()) {
+                if (leftMouseDown) {
+                    log("Picking object: " + pickEvent.getContactObject());
+
+                    //Avoid selection of the terrain
+                    if (!(pickEvent.getContactObject() instanceof TerrainPatch)) {
+                        setSelectedObject(pickEvent.getContactObject());
+                        setActiveToolbarItem(null);
+
+                    }
+
+                }
 
             }
         }
@@ -1346,9 +1401,17 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
     @Override
     public void gizmoUpdate(Vector3f position, Quaternion rotations, Vector3f scale) {
         if (selectedSpatial != null) {
+
+            if (selectedSpatial instanceof Geometry) {
+                geometryPropertiesPanel.setGeometry((Geometry) selectedSpatial);
+
+            } else if (selectedSpatial instanceof Node) {
+                nodePropertiesPanel.setNode((Node) selectedSpatial);
+
+            }
+
 //            selectedSpatial.setLocalTranslation(position.x, position.y, position.z);
 //            selectedSpatial.setLocalRotation(rotations.clone());
-
         }
     }
 
@@ -1370,5 +1433,42 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
     private void activateOrbitCam() {
         flyCamAppState.setEnabled(false);
         chaseCamera.setEnabled(true);
+    }
+
+    private boolean isObjectSelectionActive() {
+        return this.activeToolbarItem != null && this.activeToolbarItem.equals(Action.SELECT);
+    }
+
+    private void setActiveToolbarItem(String action) {
+        this.activeToolbarItem = action;
+
+    }
+
+    private void clearSelectedObject() {
+        transformGizmo.setTarget(null);
+        transformGizmo.removeFromParent();
+        activateFlyCam();
+        hidePanels();
+    }
+
+    private void setSelectedObject(Spatial spatial) {
+        rootNode.attachChild(transformGizmo);
+        transformGizmo.setLocalTranslation(spatial.getWorldTranslation());
+//                transformGizmo.setLocalRotation(spatial.getWorldRotation());
+
+        activateOrbitCam();
+
+        chaseCameraTarget.setLocalTranslation(spatial.getWorldTranslation().clone());
+        selectedSpatial = spatial;
+        transformGizmo.setTarget(spatial);
+
+        if (selectedSpatial instanceof Geometry) {
+            showPanel(geometryPropertiesPanel);
+
+        } else if (selectedSpatial instanceof Node) {
+            showPanel(nodePropertiesPanel);
+
+        }
+
     }
 }
