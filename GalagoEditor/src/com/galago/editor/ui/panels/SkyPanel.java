@@ -1,20 +1,22 @@
 package com.galago.editor.ui.panels;
 
+import com.bruynhuis.galago.ui.listener.KeyboardListener;
 import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
 import com.bruynhuis.galago.ui.listener.ValueChangeListener;
 import com.bruynhuis.galago.ui.panel.Panel;
 import com.galago.editor.ui.ColorButton;
+import com.galago.editor.ui.FloatField;
 import com.galago.editor.ui.LongField;
 import com.galago.editor.ui.SliderField;
 import com.galago.editor.ui.SpinnerButton;
 import com.galago.editor.utils.Action;
 import com.galago.editor.utils.MaterialUtils;
+import com.jme3.input.event.KeyInputEvent;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.light.LightProbe;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
-import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.shadow.DirectionalLightShadowFilter;
 import com.jme3.shadow.EdgeFilteringMode;
@@ -55,6 +57,9 @@ public class SkyPanel extends AbstractPropertiesPanel {
     private SpinnerButton shadowsOnOffButton;
     private SpinnerButton shadowEdgeFilterSpinner;
     private LongField shadowEdgeThickness;
+    private FloatField shadowIntensity;
+    private FloatField shadowZExtend;
+    private FloatField shadowZFadeLength;
 
     public SkyPanel(Panel parent) {
         super(parent, "sky");
@@ -244,6 +249,42 @@ public class SkyPanel extends AbstractPropertiesPanel {
                 //reload();
             }
         });
+        
+        shadowEdgeThickness = createLabeledLongInput("Thickness", "shadow-thickness");
+        shadowEdgeThickness.addKeyboardListener(new KeyboardListener() {
+            @Override
+            public void doKeyPressed(KeyInputEvent evt) {
+                shadowFilter.setEdgesThickness((int)shadowEdgeThickness.getValue());
+            }
+            
+        });
+        
+        shadowIntensity = createLabeledFloatInput("Intensity", "shadow-intensity");
+        shadowIntensity.addKeyboardListener(new KeyboardListener() {
+            @Override
+            public void doKeyPressed(KeyInputEvent evt) {
+                shadowFilter.setShadowIntensity(shadowIntensity.getValue());
+            }
+            
+        });
+        
+        shadowZExtend = createLabeledFloatInput("Depth", "shadow-depth");
+        shadowZExtend.addKeyboardListener(new KeyboardListener() {
+            @Override
+            public void doKeyPressed(KeyInputEvent evt) {
+                shadowFilter.setShadowZExtend(shadowZExtend.getValue());
+            }
+            
+        });
+        
+        shadowZFadeLength = createLabeledFloatInput("Fade length", "shadow-fade");
+        shadowZFadeLength.addKeyboardListener(new KeyboardListener() {
+            @Override
+            public void doKeyPressed(KeyInputEvent evt) {
+                shadowFilter.setShadowZFadeLength(shadowZFadeLength.getValue());
+            }
+            
+        });
 
     }
 
@@ -289,30 +330,40 @@ public class SkyPanel extends AbstractPropertiesPanel {
         //Do this only of shadows are enabled
         if (shadowFilter != null && shadowFilter.isEnabled()) {
             //TODO: Show the shadow options
-            
+
             //"Nearest", "Bilinear", "Dither", "PCF4", "PCFPOISSON", "PCF8"
-            
             if (shadowFilter.getEdgeFilteringMode().equals(EdgeFilteringMode.Nearest)) {
                 shadowEdgeFilterSpinner.setSelection(0);
-                
+
             } else if (shadowFilter.getEdgeFilteringMode().equals(EdgeFilteringMode.Bilinear)) {
                 shadowEdgeFilterSpinner.setSelection(1);
-                
+
             } else if (shadowFilter.getEdgeFilteringMode().equals(EdgeFilteringMode.Dither)) {
                 shadowEdgeFilterSpinner.setSelection(2);
-             
+
             } else if (shadowFilter.getEdgeFilteringMode().equals(EdgeFilteringMode.PCF4)) {
                 shadowEdgeFilterSpinner.setSelection(3);
-             
+
             } else if (shadowFilter.getEdgeFilteringMode().equals(EdgeFilteringMode.PCFPOISSON)) {
                 shadowEdgeFilterSpinner.setSelection(4);
-             
+
             } else if (shadowFilter.getEdgeFilteringMode().equals(EdgeFilteringMode.PCF8)) {
                 shadowEdgeFilterSpinner.setSelection(5);
-             
+
             }
 
+            shadowEdgeThickness.setValue(shadowFilter.getEdgesThickness());
+            shadowIntensity.setValue(shadowFilter.getShadowIntensity());
+            shadowZExtend.setValue(shadowFilter.getShadowZExtend());
+            shadowZFadeLength.setValue(shadowFilter.getShadowZFadeLength());
         }
+
+        //set some field visibility
+        shadowEdgeFilterSpinner.getParent().setVisible(shadowFilter != null && shadowFilter.isEnabled());
+        shadowEdgeThickness.getParent().setVisible(shadowFilter != null && shadowFilter.isEnabled());
+        shadowIntensity.getParent().setVisible(shadowFilter != null && shadowFilter.isEnabled());        
+        shadowZExtend.getParent().setVisible(shadowFilter != null && shadowFilter.isEnabled());
+        shadowZFadeLength.getParent().setVisible(shadowFilter != null && shadowFilter.isEnabled());
 
     }
 

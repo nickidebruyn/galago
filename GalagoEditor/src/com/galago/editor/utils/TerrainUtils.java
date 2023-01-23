@@ -2,7 +2,6 @@ package com.galago.editor.utils;
 
 import com.galago.editor.terrain.FlatHeightmap;
 import com.galago.editor.terrain.IslandHeightMap;
-import com.galago.editor.ui.actions.TerrainAction;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.TextureKey;
 import com.jme3.asset.plugins.FileLocator;
@@ -10,7 +9,6 @@ import com.jme3.material.Material;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
-import com.jme3.scene.BatchNode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.SceneGraphVisitorAdapter;
 import com.jme3.system.JmeSystem;
@@ -573,7 +571,7 @@ public class TerrainUtils {
 //    terrain.setMaterial(generateHeightBasedMaterial(assetManager));
 //    terrain.setMaterial(generateLitHeightBasedMaterial(assetManager));
 //    terrain.setLocalTranslation(0, -100, 0);
-        terrain.setLocalScale(1f, 0.25f, 1f);
+        terrain.setLocalScale(1f, 1f, 1f);
 
         return terrain;
     }
@@ -676,11 +674,13 @@ public class TerrainUtils {
     }
 
     /**
-     * This method can be used to adjust all geometry on the terrain such as grass and rocks to be
-     * able to automatically adjust to the height of the terrain, for performance it will take into acount the radius of painting.
+     * This method can be used to adjust all geometry on the terrain such as
+     * grass and rocks to be able to automatically adjust to the height of the
+     * terrain, for performance it will take into acount the radius of painting.
+     *
      * @param terrain
      * @param worldLoc
-     * @param radius 
+     * @param radius
      */
     public static void updateVegetationBatches(TerrainQuad terrain, Vector3f worldLoc, float radius) {
 

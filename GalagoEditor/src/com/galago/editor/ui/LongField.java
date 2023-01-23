@@ -16,18 +16,19 @@ public class LongField extends Panel {
 
     private InputField inputField;
     private Image focusImage;
+    private long originalValue;
 
     public LongField(Panel parent, String id) {
         super(parent, null, 260 * scale, 48 * scale);
 
         inputField = new InputField(this, id);
         inputField.center();
-        
+
         focusImage = new Image(this, "Interface/field-focus.png", 260 * scale, 48 * scale);
         focusImage.setBackgroundColor(EditorUtils.theme.getSelectionColor());
         focusImage.center();
         focusImage.setTransparency(0);
-        
+
         inputField.addFocusListener(new FocusListener() {
             @Override
             public void doFocus(String id) {
@@ -38,8 +39,7 @@ public class LongField extends Panel {
             public void doBlur(String id) {
                 focusImage.setTransparency(0);
             }
-            
-            
+
         });
 
         parent.add(this);
@@ -52,17 +52,24 @@ public class LongField extends Panel {
     }
 
     public void setValue(long val) {
+        originalValue = val;
         inputField.setText(String.valueOf(val));
 
     }
 
     public long getValue() {
-        
+
         if (inputField.getText().isBlank()) {
             return 0;
         }
 
-        return Long.parseLong(inputField.getText());
+        try {
+            return Long.parseLong(inputField.getText());
+
+        } catch (Exception e) {
+        }
+
+        return originalValue;
 
     }
 

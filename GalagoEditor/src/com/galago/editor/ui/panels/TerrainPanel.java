@@ -418,7 +418,7 @@ public class TerrainPanel extends Panel {
 
         });
 
-        paintRadius = createLabeledSlider("Radius", 1, 20, 1);
+        paintRadius = createLabeledSlider("Radius", 1, 50, 1);
         paintRadius.setDecimals(true);
         paintRadius.addValueChangeListener(new ValueChangeListener() {
             @Override

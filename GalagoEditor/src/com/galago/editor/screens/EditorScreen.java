@@ -470,6 +470,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         shadowFilter.setEdgeFilteringMode(EdgeFilteringMode.Dither);
         shadowFilter.setEdgesThickness(10);
         shadowFilter.setEnabledStabilization(true);
+        shadowFilter.setRenderBackFacesShadows(false);
         shadowFilter.setShadowZExtend(50);
         shadowFilter.setShadowIntensity(0.4f);
         shadowFilter.setLight(sunLight);
@@ -1282,6 +1283,11 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
         if (pickEvent.isLeftButton()) {
             leftMouseDown = pickEvent.isKeyDown();
+            
+            if (leftMouseDown) {
+                getWindow().removeFocusFromFields();
+                                
+            }
 
             //If we are doing terrain editing
             if (pickEvent.getContactPoint() != null && paintGizmo.getParent() != null) {

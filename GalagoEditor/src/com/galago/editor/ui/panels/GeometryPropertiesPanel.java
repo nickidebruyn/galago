@@ -40,6 +40,7 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
     private FloatField scaleZField;
     
     private SpinnerButton shadowSpinner;
+    private SpinnerButton renderQueueSpinner;
 
     public GeometryPropertiesPanel(Panel parent) {
         super(parent, "properties-geometry");
@@ -185,6 +186,34 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
             }
         });
         
+        renderQueueSpinner = createLabeledSpinner("Rendering", "render-queue", new String[]{"Normal", "Transparent", "Translucent", "Inherit", "Sky", "Gui"});
+        renderQueueSpinner.addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                if (shadowSpinner.getIndex() == 0) {
+                    geometry.setQueueBucket(RenderQueue.Bucket.Opaque);
+                    
+                } else if (shadowSpinner.getIndex() == 1) {
+                    geometry.setQueueBucket(RenderQueue.Bucket.Transparent);
+                    
+                } else if (shadowSpinner.getIndex() == 2) {
+                    geometry.setQueueBucket(RenderQueue.Bucket.Translucent);
+                    
+                } else if (shadowSpinner.getIndex() == 3) {
+                    geometry.setQueueBucket(RenderQueue.Bucket.Inherit);
+                    
+                } else if (shadowSpinner.getIndex() == 4) {
+                    geometry.setQueueBucket(RenderQueue.Bucket.Sky);
+                    
+                } else if (shadowSpinner.getIndex() == 5) {
+                    geometry.setQueueBucket(RenderQueue.Bucket.Gui);
+                    
+                }
+                
+                //reload();
+            }
+        });
+        
     }
 
     @Override
@@ -205,6 +234,8 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
             scaleZField.setValue(0);
             
             shadowSpinner.setSelection(0);
+            
+            renderQueueSpinner.setSelection(0);
                         
         } else {
             nameField.setValue(geometry.getName());
@@ -220,6 +251,7 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
             scaleYField.setValue(geometry.getLocalScale().y);
             scaleZField.setValue(geometry.getLocalScale().z);
             
+            //Shadows settings
             if (geometry.getShadowMode().equals(RenderQueue.ShadowMode.Off)) {
                 shadowSpinner.setSelection(0);
                 
@@ -231,6 +263,27 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
                 
             } else if (geometry.getShadowMode().equals(RenderQueue.ShadowMode.CastAndReceive)) {
                 shadowSpinner.setSelection(3);
+                
+            }
+            
+            //Render queue settings
+            if (geometry.getQueueBucket().equals(RenderQueue.Bucket.Opaque)) {
+                renderQueueSpinner.setSelection(0);
+                
+            } else if (geometry.getQueueBucket().equals(RenderQueue.Bucket.Transparent)) {
+                renderQueueSpinner.setSelection(1);
+                
+            } else if (geometry.getQueueBucket().equals(RenderQueue.Bucket.Translucent)) {
+                renderQueueSpinner.setSelection(2);
+                
+            } else if (geometry.getQueueBucket().equals(RenderQueue.Bucket.Inherit)) {
+                renderQueueSpinner.setSelection(3);
+                
+            } else if (geometry.getQueueBucket().equals(RenderQueue.Bucket.Sky)) {
+                renderQueueSpinner.setSelection(4);                
+                
+            } else if (geometry.getQueueBucket().equals(RenderQueue.Bucket.Gui)) {
+                renderQueueSpinner.setSelection(5);
                 
             }
         }
