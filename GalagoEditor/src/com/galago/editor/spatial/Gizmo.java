@@ -85,6 +85,7 @@ public class Gizmo extends Node implements PickListener {
         super(name);
         this.camera = camera;
         init();
+        setShadowMode(RenderQueue.ShadowMode.Off);
 
         touchPickListener = new TouchPickListener(name, camera, this);
         touchPickListener.setPickListener(this);
@@ -173,13 +174,15 @@ public class Gizmo extends Node implements PickListener {
     }
 
     private Spatial loadRotateTool(String gName, ColorRGBA colorRGBA) {
-        Polygon pYXis = new Polygon(30, radius, 0.12f);
+        Polygon pYXis = new Polygon(30, radius, 0.075f);
         Geometry geom = new Geometry(name + gName, pYXis);
         Material m = SpatialUtils.addColor(geom, colorRGBA, true);
         m.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
         geom.setQueueBucket(RenderQueue.Bucket.Translucent);
         attachChild(geom);
         m.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        
+        geom.setShadowMode(RenderQueue.ShadowMode.Off);
 
         return geom;
 
@@ -192,6 +195,8 @@ public class Gizmo extends Node implements PickListener {
         m.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
         geom.setQueueBucket(RenderQueue.Bucket.Translucent);
         m.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        
+        geom.setShadowMode(RenderQueue.ShadowMode.Off);
 
         return geom;
 
@@ -206,6 +211,8 @@ public class Gizmo extends Node implements PickListener {
         m.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
         geom.setQueueBucket(RenderQueue.Bucket.Translucent);
         m.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        
+        geom.setShadowMode(RenderQueue.ShadowMode.Off);
 
         return geom;
 

@@ -60,6 +60,7 @@ public class SkyPanel extends AbstractPropertiesPanel {
     private FloatField shadowIntensity;
     private FloatField shadowZExtend;
     private FloatField shadowZFadeLength;
+    private SpinnerButton shadowsBackfaceButton;
 
     public SkyPanel(Panel parent) {
         super(parent, "sky");
@@ -285,6 +286,22 @@ public class SkyPanel extends AbstractPropertiesPanel {
             }
             
         });
+        
+        shadowsBackfaceButton = createLabeledSpinner("Backface", "shadows-backface", new String[]{"Off", "On"});
+        shadowsBackfaceButton.addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                
+                if (shadowsBackfaceButton.getIndex() == 1) {
+                    shadowFilter.setRenderBackFacesShadows(true);
+                    
+                } else {
+                    shadowFilter.setRenderBackFacesShadows(false);
+                    
+                }
+                
+            }
+        });
 
     }
 
@@ -356,6 +373,8 @@ public class SkyPanel extends AbstractPropertiesPanel {
             shadowIntensity.setValue(shadowFilter.getShadowIntensity());
             shadowZExtend.setValue(shadowFilter.getShadowZExtend());
             shadowZFadeLength.setValue(shadowFilter.getShadowZFadeLength());
+            
+            shadowsBackfaceButton.setSelection(shadowFilter.isRenderBackFacesShadows() ? 1 : 0);
         }
 
         //set some field visibility
@@ -364,6 +383,7 @@ public class SkyPanel extends AbstractPropertiesPanel {
         shadowIntensity.getParent().setVisible(shadowFilter != null && shadowFilter.isEnabled());        
         shadowZExtend.getParent().setVisible(shadowFilter != null && shadowFilter.isEnabled());
         shadowZFadeLength.getParent().setVisible(shadowFilter != null && shadowFilter.isEnabled());
+        shadowsBackfaceButton.getParent().setVisible(shadowFilter != null && shadowFilter.isEnabled());
 
     }
 

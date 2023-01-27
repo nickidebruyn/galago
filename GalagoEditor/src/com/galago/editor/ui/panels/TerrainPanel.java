@@ -29,7 +29,6 @@ import com.jme3.scene.BatchNode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.SceneGraphVisitorAdapter;
 import com.jme3.scene.Spatial;
-import com.jme3.scene.instancing.InstancedNode;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.texture.Texture;
 import java.util.ArrayList;
@@ -92,7 +91,7 @@ public class TerrainPanel extends Panel {
     private String selectedMetallic = "Metallic_0";
 
     private BatchNode selectedBatchLayer;
-    private InstancedNode selectedInstancedNode;
+    private BatchNode selectedInstancedNode;
 
     private float triScale = 100;
 
@@ -861,7 +860,7 @@ public class TerrainPanel extends Panel {
                 baseTextureButton.getButton2().setId("NormalMap");
 
             } else if (terrainAction.getTool() == TerrainAction.TOOL_TREES1) {
-                InstancedNode trees1Node = (InstancedNode) terrain.getChild(TerrainAction.BATCH_TREES1);
+                BatchNode trees1Node = (BatchNode) terrain.getChild(TerrainAction.BATCH_TREES1);
                 Spatial tree1 = trees1Node.getUserData(EditorUtils.MODEL);
 //                setButtonTextureFromMaterial(grass3.getMaterial(), "DiffuseMap", baseTextureButton.getButton1());
                 selectedInstancedNode = trees1Node;
@@ -1036,7 +1035,7 @@ public class TerrainPanel extends Panel {
 
         if (selectedInstancedNode != null) {
 
-            MaterialUtils.setInstancingOnAllMaterials(spatial);
+            //MaterialUtils.setInstancingOnAllMaterials(spatial);
             MaterialUtils.convertTexturesToEmbedded(spatial);
             selectedInstancedNode.setUserData(EditorUtils.MODEL, spatial);
 
@@ -1063,12 +1062,12 @@ public class TerrainPanel extends Panel {
 //
 //            }
             selectedInstancedNode.removeFromParent();
-            InstancedNode instancedNode = new InstancedNode(selectedInstancedNode.getName());
+            BatchNode instancedNode = new BatchNode(selectedInstancedNode.getName());
             instancedNode.setQueueBucket(RenderQueue.Bucket.Transparent);
             instancedNode.setLocalScale(selectedInstancedNode.getLocalScale().clone());
-            instancedNode.setUserData(EditorUtils.MODEL, spatial);            
+            instancedNode.setUserData(EditorUtils.MODEL, spatial);
             terrain.attachChild(instancedNode);
-            selectedInstancedNode = instancedNode;            
+            selectedInstancedNode = instancedNode;
 
             for (int i = 0; i < addList.size(); i++) {
                 Spatial add = addList.get(i);
@@ -1076,7 +1075,7 @@ public class TerrainPanel extends Panel {
 
             }
 
-            selectedInstancedNode.instance();
+            selectedInstancedNode.batch();
 
         }
 
@@ -1090,7 +1089,7 @@ public class TerrainPanel extends Panel {
         return selectedBatchLayer;
     }
 
-    public InstancedNode getSelectedInstancedNode() {
+    public BatchNode getSelectedInstancedNode() {
         return selectedInstancedNode;
     }
 

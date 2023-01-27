@@ -1,0 +1,11 @@
+Model Information:
+* title:	Palm Trees
+* source:	https://sketchfab.com/3d-models/palm-trees-55690379305145488e20afb05fc687e6
+* author:	Erroratten (https://sketchfab.com/erroratten)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Palm Trees" (https://sketchfab.com/3d-models/palm-trees-55690379305145488e20afb05fc687e6) by Erroratten (https://sketchfab.com/erroratten) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

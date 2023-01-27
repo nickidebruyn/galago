@@ -208,9 +208,10 @@ public class MaterialUtils {
 
     public static Material createPBRMaterial(AssetManager assetManager) {
         Material mat = new Material(assetManager, "Common/MatDefs/Light/PBRLighting.j3md");  // create a simple material
-        mat.setColor("BaseColor", ColorRGBA.Black);
+        mat.setColor("BaseColor", ColorRGBA.White);
         mat.setFloat("Metallic", 0.5f);
         mat.setFloat("Roughness", 0.5f);
+        mat.setFloat("NormalType", 1.0f);
         return mat;
     }
 
@@ -258,6 +259,9 @@ public class MaterialUtils {
                     System.out.println("convertTexturesToEmbedded.....:" + spatial.getName());
                     Material material = ((Geometry) spatial).getMaterial();
                     System.out.println("\tMaterial...: " + material.getMaterialDef().getAssetName());
+                    System.out.println("\tAlphaDiscardThreshold: " + material.getParamValue("AlphaDiscardThreshold"));
+                    System.out.println("\tBlend Mode: " + material.getAdditionalRenderState().getBlendMode());
+                    
                     if (isLightingMaterial(material)) {
                         convertTextureToEmbeddedByName(material, "DiffuseMap");
 
@@ -405,4 +409,107 @@ public class MaterialUtils {
         };
         spatial.depthFirstTraversal(sceneGraphVisitor);        
     }
+    
+    public static ColorRGBA getBaseColor(Material material) {
+        if (isLightingMaterial(material)) {
+            return material.getParamValue("Diffuse");
+            
+        } else if (isPBRLightingMaterial(material)) {
+            return material.getParamValue("BaseColor");
+            
+        } else if (isUnshadedMaterial(material)) {
+            return material.getParamValue("Color");
+        }
+        
+        return null;
+        
+    }
+    
+    public static void setBaseColor(Material material, ColorRGBA color) {
+        if (isLightingMaterial(material)) {
+            material.setColor("Diffuse", color);
+//            material.setColor("Ambient", color); 
+            
+        } else if (isPBRLightingMaterial(material)) {
+            material.setColor("BaseColor", color);
+            
+        } else if (isUnshadedMaterial(material)) {
+            material.setColor("Color", color);
+        }
+        
+    }
+    
+    public static Texture getBaseTexture(Material material) {
+        if (isLightingMaterial(material)) {
+            return material.getParamValue("DiffuseMap");
+            
+        } else if (isPBRLightingMaterial(material)) {
+            return material.getParamValue("BaseColorMap");
+            
+        } else if (isUnshadedMaterial(material)) {
+            return material.getParamValue("ColorMap");
+        }
+        
+        return null;
+        
+    }
+    
+    public static void setBaseTexture(Material material, Texture texture) {
+        if (isLightingMaterial(material)) {
+            material.setTexture("DiffuseMap", texture);
+            
+        } else if (isPBRLightingMaterial(material)) {
+            material.setTexture("BaseColorMap", texture);
+            
+        } else if (isUnshadedMaterial(material)) {
+            material.setTexture("ColorMap", texture);
+        }
+        
+    }
+    
+    public static Texture getNormalTexture(Material material) {
+        if (isLightingMaterial(material)) {
+            return material.getParamValue("NormalMap");
+            
+        } else if (isPBRLightingMaterial(material)) {
+            return material.getParamValue("NormalMap");
+            
+        }
+        
+        return null;
+        
+    }
+    
+    public static void setNormalTexture(Material material, Texture texture) {
+        if (isLightingMaterial(material)) {
+            material.setTexture("NormalMap", texture);
+            
+        } else if (isPBRLightingMaterial(material)) {
+            material.setTexture("NormalMap", texture);
+            
+        }
+        
+    }
+    
+    public static void setMetalicTexture(Material material, Texture texture) {
+        if (isLightingMaterial(material)) {
+//            material.setTexture("DiffuseMap", texture);
+            
+        } else if (isPBRLightingMaterial(material)) {
+            material.setTexture("MetallicMap", texture);
+            
+        }
+        
+    }
+    
+    public static Texture getMetalicTexture(Material material) {
+        if (isPBRLightingMaterial(material)) {
+            return material.getParamValue("MetallicMap");
+            
+        }
+        
+        return null;
+        
+    }
+    
 }

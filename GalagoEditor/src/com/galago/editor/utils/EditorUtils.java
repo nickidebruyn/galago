@@ -10,7 +10,6 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.SceneGraphVisitorAdapter;
 import com.jme3.scene.Spatial;
-import com.jme3.scene.instancing.InstancedNode;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -35,6 +34,10 @@ public class EditorUtils {
     public static String POST_PROCESS_FILTER = "FPP";
     public static String CAMERA_POSITION = "CAMERA_POSITION";
     public static String CAMERA_ROTATION = "CAMERA_ROTATION";
+    public static String TEXTURE_SCALE = "TEXTURE_SCALE";
+    public static String BASE_TEXTURE = "BASE_TEXTURE";
+    public static String NORMAL_TEXTURE = "NORMAL_TEXTURE";
+    public static String METALIC_TEXTURE = "METALIC_TEXTURE";
 
     public static boolean isCompatableModel(File file) {
         return file.getPath().endsWith(".obj") || file.getPath().endsWith(".gltf") || file.getPath().endsWith(".fbx") || file.getPath().endsWith(".j3o");

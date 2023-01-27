@@ -52,13 +52,15 @@ public class MainApplication extends Base3DApplication {
     @Override
     protected void preInitApp() {
         BACKGROUND_COLOR = ColorUtils.rgb(44, 62, 80);
+                
     }
 
     @Override
     protected void postInitApp() {
         registerInputMappings("camera-action", new MouseButtonTrigger(1));
         registerInputMappings("ctrl", new KeyTrigger(keyInput.KEY_LCONTROL));
-
+        registerInputMappings("delete", new KeyTrigger(keyInput.KEY_DELETE));
+        
         showScreen(EditorScreen.NAME);
 
 //        showStats();

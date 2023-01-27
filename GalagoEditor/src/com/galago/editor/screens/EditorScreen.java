@@ -13,6 +13,7 @@ import com.bruynhuis.galago.screen.AbstractScreen;
 import com.bruynhuis.galago.ui.Label;
 import com.bruynhuis.galago.ui.TextAlign;
 import com.bruynhuis.galago.ui.button.TouchButton;
+import com.bruynhuis.galago.ui.field.TextArea;
 import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
 import com.bruynhuis.galago.ui.panel.Panel;
 import com.bruynhuis.galago.util.ColorUtils;
@@ -22,17 +23,19 @@ import com.galago.editor.spatial.Gizmo;
 import com.galago.editor.spatial.GizmoListener;
 import com.galago.editor.spatial.PaintGizmo;
 import com.galago.editor.ui.panels.HierarchyPanel;
-import com.galago.editor.ui.panels.ObjectAddPanel;
 import com.galago.editor.ui.panels.TerrainPanel;
 import com.galago.editor.ui.panels.ToolbarPanel;
 import com.galago.editor.ui.actions.TerrainAction;
 import com.galago.editor.ui.dialogs.TerrainDialog;
 import com.galago.editor.ui.panels.GeometryPropertiesPanel;
+import com.galago.editor.ui.panels.ModelAddPanel;
 import com.galago.editor.ui.panels.NodePropertiesPanel;
 import com.galago.editor.ui.panels.SkyPanel;
 import com.galago.editor.ui.panels.WaterPanel;
 import com.galago.editor.utils.Action;
 import com.galago.editor.utils.MaterialUtils;
+import com.galago.editor.utils.ModelReference;
+import com.galago.editor.utils.ModelUtils;
 import com.galago.editor.utils.TerrainFlattenTool;
 import com.galago.editor.utils.TerrainGrassTool;
 import com.galago.editor.utils.TerrainModelTool;
@@ -41,6 +44,7 @@ import com.galago.editor.utils.TerrainRaiseTool;
 import com.galago.editor.utils.TerrainSmoothTool;
 import com.galago.editor.utils.TerrainUtils;
 import com.jme3.asset.ModelKey;
+import com.jme3.asset.TextureKey;
 import com.jme3.asset.plugins.FileLocator;
 import com.jme3.bounding.BoundingBox;
 import com.jme3.bounding.BoundingSphere;
@@ -67,7 +71,6 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.debug.Grid;
-import com.jme3.scene.instancing.InstancedNode;
 import com.jme3.scene.shape.Line;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.shadow.DirectionalLightShadowFilter;
@@ -94,7 +97,8 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
     private ToolbarPanel toolbarPanel;
     private HierarchyPanel hierarchyPanel;
-    private ObjectAddPanel objectAddPanel;
+//    private ObjectAddPanel objectAddPanel;
+    private ModelAddPanel modelAddPanel;
     private TerrainPanel terrainPanel;
     private WaterPanel waterPanel;
     private SkyPanel skyPanel;
@@ -104,6 +108,8 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
     private TouchButton messageBubble;
 
     private TerrainDialog terrainDialog;
+
+    private TextArea logArea;
 
     protected AmbientLight ambientLight;
     protected DirectionalLight sunLight;
@@ -118,13 +124,15 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
     protected ChaseCamera chaseCamera;
     protected EditorFlyCamAppState flyCamAppState;
-    protected float cameraDistance = 24f;
+    protected float cameraDistance = 15f;
     protected float distanceScale = 0f;
 
     protected TouchPickListener touchPickListener;
 
     private Node gridNode;
-    private Node editNode;
+    private Spatial gridPlane;
+    private Node editNode; //This is the main node if the scene/world. The terrain and scene node will be added to this node.
+    private Node sceneNode; //This node is a child node of the main edit node. All standalone objects will be placed here.
     private Gizmo transformGizmo;
     private PaintGizmo paintGizmo;
     private Spatial selectedSpatial;
@@ -141,14 +149,18 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
     private File lastSavedFile;
 
+    private boolean ctrlDown = false;
     private boolean leftMouseDown = false;
     private boolean overUI = false;
     private boolean statsVisible = false;
     private boolean gridVisible = true;
+    private boolean placingObject = false;
     private String activeToolbarItem;
 
     @Override
     protected void init() {
+
+        ModelUtils.loadAllModels();
 
         toolbarPanel = new ToolbarPanel(hudPanel);
         toolbarPanel.leftCenter(0, 0);
@@ -156,8 +168,10 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         hierarchyPanel = new HierarchyPanel(hudPanel);
         hierarchyPanel.leftCenter(EditorUtils.TOOLBAR_WIDTH, 0);
 
-        objectAddPanel = new ObjectAddPanel(hudPanel);
-        objectAddPanel.leftCenter(EditorUtils.TOOLBAR_WIDTH, 0);
+//        objectAddPanel = new ObjectAddPanel(hudPanel);
+//        objectAddPanel.leftCenter(EditorUtils.TOOLBAR_WIDTH, 0);
+        modelAddPanel = new ModelAddPanel(hudPanel);
+        modelAddPanel.leftCenter(EditorUtils.TOOLBAR_WIDTH, 0);
 
         terrainPanel = new TerrainPanel(hudPanel);
         terrainPanel.leftCenter(EditorUtils.TOOLBAR_WIDTH, 0);
@@ -172,7 +186,6 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         terrainPanel.addTerrainTexturesButtonListener(new TouchButtonAdapter() {
             @Override
             public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
-                System.out.println("Selected Texture: " + uid);
                 importTexture(uid);
             }
 
@@ -181,7 +194,6 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         terrainPanel.addTerrainModelButtonListener(new TouchButtonAdapter() {
             @Override
             public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
-                System.out.println("Selected model: " + uid);
                 importModel();
             }
 
@@ -194,14 +206,21 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         skyPanel.leftCenter(EditorUtils.TOOLBAR_WIDTH, 0);
 
         geometryPropertiesPanel = new GeometryPropertiesPanel(hudPanel);
-        geometryPropertiesPanel.leftCenter(EditorUtils.TOOLBAR_WIDTH, 0);
+        geometryPropertiesPanel.rightCenter(0, 0);
+        geometryPropertiesPanel.addTextureButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                importTexture(uid);
+            }
+
+        });
 
         nodePropertiesPanel = new NodePropertiesPanel(hudPanel);
-        nodePropertiesPanel.leftCenter(EditorUtils.TOOLBAR_WIDTH, 0);
+        nodePropertiesPanel.rightCenter(0, 0);
 
         statusLabel = new Label(hudPanel, "Status: None", 16, 600, 30);
         statusLabel.setAlignment(TextAlign.RIGHT);
-        statusLabel.rightTop(5, 0);
+        statusLabel.rightTop(EditorUtils.HIERARCHYBAR_WIDTH + 10, 0);
 
         terrainDialog = new TerrainDialog(window);
 
@@ -212,22 +231,43 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         messageBubble.setBackgroundColor(EditorUtils.theme.getTooltipColor());
         messageBubble.centerAt(750, -510);
 
+        logArea = new TextArea(hudPanel, "LOG_AREA", "Interface/log-area.png", 800, 300, 10);
+        logArea.setFontSize(14);
+        logArea.setTextColor(new ColorRGBA(1, 1, 1, 0.75f));
+        logArea.setTextAlignment(TextAlign.LEFT);
+        logArea.setTextVerticalAlignment(TextAlign.TOP);
+//        logArea.setMaxLength(80);
+        logArea.setMaxLines(12);
+        logArea.leftBottom(EditorUtils.HIERARCHYBAR_WIDTH + EditorUtils.TOOLBAR_WIDTH + 5, 5);
+        logArea.setText("Launghing scene editor...");
+
         touchPickListener = new TouchPickListener("scene-control", camera, rootNode);
         touchPickListener.setPickListener(this);
 
     }
 
     @Override
+    protected void log(String text) {
+        super.log(text);
+        logArea.append(" > " + text);
+    }
+
+    @Override
     protected void load() {
         baseApplication.getViewPort().setBackgroundColor(EditorUtils.theme.getBackgroundColor());
 
+//        logArea.clear();
         newScene();
+        log("Setting up a new scene");
 
         initEnvironment();
+        log("Initialize environment");
 
         initCameras();
+        log("Placing the camera");
 
         initGizmos();
+        log("Loading gizmos");
     }
 
     @Override
@@ -235,12 +275,13 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         baseApplication.getMessageManager().addMessageListener(this);
         toolbarPanel.reset();
         hidePanels();
+        logArea.hide();
         touchPickListener.registerWithInput(inputManager);
 
         flyCamAppState.setEnabled(true);
         flyCamAppState.getCamera().setDragToRotate(true);
-        flyCamAppState.getCamera().setMoveSpeed(25f);
-        flyCamAppState.getCamera().setRotationSpeed(3f);
+        flyCamAppState.getCamera().setMoveSpeed(15f);
+        flyCamAppState.getCamera().setRotationSpeed(2f);
 
         chaseCamera.setEnabled(false);
     }
@@ -265,7 +306,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         panel.show();
 
         if (panel.equals(hierarchyPanel)) {
-            hierarchyPanel.reload(editNode);
+            hierarchyPanel.reload(sceneNode);
 
             transformGizmo.setTarget(null);
             transformGizmo.removeFromParent();
@@ -314,6 +355,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             transformGizmo.setTarget(null);
             transformGizmo.removeFromParent();
             paintGizmo.removeFromParent();
+            touchPickListener.setTargetNode(sceneNode);
             activateFlyCam();
 
         }
@@ -323,7 +365,8 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
     protected void hidePanels() {
         messageBubble.hide();
         hierarchyPanel.hide();
-        objectAddPanel.hide();
+//        objectAddPanel.hide();
+        modelAddPanel.hide();
         terrainPanel.hide();
         waterPanel.hide();
         skyPanel.hide();
@@ -357,6 +400,9 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         editNode = new Node("root");
         rootNode.attachChild(editNode);
 
+        sceneNode = new Node("scene");
+        editNode.attachChild(sceneNode);
+
         loadAmbientLight();
         loadDirectionalLight();
         loadProbeLight();
@@ -366,11 +412,16 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
     }
 
     private void initGrid() {
+        int gridLines = 1000;
+        float lineSpacing = 1;
+
         gridNode = new Node("grid-node");
         rootNode.attachChild(gridNode);
 
-        int gridLines = 1000;
-        float lineSpacing = 1;
+        gridPlane = SpatialUtils.addPlane(gridNode, gridLines * lineSpacing, gridLines * lineSpacing);
+        SpatialUtils.addColor(gridPlane, ColorRGBA.Black, true);
+        gridPlane.setCullHint(Spatial.CullHint.Always);
+
         Grid grid = new Grid(gridLines, gridLines, lineSpacing);
         Geometry gridGeom = new Geometry("gridsmall", grid);
         SpatialUtils.addColor(gridGeom, EditorUtils.theme.getGridColor(), true);
@@ -564,7 +615,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 selectedFile = new File(selectedFile.getAbsolutePath() + EditorUtils.SPATIAL_EXTENSION);
 
             }
-            System.out.println("Game to save: " + selectedFile);
+            log("Game to save: " + selectedFile);
             try {
 
                 editNode.setUserData(EditorUtils.POST_PROCESS_FILTER, fpp);
@@ -619,6 +670,12 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 editNode = (Node) spatial;
                 rootNode.attachChild(editNode);
 
+                sceneNode = (Node) editNode.getChild("scene");
+                if (sceneNode == null) {
+                    sceneNode = new Node("scene");
+                    editNode.attachChild(sceneNode);
+                }
+
                 //Set the lights.
                 //Please remember that this editor only handles 1 of each of these lights,
                 //Ambient, Directions, LightProbe
@@ -641,7 +698,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
                 //Set the fpp
                 if (editNode.getUserData(EditorUtils.POST_PROCESS_FILTER) != null) {
-                    System.out.println("FOUND FPP: -------------------------------------------");
+                    log("Loading filter post processor...");
                     FilterPostProcessor filterPostProcessor = editNode.getUserData(EditorUtils.POST_PROCESS_FILTER);
 
                     baseApplication.getViewPort().removeProcessor(fpp);
@@ -657,7 +714,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                     DirectionalLightShadowFilter savedShadowFilter = filterPostProcessor.getFilter(DirectionalLightShadowFilter.class);
                     if (savedShadowFilter != null) {
                         filterPostProcessor.removeFilter(savedShadowFilter);
-                        
+
                         shadowFilter.setEdgeFilteringMode(savedShadowFilter.getEdgeFilteringMode());
                         shadowFilter.setEdgesThickness(savedShadowFilter.getEdgesThickness());
                         shadowFilter.setEnabled(savedShadowFilter.isEnabled());
@@ -670,7 +727,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                         shadowFilter.setShadowZExtend(savedShadowFilter.getShadowZExtend());
                         shadowFilter.setShadowZFadeLength(savedShadowFilter.getShadowZFadeLength());
                         shadowFilter.setLight(sunLight);
-                        
+
                         filterPostProcessor.addFilter(shadowFilter);
 
                     }
@@ -797,18 +854,33 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         } else if (Action.ADD.equals(message)) {
 
             if (object == null) {
-                showPanel(objectAddPanel);
+                showPanel(modelAddPanel);
+                setActiveToolbarItem(Action.ADD);
 
             } else {
-                addObject((Spatial) object);
+                addObject((String) object);
+                
+                if (getTerrain() == null) {
+                    touchPickListener.setTargetNode(gridNode);
+                } else {
+                    touchPickListener.setTargetNode(getTerrain());
+                }
+                
 
             }
+
+        } else if (Action.ADD_DONE.equals(message)) {
+            log("Done adding the new object");
+            placeSelectedObject();
 
         } else if (Action.STATS.equals(message)) {
             statsVisible = !statsVisible;
 
+            logArea.setVisible(statsVisible);
+
             if (statsVisible) {
                 baseApplication.showStats();
+
             } else {
                 baseApplication.hideStats();
             }
@@ -825,12 +897,11 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             }
 
         } else if (Action.TERRAIN.equals(message)) {
-            System.out.println("Show terrain dialog");
             showPanel(terrainPanel);
 
         } else if (Action.CREATE_TERRAIN.equals(message)) {
-            System.out.println("Create terrain: " + object);
             TerrainAction terrainAction = (TerrainAction) object;
+            log("Creating terrain,..." + terrainAction.getTerrainSize());
 
             TerrainQuad existingTerrain = getTerrain();
             if (existingTerrain != null) {
@@ -864,10 +935,11 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             }
 
             if (terrain != null) {
+                terrain.setShadowMode(RenderQueue.ShadowMode.Receive);
                 Material material = null;
 
                 if (terrainAction.getTerrainMaterial() == TerrainAction.MATERIAL_PAINTABLE) {
-                    System.out.println("Generated generatePaintableTerrainMaterial");
+                    log("Generated paintable terrain material");
                     try {
                         material = TerrainUtils.generatePaintableTerrainMaterial(assetManager, terrainAction.getTerrainSize());
                     } catch (IOException ex) {
@@ -875,11 +947,11 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                     }
 
                 } else if (terrainAction.getTerrainMaterial() == TerrainAction.MATERIAL_HEIGHT_BASED) {
-                    System.out.println("Generated generateLitHeightBasedMaterial");
+                    log("Generated lit height based terrain material");
                     material = TerrainUtils.generateLitHeightBasedMaterial(assetManager, terrainAction.getTerrainSize());
 
                 } else if (terrainAction.getTerrainMaterial() == TerrainAction.MATERIAL_PBR) {
-                    System.out.println("Generated generatePaintablePBRTerrainMaterial");
+                    log("Generated paintable PBR terrain material");
                     try {
                         material = TerrainUtils.generatePaintablePBRTerrainMaterial(assetManager, terrainAction.getTerrainSize());
                     } catch (IOException ex) {
@@ -921,12 +993,14 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 MaterialUtils.convertTextureToEmbeddedByName(((Geometry) grassModel3.getChild(0)).getMaterial(), "DiffuseMap");
 
                 //TREE1:
-                InstancedNode treeNode1 = new InstancedNode(TerrainAction.BATCH_TREES1);
-                treeNode1.setQueueBucket(RenderQueue.Bucket.Transparent);
+                BatchNode treeNode1 = new BatchNode(TerrainAction.BATCH_TREES1);
+//                treeNode1.setQueueBucket(RenderQueue.Bucket.Transparent);
+                treeNode1.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
                 treeNode1.setLocalScale(1, heightScale, 1);
                 terrain.attachChild(treeNode1);
                 Node treeModel1 = (Node) assetManager.loadModel("Models/trees/pine_tree/scene.j3o");
                 treeNode1.setUserData(EditorUtils.MODEL, treeModel1);
+                treeModel1.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
                 MaterialUtils.convertTexturesToEmbedded(treeModel1);
 //                
 //                for (int i = 0; i < 1000; i++) {
@@ -935,7 +1009,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 //                    treeNode1.attachChild(clone);
 //                }
 
-                treeNode1.instance();
+//                treeNode1.instance();
                 //TODO:
 //                MaterialUtils.convertTextureToEmbeddedByName(((Geometry) grassModel3.getChild(0)).getMaterial(), "DiffuseMap");
 
@@ -949,12 +1023,9 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             showPanel(terrainPanel);
 
         } else if (Action.WATER.equals(message)) {
-            System.out.println("Show water");
-
             showPanel(waterPanel);
 
         } else if (Action.SKY.equals(message)) {
-            System.out.println("Show sky");
             showPanel(skyPanel);
 
         } else if (Action.IMPORT.equals(message)) {
@@ -978,6 +1049,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
                 this.clearSelectedObject();
                 this.setActiveToolbarItem(Action.SELECT);
+                touchPickListener.setTargetNode(sceneNode);
 
             } else {
 
@@ -990,7 +1062,6 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             paintGizmo.removeFromParent();
 
         } else if (Action.PAINT.equals(message)) {
-            System.out.println("Prepaire to paint");
 
 //            transformGizmo.setTarget(null);
 //            transformGizmo.removeFromParent();
@@ -1002,7 +1073,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
             TerrainQuad terrain = getTerrain();
             BoundingBox bb = (BoundingBox) terrain.getWorldBound();
-            System.out.println("Auto paint: " + terrain.getWorldBound());
+            log("Auto paint: " + terrain.getWorldBound());
 
             int sizeX = (int) bb.getXExtent();
             int addAmount = (int) terrainPanel.getPaintRadius();
@@ -1031,7 +1102,6 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                                 CollisionResult cr = results.getCollision(0);
                                 if (cr.getContactNormal().y <= terrainAction.getAutoPaintMax()
                                         && cr.getContactNormal().y >= terrainAction.getAutoPaintMin()) {
-//                                System.out.println("Collison res = " + cr.getContactNormal());
                                     terrainPaintTool.paintTexture(terrain, new Vector3f(x, height, z), terrainPanel.getPaintRadius(), terrainPanel.getPaintStrength(), terrainPanel.getSelectedLayer());
 
                                 }
@@ -1069,6 +1139,11 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         return terrain;
     }
 
+    /**
+     * Get the sky of this scene.
+     *
+     * @return
+     */
     protected Geometry getSky() {
         Geometry skyGeom = null;
         for (int i = 0; i < editNode.getQuantity(); i++) {
@@ -1084,6 +1159,9 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         return skyGeom;
     }
 
+    /**
+     * Add a sky to the scene
+     */
     private void addSky() {
         if (getSky() == null) {
             Sphere sphere = new Sphere(50, 50, 500, false, true);
@@ -1095,10 +1173,10 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             //sky.addControl(new CameraStickControl(camera));
 
             Material m = new Material(assetManager, "Resources/MatDefs/lineargradient.j3md");
-            m.setColor("StartColor", ColorRGBA.White);
-            m.setColor("EndColor", ColorRGBA.Cyan);
-            m.setFloat("MinStep", 0.2f);
-            m.setFloat("MaxStep", 0.6f);
+            m.setColor("StartColor", ColorUtils.rgb(2, 107, 187));
+            m.setColor("EndColor", ColorUtils.rgb(190, 221, 253));
+            m.setFloat("MinStep", 0.27f);
+            m.setFloat("MaxStep", 0.47f);
             m.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Back);
             sky.setMaterial(m);
 
@@ -1109,34 +1187,57 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         }
     }
 
-    private void addObject(Spatial spatial) {
+    /**
+     * Called when the user start or clicks down to add an object to the scene
+     *
+     * @param modelName
+     */
+    private void addObject(String modelName) {
 
-        System.out.println("Trying to add: " + spatial.getName());
+        log("Adding a new model, " + modelName);
 
-        if (spatial.getName().equals("cube")) {
-            Spatial box = SpatialUtils.addBox(editNode, 1, 1, 1);
-            box.setName("Box");
-            SpatialUtils.addColor(box, ColorRGBA.randomColor(), false);
+        ModelReference modelReference = ModelUtils.getModelByName(modelName);
+        if (modelReference != null) {
+            Spatial s = modelReference.getModel().clone();
+            rootNode.attachChild(s);
+            selectedSpatial = s;
+            placingObject = true;
 
-        } else if (spatial.getName().equals("sphere")) {
-            Spatial sphere = SpatialUtils.addSphere(editNode, 40, 40, 1);
-            SpatialUtils.addPBRColor(sphere, ColorRGBA.Orange);
+            transformGizmo.setTarget(null);
+            transformGizmo.removeFromParent();
 
         }
 
     }
 
+    /**
+     * This method will place the object that is being dragged into the scene at
+     * its location. It will reparent the object.
+     */
+    private void placeSelectedObject() {
+        if (placingObject && selectedSpatial != null && selectedSpatial.getParent().equals(rootNode)) {
+            log("Placing selected object, " + selectedSpatial.getName());
+            placingObject = false;
+            selectedSpatial.removeFromParent();
+            sceneNode.attachChild(selectedSpatial);
+
+            setSelectedObject(selectedSpatial);
+            modelAddPanel.show();
+
+        }
+    }
+
     private Spatial importModelFromFile(File selectedFile, boolean terrainModel) {
         if (selectedFile != null && EditorUtils.isCompatableModel(selectedFile)) {
-            System.out.println("Importing model: " + selectedFile);
-            System.out.println("Parent: " + selectedFile.getParent());
-            System.out.println("FileName: " + selectedFile.getName());
+            log("Importing model: " + selectedFile);
+            log("Parent: " + selectedFile.getParent());
+            log("FileName: " + selectedFile.getName());
 
             baseApplication.getAssetManager().registerLocator(selectedFile.getParent(), FileLocator.class);
             ModelKey key = new ModelKey(selectedFile.getName());
             Spatial m = baseApplication.getAssetManager().loadModel(key);
 
-            System.out.println("Model (" + m.getName() + ") successfully imported.");
+            log("Model (" + m.getName() + ") successfully imported.");
 
             baseApplication.getAssetManager().deleteFromCache(key);
             baseApplication.getAssetManager().unregisterLocator(selectedFile.getParent(), FileLocator.class);
@@ -1166,7 +1267,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             if (terrainModel) {
                 terrainPanel.setInstanceModel(m);
             } else {
-                editNode.attachChild(m);
+                sceneNode.attachChild(m);
             }
 
             return m;
@@ -1176,7 +1277,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
     }
 
     private void importTexture(String uid) {
-        System.out.println("TERRAIN BUTTON: " + uid);
+        log("Importing a texture for: " + uid);
 
         JFileChooser fileChooser = new JFileChooser();
         String destFolder = System.getProperty("user.home");
@@ -1201,7 +1302,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         int result = fileChooser.showOpenDialog(null);
 
         if (result == JFileChooser.APPROVE_OPTION) {
-            System.out.println("Selected image: " + fileChooser.getSelectedFile());
+            log("Selected image: " + fileChooser.getSelectedFile());
 
             File file = fileChooser.getSelectedFile();
 
@@ -1209,12 +1310,19 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             baseApplication.getGameSaves().save();
 
             assetManager.registerLocator(file.getParent(), FileLocator.class);
-            Texture texture = assetManager.loadTexture(file.getName());
+            Texture texture = assetManager.loadTexture(new TextureKey(file.getName(), false));
             texture.setKey(null); //Set the key to null so that it can be embedded
 
-            System.out.println("Texture: " + texture);
+            if (EditorUtils.BASE_TEXTURE.equals(uid)) {
+                geometryPropertiesPanel.setBaseTexture(texture);
 
-            if (terrainPanel.getTerrainAction().getTool() == TerrainAction.TOOL_GRASS1) {
+            } else if (EditorUtils.NORMAL_TEXTURE.equals(uid)) {
+                geometryPropertiesPanel.setNormalTexture(texture);
+
+            } else if (EditorUtils.METALIC_TEXTURE.equals(uid)) {
+                geometryPropertiesPanel.setMetalicTexture(texture);
+
+            } else if (terrainPanel.getTerrainAction().getTool() == TerrainAction.TOOL_GRASS1) {
                 //2022-12-10: If the tool that is selected is the grass tool then we should set the texture to grass file selected
                 //The uid in this case will be the DiffuseMap or NormalMap
                 terrainPanel.setGrassTexture(uid, texture, TerrainAction.TOOL_GRASS1, TerrainAction.BATCH_GRASS1);
@@ -1264,6 +1372,22 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
             }
 
+            //Check for the delete action
+            if (Input.get("delete") == 1) {
+                if (selectedSpatial != null) {
+                    selectedSpatial.removeFromParent();
+                    clearSelectedObject();
+                    hierarchyPanel.reload(editNode);
+                }
+            }
+
+            if (Input.get("ctrl") == 1) {
+                ctrlDown = true;
+            } else if (Input.get("ctrl") == -1) {
+                ctrlDown = false;
+
+            }
+
         }
     }
 
@@ -1272,10 +1396,10 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
         if (pickEvent.isRightButton()) {
             if (pickEvent.isKeyDown()) {
-                log("Camera rotate on");
+                //log("Camera rotate on");
 
             } else {
-                log("Camera rotate off");
+                //log("Camera rotate off");
 
             }
 
@@ -1283,10 +1407,14 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
         if (pickEvent.isLeftButton()) {
             leftMouseDown = pickEvent.isKeyDown();
-            
+
             if (leftMouseDown) {
                 getWindow().removeFocusFromFields();
-                                
+
+            }
+
+            if (!pickEvent.isKeyDown()) {
+                placeSelectedObject();
             }
 
             //If we are doing terrain editing
@@ -1302,7 +1430,6 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                     //Avoid selection of the terrain
                     if (!(pickEvent.getContactObject() instanceof TerrainPatch)) {
                         setSelectedObject(pickEvent.getContactObject());
-                        setActiveToolbarItem(null);
 
                     }
 
@@ -1384,6 +1511,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                             terrainPanel.getSelectedGrass());
 
                 } else if (terrainPanel.getTerrainAction().getTool() == TerrainAction.TOOL_TREES1) {
+                    log("Painting some trees1...");
                     terrainModelTool.paintModel(getTerrain(),
                             terrainPanel.getSelectedInstancedNode(),
                             paintGizmo.getWorldTranslation(),
@@ -1399,6 +1527,25 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         } else {
             statusLabel.setText("Screen: (" + pickEvent.getCursorPosition().x + ", "
                     + pickEvent.getCursorPosition().y + ")");
+
+            //Check if we are busy placing a model
+            if (placingObject) {
+                log("Busy placing object, " + selectedSpatial.getName() + ", pos:" + pickEvent.getContactPoint());
+                if (pickEvent.getContactPoint() != null) {
+
+                    if (ctrlDown) {
+                        selectedSpatial.setLocalTranslation((int)pickEvent.getContactPoint().x,
+                                (int)pickEvent.getContactPoint().y,
+                                (int)pickEvent.getContactPoint().z);
+                    } else {
+                        selectedSpatial.setLocalTranslation(pickEvent.getContactPoint().x,
+                                pickEvent.getContactPoint().y,
+                                pickEvent.getContactPoint().z);
+                    }
+
+                }
+
+            }
 
         }
 
@@ -1455,6 +1602,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         transformGizmo.removeFromParent();
         activateFlyCam();
         hidePanels();
+        selectedSpatial = null;
     }
 
     private void setSelectedObject(Spatial spatial) {
@@ -1462,19 +1610,24 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         transformGizmo.setLocalTranslation(spatial.getWorldTranslation());
 //                transformGizmo.setLocalRotation(spatial.getWorldRotation());
 
-        activateOrbitCam();
-
-        chaseCameraTarget.setLocalTranslation(spatial.getWorldTranslation().clone());
+//        activateOrbitCam();
+//        chaseCameraTarget.setLocalTranslation(spatial.getWorldTranslation().clone());
         selectedSpatial = spatial;
-        transformGizmo.setTarget(spatial);
+        transformGizmo.setTarget(spatial);        
+        setActiveToolbarItem(Action.TRANSFORM);
 
         if (selectedSpatial instanceof Geometry) {
-            showPanel(geometryPropertiesPanel);
+            geometryPropertiesPanel.setGeometry((Geometry) selectedSpatial);
+            geometryPropertiesPanel.show();
+            nodePropertiesPanel.hide();
 
         } else if (selectedSpatial instanceof Node) {
-            showPanel(nodePropertiesPanel);
+            nodePropertiesPanel.setNode((Node) selectedSpatial);
+            nodePropertiesPanel.show();
+            geometryPropertiesPanel.hide();
 
         }
 
     }
+
 }

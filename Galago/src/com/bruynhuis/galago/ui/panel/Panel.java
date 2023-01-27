@@ -104,6 +104,11 @@ public class Panel extends ImageWidget {
         widgets.add(widget);
         widget.add(widgetNode);
     }
+    
+    public void remove(Widget widget) {
+        widgets.remove(widget);
+        widget.remove();
+    }    
 
     public ArrayList<Widget> getWidgets() {
         return widgets;

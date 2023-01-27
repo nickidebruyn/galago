@@ -11,6 +11,7 @@ public class Action {
     public static final String TRANSFORM = "transform";
     public static final String HIERARCHY = "hierarchy";
     public static final String ADD = "add";
+    public static final String ADD_DONE = "add_done";
     public static final String ADD_SKY = "add_sky";
     public static final String ADD_AMBIENT = "add_ambient";
     public static final String ADD_SUN = "add_sun";

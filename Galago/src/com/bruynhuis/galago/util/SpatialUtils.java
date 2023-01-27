@@ -50,11 +50,13 @@ import com.jme3.scene.SceneGraphVisitor;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.control.AbstractControl;
 import com.jme3.scene.shape.Box;
+import com.jme3.scene.shape.CenterQuad;
 import com.jme3.scene.shape.Cylinder;
 import com.jme3.scene.shape.Dome;
 import com.jme3.scene.shape.Line;
 import com.jme3.scene.shape.Quad;
 import com.jme3.scene.shape.Sphere;
+import com.jme3.scene.shape.Torus;
 import com.jme3.terrain.Terrain;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.texture.Texture;
@@ -669,6 +671,26 @@ public class SpatialUtils {
 
         return geometry;
     }
+    
+    /**
+     * Add a dome to the scene.
+     *
+     * @param parent
+     * @param zSamples
+     * @param radialSamples
+     * @param radius
+     * @return
+     */
+    public static Spatial addDome(Node parent, int zSamples, int radialSamples, float radius) {
+
+        Dome dome = new Dome(new Vector3f(0, 0, 0), zSamples, radialSamples, radius, false);
+//        sphere.setBound(new BoundingSphere(radius, new Vector3f(0, 0, 0)));
+        Geometry geometry = new Geometry("Dome", dome);
+        parent.attachChild(geometry);
+        geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+
+        return geometry;
+    }    
 
     public static Spatial addCone(Node parent, int radialSamples, float radius, float height) {
 
@@ -727,10 +749,9 @@ public class SpatialUtils {
      */
     public static Spatial addPlane(Node parent, float xExtend, float zExtend) {
 
-        Quad quad = new Quad(xExtend * 2, zExtend * 2);
+        CenterQuad quad = new CenterQuad(xExtend * 2, zExtend * 2);
         Geometry geometry = new Geometry("quad", quad);
         geometry.rotate(-FastMath.DEG_TO_RAD * 90, 0, 0);
-        geometry.move(-xExtend, 0, zExtend);
         parent.attachChild(geometry);
         geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
 
@@ -756,6 +777,27 @@ public class SpatialUtils {
 
         return geometry;
     }
+
+    /**
+     * Add a torus to the parent node
+     * @param parent
+     * @param circleSamples
+     * @param radialSamples
+     * @param innerRadius
+     * @param outerRadius
+     * @return 
+     */
+    public static Spatial addTorus(Node parent, int circleSamples, int radialSamples, float innerRadius, float outerRadius) {
+        
+        Torus torus = new Torus(circleSamples, radialSamples, innerRadius, outerRadius);
+        Geometry geometry = new Geometry("torus", torus);
+//        geometry.rotate(-FastMath.DEG_TO_RAD * 90, 0, 0);
+//        geometry.move(-xExtend, 0, zExtend);
+        parent.attachChild(geometry);
+        geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+
+        return geometry;
+    }    
 
     /**
      * Add a sprite to the scene

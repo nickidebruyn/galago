@@ -15,7 +15,10 @@ import com.galago.editor.ui.SliderField;
 import com.galago.editor.ui.SpinnerButton;
 import com.galago.editor.ui.TextField;
 import com.galago.editor.utils.EditorUtils;
+import com.jme3.material.MatParamTexture;
+import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.texture.Texture;
 
 /**
  *
@@ -150,7 +153,7 @@ public abstract class AbstractPropertiesPanel extends Panel {
 
         return field;
     }
-    
+
     protected FloatField createLabeledFloatInput(String text, String id, float labelLeftPadding, ColorRGBA textColor) {
         Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, verticalSpacing);
         flowPanel.add(panel);
@@ -166,7 +169,7 @@ public abstract class AbstractPropertiesPanel extends Panel {
 
         return field;
     }
-    
+
     protected FloatField createLabeledFloatInput(String text, String id) {
         return createLabeledFloatInput(text, id, 5, ColorRGBA.White);
     }
@@ -185,7 +188,7 @@ public abstract class AbstractPropertiesPanel extends Panel {
 
         return field;
     }
-
+    
     protected TouchButton createLabeledTextureButton(String text, String id) {
         Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, 80);
         flowPanel.add(panel);
@@ -203,6 +206,31 @@ public abstract class AbstractPropertiesPanel extends Panel {
         button.rightTop(5, 15);
         button.addEffect(new TouchEffect(button));
         button.getPicture().setMaterial(button.getPicture().getMaterial().clone());
+
+        return button;
+    }
+
+    protected TouchButton createLabeledTextureButton(Panel parentPanel, String text, String id, Texture texture) {
+        Panel panel = new Panel(parentPanel, null, 80, 80);
+        parentPanel.add(panel);
+
+        Label label = new Label(panel, text, 12, 80, 60);
+        label.setAlignment(TextAlign.CENTER);
+        label.setVerticalAlignment(TextAlign.CENTER);
+        label.centerTop(0, -20);
+
+        Image img = new Image(panel, "Interface/texture-button.png", 70, 70);
+        img.setBackgroundColor(EditorUtils.theme.getButtonColor());
+        img.center();
+
+        TouchButton button = new TouchButton(panel, id, "Interface/texture-button.png", 60, 60);
+        button.center();
+        button.addEffect(new TouchEffect(button));
+        button.getPicture().setMaterial(button.getPicture().getMaterial().clone());
+        
+        if (texture != null) {
+            button.getPicture().getMaterial().setTexture("Texture", texture);            
+        }
 
         return button;
     }
@@ -234,7 +262,7 @@ public abstract class AbstractPropertiesPanel extends Panel {
         button2.addEffect(new TouchEffect(button2));
         button2.getPicture().setMaterial(button2.getPicture().getMaterial().clone());
 
-        return new ButtonGroup(button1, button2);
+        return new ButtonGroup(button1, button2, img, img2);
     }
 
     @Override
@@ -243,4 +271,14 @@ public abstract class AbstractPropertiesPanel extends Panel {
         reload();
     }
 
+    protected void setButtonTextureFromMaterial(Material material, String materialTextureName, TouchButton button) {
+        MatParamTexture mpt = material.getTextureParam(materialTextureName);
+        if (mpt != null) {
+            Texture texture = mpt.getTextureValue();
+            button.getPicture().getMaterial().setTexture("Texture", texture);
+        } else {
+            button.updatePicture("Interface/texture-button.png");
+        }
+
+    }
 }

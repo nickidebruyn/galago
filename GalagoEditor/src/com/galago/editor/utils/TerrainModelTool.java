@@ -6,8 +6,8 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import com.jme3.scene.BatchNode;
 import com.jme3.scene.Spatial;
-import com.jme3.scene.instancing.InstancedNode;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +26,7 @@ public class TerrainModelTool {
     private Ray ray = new Ray();
     private List<Spatial> removeList = new ArrayList<>();
 
-    public void paintModel(TerrainQuad terrain, InstancedNode instanceNode, Vector3f worldLoc, float radius, float density, float scale, Spatial model) {
+    public void paintModel(TerrainQuad terrain, BatchNode batchNode, Vector3f worldLoc, float radius, float density, float scale, Spatial model) {
 
         if (density > 0) {
             //Paint grass
@@ -63,8 +63,8 @@ public class TerrainModelTool {
                             Spatial painted = model.clone(false);
                             painted.setLocalTranslation(loc);
                             painted.setLocalScale(scale + (FastMath.nextRandomInt(-3, 3) * 0.1f));
-                            MaterialUtils.setInstancingOnAllMaterials(painted);
-                            instanceNode.attachChild(painted);
+//                            MaterialUtils.setInstancingOnAllMaterials(painted);
+                            batchNode.attachChild(painted);
 
                         }
                     }
@@ -74,15 +74,15 @@ public class TerrainModelTool {
                 lastLocation.setY(worldLoc.y);
                 lastLocation.setZ(worldLoc.z);
 
-                instanceNode.instance();
+                batchNode.batch();
             }
 
         } else {
             //Remove mdoels
 //            System.out.println("Removing grass");
             removeList.clear();
-            for (int i = 0; i < instanceNode.getQuantity(); i++) {
-                Spatial removedObj = instanceNode.getChild(i);
+            for (int i = 0; i < batchNode.getQuantity(); i++) {
+                Spatial removedObj = batchNode.getChild(i);
                 if (worldLoc.distance(removedObj.getWorldTranslation()) < radius) {
                     removeList.add(removedObj);
                     
@@ -98,12 +98,12 @@ public class TerrainModelTool {
                 
             }
             
-            instanceNode.instance();
+            batchNode.batch();
 
         }
         
         //DUMP SCENE
-        EditorUtils.dumpScene(instanceNode);
+        EditorUtils.dumpScene(batchNode);
 
     }
 
