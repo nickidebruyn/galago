@@ -26,7 +26,9 @@ public class ColorButton extends TouchButton {
     }
 
     public void setColor(ColorRGBA color) {
-        setBackgroundColor(color);
+        if (color != null) {
+            setBackgroundColor(color);
+        }
 
     }
 }

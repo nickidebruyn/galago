@@ -58,8 +58,13 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
 
     private SpinnerButton materialType;
     private ColorButton baseColorButton;
+    private ColorButton emissiveColorButton;
     private FloatField alphaThreshholdField;
     private FloatField shininessField;
+    private FloatField metallicField;
+    private FloatField roughnessField;
+    private FloatField emissivePowerField;
+    private FloatField emissiveIntensityField;
     private ButtonGroup baseTextureButtonGroup;
     private TouchButton metalicTextureButton;
 
@@ -278,22 +283,53 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
                 Texture metalicTexture = MaterialUtils.getMetalicTexture(geometryMaterial);
                 Float shininess = geometryMaterial.getParamValue("Shininess");
                 Float alphaThreshold = geometryMaterial.getParamValue("AlphaDiscardThreshold");
+                Float metallic = geometryMaterial.getParamValue("Metallic");
+                Float roughness = geometryMaterial.getParamValue("Roughness");
+                Float emissivePower = geometryMaterial.getParamValue("EmissivePower");
+                Float emissiveIntensity = geometryMaterial.getParamValue("EmissiveIntensity");
+                ColorRGBA emissiveColor = MaterialUtils.getEmissiveColor(geometryMaterial);
 
                 Material newMaterial = null;
 
                 if (materialType.getIndex() == 0) {
                     newMaterial = MaterialUtils.createMaterial(SharedSystem.getInstance().getBaseApplication().getAssetManager(), color);
-                    if (shininess != null) newMaterial.setFloat("Shininess", shininess);
-                    if (alphaThreshold != null) newMaterial.setFloat("AlphaDiscardThreshold", alphaThreshold);
+                    if (shininess != null) {
+                        newMaterial.setFloat("Shininess", shininess);
+                    }
+                    if (alphaThreshold != null) {
+                        newMaterial.setFloat("AlphaDiscardThreshold", alphaThreshold);
+                    }
 
                 } else if (materialType.getIndex() == 1) {
                     newMaterial = MaterialUtils.createPBRMaterial(SharedSystem.getInstance().getBaseApplication().getAssetManager());
                     newMaterial.setColor("BaseColor", color);
-                    if (alphaThreshold != null) newMaterial.setFloat("AlphaDiscardThreshold", alphaThreshold);
+                    if (alphaThreshold != null) {
+                        newMaterial.setFloat("AlphaDiscardThreshold", alphaThreshold);
+                    }
+                    if (metallic != null) {
+                        newMaterial.setFloat("Metallic", metallic);
+                    }
+                    if (roughness != null) {
+                        newMaterial.setFloat("Roughness", roughness);
+                    }
+
+                    if (emissiveColor != null) {
+                        newMaterial.setColor("Emissive", emissiveColor);
+                    }
+                    
+                    if (emissivePower != null) {
+                        newMaterial.setFloat("EmissivePower", emissivePower);
+                    }
+
+                    if (emissiveIntensity != null) {
+                        newMaterial.setFloat("EmissiveIntensity", emissiveIntensity);
+                    }                    
 
                 } else if (materialType.getIndex() == 2) {
                     newMaterial = MaterialUtils.createShadelessMaterial(SharedSystem.getInstance().getBaseApplication().getAssetManager(), color);
-                    if (alphaThreshold != null) newMaterial.setFloat("AlphaDiscardThreshold", alphaThreshold);
+                    if (alphaThreshold != null) {
+                        newMaterial.setFloat("AlphaDiscardThreshold", alphaThreshold);
+                    }
 
                 }
 
@@ -302,7 +338,7 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
                     MaterialUtils.setBaseTexture(newMaterial, baseTexture);
                     MaterialUtils.setNormalTexture(newMaterial, normalTexture);
                     MaterialUtils.setMetalicTexture(newMaterial, metalicTexture);
-                    
+
                     newMaterial.getAdditionalRenderState().setBlendMode(geometryMaterial.getAdditionalRenderState().getBlendMode());
                     newMaterial.getAdditionalRenderState().setFaceCullMode(geometryMaterial.getAdditionalRenderState().getFaceCullMode());
 
@@ -324,9 +360,10 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
                 Color currentColor = MaterialUtils.convertColor(MaterialUtils.getBaseColor(geometryMaterial));
                 Color newColor = JColorChooser.showDialog(null, "Choose a color", currentColor);
 
-                System.out.println("Color: " + newColor);
                 if (newColor != null) {
                     ColorRGBA colorRGBA = MaterialUtils.convertColor(newColor);
+
+                    System.out.println("New Color: " + colorRGBA);
                     MaterialUtils.setBaseColor(geometryMaterial, colorRGBA);
                     baseColorButton.setColor(colorRGBA);
                 }
@@ -335,7 +372,7 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
 
         });
 
-        alphaThreshholdField = createLabeledFloatInput("Alpha", "alpha threshold");
+        alphaThreshholdField = createLabeledFloatInput("Alpha", "alpha threshold", 0, 1);
         alphaThreshholdField.addKeyboardListener(new KeyboardListener() {
             @Override
             public void doKeyPressed(KeyInputEvent evt) {
@@ -345,12 +382,70 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
 
         });
 
-        shininessField = createLabeledFloatInput("Shininess", "shininess");
+        shininessField = createLabeledFloatInput("Shininess", "shininess", 0, 5);
         shininessField.addKeyboardListener(new KeyboardListener() {
             @Override
             public void doKeyPressed(KeyInputEvent evt) {
-//                System.out.println("Shininess: " + shininessField.getValue());
                 geometryMaterial.setFloat("Shininess", shininessField.getValue());
+
+            }
+
+        });
+
+        metallicField = createLabeledFloatInput("Metallic", "metallic", 0, 2);
+        metallicField.addKeyboardListener(new KeyboardListener() {
+            @Override
+            public void doKeyPressed(KeyInputEvent evt) {
+                geometryMaterial.setFloat("Metallic", metallicField.getValue());
+
+            }
+
+        });
+
+        roughnessField = createLabeledFloatInput("Roughness", "Roughness", 0, 1);
+        roughnessField.addKeyboardListener(new KeyboardListener() {
+            @Override
+            public void doKeyPressed(KeyInputEvent evt) {
+                geometryMaterial.setFloat("Roughness", roughnessField.getValue());
+
+            }
+
+        });
+
+        emissiveColorButton = createLabeledColorButton("Emissive", "emissive-color-button");
+        emissiveColorButton.addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                Color currentColor = MaterialUtils.convertColor(MaterialUtils.getEmissiveColor(geometryMaterial));
+                Color newColor = JColorChooser.showDialog(null, "Choose a color", currentColor);
+
+                if (newColor != null) {
+                    ColorRGBA colorRGBA = MaterialUtils.convertColor(newColor);
+
+                    System.out.println("New Color: " + colorRGBA);
+                    MaterialUtils.setEmissiveColor(geometryMaterial, colorRGBA);
+                    emissiveColorButton.setColor(colorRGBA);
+                }
+
+            }
+
+        });
+
+        emissivePowerField = createLabeledFloatInput("Power", "EmissivePower", 0, 1);
+        emissivePowerField.addKeyboardListener(new KeyboardListener() {
+            @Override
+            public void doKeyPressed(KeyInputEvent evt) {
+                geometryMaterial.setFloat("EmissivePower", emissivePowerField.getValue());
+
+            }
+
+        });
+        
+        emissiveIntensityField = createLabeledFloatInput("Intensity", "EmissiveIntensity", 0, 1);
+        emissiveIntensityField.addKeyboardListener(new KeyboardListener() {
+            @Override
+            public void doKeyPressed(KeyInputEvent evt) {
+                geometryMaterial.setFloat("EmissiveIntensity", emissiveIntensityField.getValue());
 
             }
 
@@ -455,10 +550,15 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
             flowPanel.remove(metalicTextureButton.getParent());
             flowPanel.remove(alphaThreshholdField.getParent());
             flowPanel.remove(shininessField.getParent());
+            flowPanel.remove(metallicField.getParent());
+            flowPanel.remove(roughnessField.getParent());
+            flowPanel.remove(emissiveColorButton.getParent());
+            flowPanel.remove(emissivePowerField.getParent());
+            flowPanel.remove(emissiveIntensityField.getParent());
 
             if (MaterialUtils.isLightingMaterial(geometryMaterial)) {
                 flowPanel.add(alphaThreshholdField.getParent());
-                flowPanel.add(shininessField.getParent());                
+                flowPanel.add(shininessField.getParent());
 
                 baseTextureButtonGroup.getButton2().setVisible(true);
                 baseTextureButtonGroup.getBackImage2().setVisible(true);
@@ -472,6 +572,11 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
             } else if (MaterialUtils.isPBRLightingMaterial(geometryMaterial)) {
                 flowPanel.add(alphaThreshholdField.getParent());
                 flowPanel.add(metalicTextureButton.getParent());
+                flowPanel.add(metallicField.getParent());
+                flowPanel.add(roughnessField.getParent());
+                flowPanel.add(emissiveColorButton.getParent());
+                flowPanel.add(emissivePowerField.getParent());
+                flowPanel.add(emissiveIntensityField.getParent());
 
                 baseTextureButtonGroup.getButton2().setVisible(true);
                 baseTextureButtonGroup.getBackImage2().setVisible(true);
@@ -479,17 +584,24 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
                 setButtonTextureFromMaterial(geometryMaterial, "BaseColorMap", baseTextureButtonGroup.getButton1());
                 setButtonTextureFromMaterial(geometryMaterial, "NormalMap", baseTextureButtonGroup.getButton2());
                 setButtonTextureFromMaterial(geometryMaterial, "MetallicMap", metalicTextureButton);
-                
+
                 alphaThreshholdField.setValue(geometryMaterial.getParamValue("AlphaDiscardThreshold") != null ? geometryMaterial.getParamValue("AlphaDiscardThreshold") : 0);
+                metallicField.setValue(geometryMaterial.getParamValue("Metallic") != null ? geometryMaterial.getParamValue("Metallic") : 0);
+                roughnessField.setValue(geometryMaterial.getParamValue("Roughness") != null ? geometryMaterial.getParamValue("Roughness") : 0);
+                
+                emissivePowerField.setValue(geometryMaterial.getParamValue("EmissivePower") != null ? geometryMaterial.getParamValue("EmissivePower") : 0);
+                emissiveIntensityField.setValue(geometryMaterial.getParamValue("EmissiveIntensity") != null ? geometryMaterial.getParamValue("EmissiveIntensity") : 0);
+
+                emissiveColorButton.setColor(MaterialUtils.getEmissiveColor(geometryMaterial));
 
             } else {
                 flowPanel.add(alphaThreshholdField.getParent());
-                
+
                 baseTextureButtonGroup.getButton2().setVisible(false);
                 baseTextureButtonGroup.getBackImage2().setVisible(false);
 
                 setButtonTextureFromMaterial(geometryMaterial, "ColorMap", baseTextureButtonGroup.getButton1());
-                
+
                 alphaThreshholdField.setValue(geometryMaterial.getParamValue("AlphaDiscardThreshold") != null ? geometryMaterial.getParamValue("AlphaDiscardThreshold") : 0);
 
             }

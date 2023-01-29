@@ -347,13 +347,14 @@ public class MaterialUtils {
     }
 
     public static Color convertColor(ColorRGBA colorRGBA) {
+        if (colorRGBA == null) return new Color(1, 1, 1, 1);
         return new Color(colorRGBA.r, colorRGBA.g, colorRGBA.b, 1);
     }
 
     public static ColorRGBA convertColor(Color color) {
         float[] rgba = new float[4];
         rgba = color.getColorComponents(rgba);
-        return new ColorRGBA(rgba[0], rgba[1], rgba[2], rgba[3]);
+        return new ColorRGBA(rgba[0], rgba[1], rgba[2], 1);
     }
 
     public static boolean isLightingMaterial(Material material) {
@@ -425,6 +426,15 @@ public class MaterialUtils {
         
     }
     
+    public static ColorRGBA getEmissiveColor(Material material) {
+        if (isPBRLightingMaterial(material)) {
+            return material.getParamValue("Emissive");            
+        }
+        
+        return null;
+        
+    }
+    
     public static void setBaseColor(Material material, ColorRGBA color) {
         if (isLightingMaterial(material)) {
             material.setColor("Diffuse", color);
@@ -438,6 +448,14 @@ public class MaterialUtils {
         }
         
     }
+    
+    public static void setEmissiveColor(Material material, ColorRGBA color) {
+        if (isPBRLightingMaterial(material)) {
+            material.setColor("Emissive", color);
+            
+        }
+        
+    }    
     
     public static Texture getBaseTexture(Material material) {
         if (isLightingMaterial(material)) {

@@ -1,0 +1,13 @@
+Material MyMaterial : Common/MatDefs/Light/Lighting.j3md {
+    MaterialParameters {
+        Diffuse : 1.0 1.0 1.0 1.0
+        DiffuseMap : Repeat "Textures/test/bluestone_rock.png"
+        NormalMap : Repeat "Textures/test/bluestone_rock_normal.png"
+        Shininess : 1
+        ParallaxHeight : 1.15
+        BackfaceShadows : false
+    }
+    AdditionalRenderState {
+
+    }
+}

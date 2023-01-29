@@ -79,6 +79,7 @@ import com.jme3.shadow.EdgeFilteringMode;
 import com.jme3.terrain.geomipmap.TerrainPatch;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import com.jme3.texture.Texture;
+import com.jme3.util.TangentBinormalGenerator;
 import com.jme3.water.WaterFilter;
 import java.io.File;
 import java.io.IOException;
@@ -508,7 +509,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
     }
 
     private void loadProbeLight() {
-        lightProbe = SpatialUtils.loadLightProbe(editNode, "Models/Probes/River_Road.j3o");
+        lightProbe = SpatialUtils.loadLightProbe(editNode, "Models/Probes/Sky_Cloudy.j3o");
         lightProbe.setAreaType(LightProbe.AreaType.Spherical);
         lightProbe.getArea().setRadius(2000);
         lightProbe.getArea().setCenter(new Vector3f(0, 0, 0));
@@ -1199,6 +1200,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         ModelReference modelReference = ModelUtils.getModelByName(modelName);
         if (modelReference != null) {
             Spatial s = modelReference.getModel().clone();
+            TangentBinormalGenerator.generate(s);
             rootNode.attachChild(s);
             selectedSpatial = s;
             placingObject = true;
@@ -1263,7 +1265,9 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
             //NB
             MaterialUtils.convertTexturesToEmbedded(m);
+            TangentBinormalGenerator.generate(m);
 
+            
             if (terrainModel) {
                 terrainPanel.setInstanceModel(m);
             } else {

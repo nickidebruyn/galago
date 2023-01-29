@@ -155,6 +155,10 @@ public abstract class AbstractPropertiesPanel extends Panel {
     }
 
     protected FloatField createLabeledFloatInput(String text, String id, float labelLeftPadding, ColorRGBA textColor) {
+        return createLabeledFloatInput(text, id, labelLeftPadding, textColor, -1000000, 1000000);
+    }
+    
+    protected FloatField createLabeledFloatInput(String text, String id, float labelLeftPadding, ColorRGBA textColor, float minAmount, float maxAmount) {
         Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, verticalSpacing);
         flowPanel.add(panel);
 
@@ -165,9 +169,15 @@ public abstract class AbstractPropertiesPanel extends Panel {
         label.setTextColor(textColor);
 
         FloatField field = new FloatField(panel, id);
+        field.setMinAmount(minAmount);
+        field.setMaxAmount(maxAmount);
         field.rightCenter(5, 0);
 
         return field;
+    }
+    
+    protected FloatField createLabeledFloatInput(String text, String id, float minAmount, float maxAmount) {
+        return createLabeledFloatInput(text, id, 5, ColorRGBA.White, minAmount, maxAmount);
     }
 
     protected FloatField createLabeledFloatInput(String text, String id) {
