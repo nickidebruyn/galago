@@ -22,6 +22,7 @@ import com.galago.editor.camera.EditorFlyCamAppState;
 import com.galago.editor.spatial.Gizmo;
 import com.galago.editor.spatial.GizmoListener;
 import com.galago.editor.spatial.PaintGizmo;
+import com.galago.editor.spatial.SelectObjectOutliner;
 import com.galago.editor.ui.panels.HierarchyPanel;
 import com.galago.editor.ui.panels.TerrainPanel;
 import com.galago.editor.ui.panels.ToolbarPanel;
@@ -83,6 +84,7 @@ import com.jme3.util.TangentBinormalGenerator;
 import com.jme3.water.WaterFilter;
 import java.io.File;
 import java.io.IOException;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
@@ -138,6 +140,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
     private PaintGizmo paintGizmo;
     private Spatial selectedSpatial;
     private Node chaseCameraTarget;
+    private SelectObjectOutliner outliner;
 
     private TerrainPaintTool terrainPaintTool = new TerrainPaintTool();
     private TerrainRaiseTool terrainRaiseTool = new TerrainRaiseTool();
@@ -497,7 +500,6 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
     private void loadAmbientLight() {
         ambientLight = new AmbientLight();
-        ambientLight.setColor(ColorRGBA.Gray);
         editNode.addLight(ambientLight);
     }
 
@@ -570,6 +572,9 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         transformGizmo.setGizmoListener(this);
 
         paintGizmo = new PaintGizmo("PAINT-GIZMO", camera, inputManager);
+
+        outliner = new SelectObjectOutliner(assetManager);
+        outliner.initOutliner(4, EditorUtils.theme.getOutlinerColor(), rootNode);
 
     }
 
@@ -860,13 +865,12 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
             } else {
                 addObject((String) object);
-                
+
                 if (getTerrain() == null) {
                     touchPickListener.setTargetNode(gridNode);
                 } else {
                     touchPickListener.setTargetNode(getTerrain());
                 }
-                
 
             }
 
@@ -942,7 +946,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 if (terrainAction.getTerrainMaterial() == TerrainAction.MATERIAL_PAINTABLE) {
                     log("Generated paintable terrain material");
                     try {
-                        material = TerrainUtils.generatePaintableTerrainMaterial(assetManager, terrainAction.getTerrainSize());
+                        material = TerrainUtils.generatePaintableTerrainMaterial(assetManager, terrainAction.getTerrainSize()*4);
                     } catch (IOException ex) {
                         Logger.getLogger(EditorScreen.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -954,7 +958,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 } else if (terrainAction.getTerrainMaterial() == TerrainAction.MATERIAL_PBR) {
                     log("Generated paintable PBR terrain material");
                     try {
-                        material = TerrainUtils.generatePaintablePBRTerrainMaterial(assetManager, terrainAction.getTerrainSize());
+                        material = TerrainUtils.generatePaintablePBRTerrainMaterial(assetManager, terrainAction.getTerrainSize()*4);
                     } catch (IOException ex) {
                         Logger.getLogger(EditorScreen.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -1013,7 +1017,6 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 //                treeNode1.instance();
                 //TODO:
 //                MaterialUtils.convertTextureToEmbeddedByName(((Geometry) grassModel3.getChild(0)).getMaterial(), "DiffuseMap");
-
                 editNode.attachChild(terrain);
 
 //                TangentBinormalGenerator.generate(terrain);
@@ -1199,9 +1202,16 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
         ModelReference modelReference = ModelUtils.getModelByName(modelName);
         if (modelReference != null) {
-            Spatial s = modelReference.getModel().clone();
+            Spatial s = modelReference.getModel().clone(); //TODO: Can set it to not clone the material
+            s.setUserData(EditorUtils.GUID, UUID.randomUUID().toString());
             TangentBinormalGenerator.generate(s);
             rootNode.attachChild(s);
+
+            //Remove the previous selected object from the outliner
+            if (selectedSpatial != null) {
+                outliner.deselect(selectedSpatial);
+            }
+
             selectedSpatial = s;
             placingObject = true;
 
@@ -1267,11 +1277,13 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             MaterialUtils.convertTexturesToEmbedded(m);
             TangentBinormalGenerator.generate(m);
 
-            
             if (terrainModel) {
                 terrainPanel.setInstanceModel(m);
             } else {
+                m.setUserData(EditorUtils.GUID, UUID.randomUUID().toString());
                 sceneNode.attachChild(m);
+                setSelectedObject(m);
+                
             }
 
             return m;
@@ -1433,7 +1445,12 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
                     //Avoid selection of the terrain
                     if (!(pickEvent.getContactObject() instanceof TerrainPatch)) {
-                        setSelectedObject(pickEvent.getContactObject());
+                        
+                        if (ctrlDown) {
+                            setSelectedObject(pickEvent.getContactObject());
+                        } else {
+                            setSelectedObject(findRootNodeForSelection(pickEvent.getContactObject()));
+                        }                        
 
                     }
 
@@ -1462,18 +1479,19 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                     terrainPaintTool.paintTexture(getTerrain(),
                             paintGizmo.getWorldTranslation(),
                             terrainPanel.getPaintRadius(),
-                            terrainPanel.getPaintStrength(),
+                            ctrlDown ? (terrainPanel.getPaintStrength() * -1f) : (terrainPanel.getPaintStrength()),
                             terrainPanel.getSelectedLayer());
 
                 } else if (terrainPanel.getTerrainAction().getTool() == TerrainAction.TOOL_RAISE) {
-                    terrainRaiseTool.modifyHeight(editNode,
+                    log("Modifying terrain height, " + terrainPanel.getPaintRadius());
+                    terrainRaiseTool.modifyHeight(getTerrain(),
                             paintGizmo.getWorldTranslation(),
                             terrainPanel.getPaintRadius(),
-                            terrainPanel.getPaintStrength(),
+                            ctrlDown ? (terrainPanel.getPaintStrength() * -1f) : (terrainPanel.getPaintStrength()),
                             TerrainRaiseTool.Meshes.Sphere);
 
                 } else if (terrainPanel.getTerrainAction().getTool() == TerrainAction.TOOL_FLATTEN) {
-                    terrainFlattenTool.modifyHeight(editNode, flattenPoint,
+                    terrainFlattenTool.modifyHeight(getTerrain(), flattenPoint,
                             paintGizmo.getWorldTranslation(),
                             terrainPanel.getPaintRadius(),
                             terrainPanel.getPaintStrength(),
@@ -1481,7 +1499,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                             TerrainRaiseTool.Meshes.Sphere);
 
                 } else if (terrainPanel.getTerrainAction().getTool() == TerrainAction.TOOL_SMOOTH) {
-                    terrainSmoothTool.modifyHeight(editNode,
+                    terrainSmoothTool.modifyHeight(getTerrain(),
                             paintGizmo.getWorldTranslation(),
                             terrainPanel.getPaintRadius(),
                             terrainPanel.getPaintStrength(),
@@ -1492,7 +1510,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                             terrainPanel.getSelectedBatchLayer(),
                             paintGizmo.getWorldTranslation(),
                             terrainPanel.getPaintRadius(),
-                            terrainPanel.getPaintStrength(),
+                            ctrlDown ? (terrainPanel.getPaintStrength() * -1f) : (terrainPanel.getPaintStrength()),
                             terrainPanel.getTerrainAction().getScaleFactor(),
                             terrainPanel.getSelectedGrass());
 
@@ -1501,7 +1519,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                             terrainPanel.getSelectedBatchLayer(),
                             paintGizmo.getWorldTranslation(),
                             terrainPanel.getPaintRadius(),
-                            terrainPanel.getPaintStrength(),
+                            ctrlDown ? (terrainPanel.getPaintStrength() * -1f) : (terrainPanel.getPaintStrength()),
                             terrainPanel.getTerrainAction().getScaleFactor(),
                             terrainPanel.getSelectedGrass());
 
@@ -1510,7 +1528,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                             terrainPanel.getSelectedBatchLayer(),
                             paintGizmo.getWorldTranslation(),
                             terrainPanel.getPaintRadius(),
-                            terrainPanel.getPaintStrength(),
+                            ctrlDown ? (terrainPanel.getPaintStrength() * -1f) : (terrainPanel.getPaintStrength()),
                             terrainPanel.getTerrainAction().getScaleFactor(),
                             terrainPanel.getSelectedGrass());
 
@@ -1520,7 +1538,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                             terrainPanel.getSelectedInstancedNode(),
                             paintGizmo.getWorldTranslation(),
                             terrainPanel.getPaintRadius(),
-                            terrainPanel.getPaintStrength(),
+                            ctrlDown ? (terrainPanel.getPaintStrength() * -1f) : (terrainPanel.getPaintStrength()),
                             terrainPanel.getTerrainAction().getScaleFactor(),
                             terrainPanel.getSelectedModel());
 
@@ -1538,9 +1556,9 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 if (pickEvent.getContactPoint() != null) {
 
                     if (ctrlDown) {
-                        selectedSpatial.setLocalTranslation((int)pickEvent.getContactPoint().x,
-                                (int)pickEvent.getContactPoint().y,
-                                (int)pickEvent.getContactPoint().z);
+                        selectedSpatial.setLocalTranslation((int) pickEvent.getContactPoint().x,
+                                (int) pickEvent.getContactPoint().y,
+                                (int) pickEvent.getContactPoint().z);
                     } else {
                         selectedSpatial.setLocalTranslation(pickEvent.getContactPoint().x,
                                 pickEvent.getContactPoint().y,
@@ -1566,6 +1584,10 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 nodePropertiesPanel.setNode((Node) selectedSpatial);
 
             }
+
+            outliner.updatePosition(selectedSpatial);
+            outliner.updateRotation(selectedSpatial);
+            outliner.updateScale(selectedSpatial);
 
 //            selectedSpatial.setLocalTranslation(position.x, position.y, position.z);
 //            selectedSpatial.setLocalRotation(rotations.clone());
@@ -1604,21 +1626,32 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
     private void clearSelectedObject() {
         transformGizmo.setTarget(null);
         transformGizmo.removeFromParent();
+
+        if (selectedSpatial != null) {
+            outliner.deselect(selectedSpatial);
+        }
+
         activateFlyCam();
         hidePanels();
         selectedSpatial = null;
     }
 
     private void setSelectedObject(Spatial spatial) {
+        log("Selected object, " + spatial.getName() + ", GUID = " + spatial.getUserData(EditorUtils.GUID));
         rootNode.attachChild(transformGizmo);
         transformGizmo.setLocalTranslation(spatial.getWorldTranslation());
 //                transformGizmo.setLocalRotation(spatial.getWorldRotation());
-
 //        activateOrbitCam();
 //        chaseCameraTarget.setLocalTranslation(spatial.getWorldTranslation().clone());
+
+        //Remove the previous selected object from the outliner
+        if (selectedSpatial != null) {
+            outliner.deselect(selectedSpatial);
+        }
+
         selectedSpatial = spatial;
-        transformGizmo.setTarget(spatial);        
-        setActiveToolbarItem(Action.TRANSFORM);
+        transformGizmo.setTarget(spatial);
+        setActiveToolbarItem(Action.TRANSFORM); //Taken out because I need to select any other object
 
         if (selectedSpatial instanceof Geometry) {
             geometryPropertiesPanel.setGeometry((Geometry) selectedSpatial);
@@ -1632,6 +1665,26 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
         }
 
+        //Set the newly selected object on the outliner
+        outliner.select(selectedSpatial);
+        outliner.updatePosition(selectedSpatial);
+        outliner.updateScale(selectedSpatial);
+        outliner.updateRotation(selectedSpatial);
+    }
+
+    /**
+     * This is a helper method which will return the root node for a child spatial
+     * @param child
+     * @return 
+     */
+    private Spatial findRootNodeForSelection(Spatial child) {
+        if (child.getUserData(EditorUtils.GUID) != null) {
+            return child;            
+        } else if (child.getParent().equals(sceneNode)) {
+            return child;            
+        } else {
+            return findRootNodeForSelection(child.getParent());
+        }
     }
 
 }

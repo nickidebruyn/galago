@@ -74,6 +74,7 @@ public abstract class AbstractPropertiesPanel extends Panel {
         header.setBackgroundColor(EditorUtils.theme.getHeaderColor());
         header.setTextAlignment(TextAlign.LEFT);
         header.setFontSize(16);
+        header.addEffect(new TouchEffect(header));
         return header;
     }
 

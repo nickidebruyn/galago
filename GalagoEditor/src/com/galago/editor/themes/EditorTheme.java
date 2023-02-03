@@ -41,5 +41,7 @@ public abstract class EditorTheme {
     public abstract ColorRGBA getFieldColor();
     
     public abstract ColorRGBA getFieldTextColor();    
+
+    public abstract ColorRGBA getOutlinerColor();
     
 }

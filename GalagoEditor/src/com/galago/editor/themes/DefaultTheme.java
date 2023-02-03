@@ -93,6 +93,11 @@ public class DefaultTheme extends EditorTheme {
     public ColorRGBA getFieldTextColor() {
         return ColorUtils.rgb(255,255,255);
     }
+
+    @Override
+    public ColorRGBA getOutlinerColor() {
+        return ColorUtils.rgb(255,221,70);
+    }
     
     
 }

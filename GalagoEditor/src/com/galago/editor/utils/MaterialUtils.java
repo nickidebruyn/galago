@@ -117,7 +117,7 @@ public class MaterialUtils {
         mat.setColor("Diffuse", colorRGBA);   // ... color of light being reflected
         mat.setColor("Specular", ColorRGBA.White);
         mat.setColor("GlowColor", ColorRGBA.Black);
-        mat.setFloat("Shininess", 2f);
+        mat.setFloat("Shininess", 0f);
         return mat;
     }
 
@@ -130,7 +130,7 @@ public class MaterialUtils {
         mat.setColor("Diffuse", ColorRGBA.White);   // ... color of light being reflected
         mat.setColor("Specular", ColorRGBA.White);
         mat.setColor("GlowColor", ColorRGBA.Black);
-        mat.setFloat("Shininess", 2f);
+        mat.setFloat("Shininess", 0f);
         mat.setTexture("DiffuseMap", texture1);
         return mat;
     }
@@ -438,7 +438,7 @@ public class MaterialUtils {
     public static void setBaseColor(Material material, ColorRGBA color) {
         if (isLightingMaterial(material)) {
             material.setColor("Diffuse", color);
-//            material.setColor("Ambient", color); 
+            material.setColor("Ambient", color); 
             
         } else if (isPBRLightingMaterial(material)) {
             material.setColor("BaseColor", color);

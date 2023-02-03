@@ -3,7 +3,6 @@ package com.galago.editor.utils;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,14 +17,7 @@ public class TerrainRaiseTool extends AbstractTerrainTool {
         Box, Sphere
     }
 
-    public void modifyHeight(Spatial rootNode, Vector3f worldLoc, float radius, float heightDir, Meshes mesh) {
-        //Correct the height of the world location
-        TerrainQuad terrain = (TerrainQuad)getTerrain(rootNode);
-        if (terrain == null) {
-            return;
-        }
-        Node terrainNode = getTerrainNode(rootNode);
-        worldLoc.subtractLocal(terrainNode.getWorldTranslation());
+    public void modifyHeight(TerrainQuad terrain, Vector3f worldLoc, float radius, float heightDir, Meshes mesh) {
 
         int radiusStepsX = (int) (radius / ((Node) terrain).getWorldScale().x);
         int radiusStepsZ = (int) (radius / ((Node) terrain).getWorldScale().z);

@@ -38,6 +38,7 @@ public class EditorUtils {
     public static String BASE_TEXTURE = "BASE_TEXTURE";
     public static String NORMAL_TEXTURE = "NORMAL_TEXTURE";
     public static String METALIC_TEXTURE = "METALIC_TEXTURE";
+    public static String GUID = "GUID";
 
     public static boolean isCompatableModel(File file) {
         return file.getPath().endsWith(".obj") || file.getPath().endsWith(".gltf") || file.getPath().endsWith(".fbx") || file.getPath().endsWith(".j3o");

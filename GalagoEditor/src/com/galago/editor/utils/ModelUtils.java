@@ -2,7 +2,9 @@ package com.galago.editor.utils;
 
 import com.bruynhuis.galago.util.SharedSystem;
 import com.bruynhuis.galago.util.SpatialUtils;
+import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
+import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
@@ -10,8 +12,10 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
+import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.scene.SceneGraphVisitor;
 import com.jme3.scene.Spatial;
 import com.jme3.texture.FrameBuffer;
 import com.jme3.texture.Image;
@@ -28,6 +32,7 @@ import java.util.List;
 public class ModelUtils {
 
     private static List<ModelReference> modelReferences = new ArrayList<>();
+    private static List<String> groups = new ArrayList<>();
 
     public static void loadAllModels() {
         Node tempNode = new Node("temp");
@@ -35,73 +40,132 @@ public class ModelUtils {
         //Load a box
         Spatial box = SpatialUtils.addBox(tempNode, 1, 1, 1);
         SpatialUtils.addColor(box, ColorRGBA.White, false);
-        modelReferences.add(addModel("Primitives", "Box", box));
+        easyAddModel("Primitives", "Box", box);
 
         //Load a sphere
         Spatial sphere = SpatialUtils.addSphere(tempNode, 30, 30, 1);
         SpatialUtils.addColor(sphere, ColorRGBA.White, false);
-        modelReferences.add(addModel("Primitives", "Sphere", sphere));
+        easyAddModel("Primitives", "Sphere", sphere);
 
         //Load a dome
         Spatial dome = SpatialUtils.addDome(tempNode, 30, 30, 1);
         SpatialUtils.addColor(dome, ColorRGBA.White, false);
-        modelReferences.add(addModel("Primitives", "Dome", dome));
+        easyAddModel("Primitives", "Dome", dome);
 
         //Load a cylinder
         Spatial cyl = SpatialUtils.addCylinder(tempNode, 5, 30, 1, 2, true);
         SpatialUtils.addColor(cyl, ColorRGBA.White, false);
         cyl.rotate(90 * FastMath.DEG_TO_RAD, 0, 0);
-        modelReferences.add(addModel("Primitives", "Cylinder", cyl));
+        easyAddModel("Primitives", "Cylinder", cyl);
 
         //Load a pipe
         Spatial pipe = SpatialUtils.addCylinder(tempNode, 5, 30, 1, 2, false);
         SpatialUtils.addColor(pipe, ColorRGBA.White, false);
         pipe.rotate(90 * FastMath.DEG_TO_RAD, 0, 0);
         ((Geometry) pipe).getMaterial().getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
-        modelReferences.add(addModel("Primitives", "Pipe", pipe));
+        easyAddModel("Primitives", "Pipe", pipe);
 
         //Load a cone
         Spatial cone = SpatialUtils.addCone(tempNode, 30, 1, 2);
         SpatialUtils.addColor(cone, ColorRGBA.White, false);
         cone.rotate(-90 * FastMath.DEG_TO_RAD, 0, 0);
-        modelReferences.add(addModel("Primitives", "Cone", cone));
+        easyAddModel("Primitives", "Cone", cone);
 
         //Load a pyramid
         Spatial pyramid = SpatialUtils.addCone(tempNode, 4, 1, 2);
         pyramid.setName("Pyramid");
         SpatialUtils.addColor(pyramid, ColorRGBA.White, false);
         pyramid.rotate(-90 * FastMath.DEG_TO_RAD, 0, 0);
-        modelReferences.add(addModel("Primitives", "Pyramid", pyramid));
+        easyAddModel("Primitives", "Pyramid", pyramid);
 
         //Load a plane
         Spatial plane = SpatialUtils.addPlane(tempNode, 1, 1);
         plane.setName("Plane");
         SpatialUtils.addColor(plane, ColorRGBA.White, false);
-        modelReferences.add(addModel("Primitives", "Plane", plane));
+        easyAddModel("Primitives", "Plane", plane);
 
         //Load a donut
         Spatial donut = SpatialUtils.addTorus(tempNode, 30, 30, 0.5f, 1f);
         donut.setName("Donut");
         SpatialUtils.addColor(donut, ColorRGBA.White, false);
-        modelReferences.add(addModel("Primitives", "Donut", donut));
+        easyAddModel("Primitives", "Donut", donut);
 
         //Load a ring
         Spatial ring = SpatialUtils.addTorus(tempNode, 30, 30, 0.25f, 1f);
         ring.setName("Ring");
         SpatialUtils.addColor(ring, ColorRGBA.White, false);
-        modelReferences.add(addModel("Primitives", "Ring", ring));
+        easyAddModel("Primitives", "Ring", ring);
 
         //Load the vegetation models
-        easyAddModel("Vegetation", "Pine Tree", "Models/trees/pine_tree/scene.j3o", 7, 4);
-        easyAddModel("Vegetation", "Palm Trees", "Models/trees/palm_trees/scene.j3o", 7, 4);
+//        easyAddModel("Vegetation", "Pine Tree", "Models/trees/pine_tree/scene.j3o", null, 7, 4, 1);
+//        easyAddModel("Vegetation", "Palm Trees", "Models/trees/palm_trees/scene.j3o", null, 7, 4, 1);
+
+        String s = "";
+        for (int i = 1; i < 14; i++) {
+            s = i +"";
+            if (i < 10) s = "0" + i;
+            easyAddModel("Vegetation", "Tree " + i, "Models/Editor/Fantacy/tree_"+s+"_combined.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
+            
+        }      
+
+
+        //Load buildings
+        easyAddModel("Buildings", "House 1", "Models/Editor/Fantacy/house01_01.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
+        easyAddModel("Buildings", "House 2", "Models/Editor/Fantacy/house01_02.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
+        easyAddModel("Buildings", "House 3", "Models/Editor/Fantacy/house01_03.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
+        easyAddModel("Buildings", "House 4", "Models/Editor/Fantacy/house01_04.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
+        easyAddModel("Buildings", "House 5", "Models/Editor/Fantacy/house01_05.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
+        
+        easyAddModel("Buildings", "House 6", "Models/Editor/Fantacy/house02_01.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
+        easyAddModel("Buildings", "House 7", "Models/Editor/Fantacy/house02_02.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
+        easyAddModel("Buildings", "House 8", "Models/Editor/Fantacy/house02_03.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
+        easyAddModel("Buildings", "House 9", "Models/Editor/Fantacy/house02_04.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
+        easyAddModel("Buildings", "House 10", "Models/Editor/Fantacy/house02_05.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
+
+//        easyAddModel("Vegetation", "Pine detail", "Models/temp/treePine_large.j3o", 7, 4);
+    }
+
+    private static void addGroup(String group) {
+        boolean containsGroup = groups.contains(group);
+        if (!containsGroup) {
+            groups.add(group);
+
+        }
 
     }
 
-    private static void easyAddModel(String group, String name, String path, float camDis, float camHeight) {
-        Spatial s = SharedSystem.getInstance().getBaseApplication().getAssetManager().loadModel(path);
+    public static List<String> getAllGroups() {
+        return groups;
+    }
+
+    private static void easyAddModel(String group, String name, Spatial s) {
+        modelReferences.add(addModel(group, name, s));
+        addGroup(group);
+    }
+
+    private static void easyAddModel(String group, String name, String modelPath, String materialPath, float camDis, float camHeight, float scale) {
+        Spatial s = SharedSystem.getInstance().getBaseApplication().getAssetManager().loadModel(modelPath);
         s.setName(name);
+                
+        if (materialPath != null) {
+            Material material = SharedSystem.getInstance().getBaseApplication().getAssetManager().loadMaterial(materialPath);
+            s.setMaterial(material);
+        }
+        
+        SceneGraphVisitor sgv = new SceneGraphVisitor() {
+            @Override
+            public void visit(Spatial sptl) {
+                sptl.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+                if (sptl instanceof Geometry) {
+                    sptl.setLocalScale(scale);                    
+                }
+            }
+        };
+        s.depthFirstTraversal(sgv);
+        
         MaterialUtils.convertTexturesToEmbedded(s);
         modelReferences.add(addModel(group, s.getName(), s, camDis, camHeight));
+        addGroup(group);
     }
 
     public static List<ModelReference> getAllModels() {
@@ -193,6 +257,9 @@ public class ModelUtils {
 
         DirectionalLight sun = new DirectionalLight(new Vector3f(0.25f, -0.5f, -0.7f), ColorRGBA.White);
         rootNode.addLight(sun);
+        
+        AmbientLight al = new AmbientLight(ColorRGBA.LightGray);
+        rootNode.addLight(al);
 
         rootNode.updateLogicalState(1);
         rootNode.updateGeometricState();

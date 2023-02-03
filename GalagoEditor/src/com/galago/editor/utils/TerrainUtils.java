@@ -55,7 +55,7 @@ public class TerrainUtils {
     public static final String L3_TERRAIN_TEXTURE_NORMAL = "Textures/terrain/dirt_normal.png";
 
     public static final float DEFAULT_TEXTURE_SCALE = 64f / 100f;
-    public static final int NUM_ALPHA_TEXTURES = 3;
+    public static final int NUM_ALPHA_TEXTURES = 2; //Make this 3 if more are needed
     protected final int MAX_DIFFUSE = 12;
     protected final int MAX_TEXTURES = 16 - NUM_ALPHA_TEXTURES; // 16 max (diffuse and normal), minus the ones we are reserving
 

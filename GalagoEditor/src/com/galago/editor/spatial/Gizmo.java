@@ -367,6 +367,7 @@ public class Gizmo extends Node implements PickListener {
             }
 
             this.setLocalTranslation(target.getLocalTranslation().clone());
+//            this.setLocalRotation(target.getLocalRotation().clone());
 
             gizmoListener.gizmoUpdate(getWorldTranslation(), getWorldRotation(), getWorldScale());
         }

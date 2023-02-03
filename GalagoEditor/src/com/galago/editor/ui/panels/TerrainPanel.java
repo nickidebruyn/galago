@@ -428,7 +428,7 @@ public class TerrainPanel extends Panel {
         });
         paintRadius.setValue(5);
 
-        paintStrength = createLabeledSliderDecimal("Strength", -1, 1f, 0.5f);
+        paintStrength = createLabeledSliderDecimal("Strength", 0.1f, 1f, 0.1f);
         paintStrength.setDecimals(true);
         paintStrength.addValueChangeListener(new ValueChangeListener() {
             @Override
