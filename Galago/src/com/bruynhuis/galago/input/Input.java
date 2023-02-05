@@ -30,5 +30,10 @@ public class Input {
     public static float get(String name) {
         return inputMaps.get(name);
     }
+    
+    public static void consume(String name) {
+        inputMaps.replace(name, 0f);
+
+    }
 
 }

@@ -602,30 +602,38 @@ public class TerrainPanel extends Panel {
         Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, 80);
         flowPanel.add(panel);
 
-        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, 60);
+        Label label = new Label(panel, text, 12, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, 60);
         label.setAlignment(TextAlign.LEFT);
         label.setVerticalAlignment(TextAlign.CENTER);
         label.leftTop(5, 5);
 
         Image img = new Image(panel, "Interface/texture-button.png", 70, 70);
         img.setBackgroundColor(EditorUtils.theme.getButtonColor());
-        img.rightTop(0, 10);
+        img.rightTop(5, 10);
 
         Image img2 = new Image(panel, "Interface/texture-button.png", 70, 70);
         img2.setBackgroundColor(EditorUtils.theme.getButtonColor());
-        img2.rightTop(75, 10);
+        img2.rightTop(85, 10);
 
         TouchButton button1 = new TouchButton(panel, idB1, "Interface/texture-button.png", 60, 60);
-        button1.rightTop(80, 15);
+        button1.rightTop(90, 15);
         button1.addEffect(new TouchEffect(button1));
         button1.getPicture().setMaterial(button1.getPicture().getMaterial().clone());
 
         TouchButton button2 = new TouchButton(panel, idB2, "Interface/texture-button.png", 60, 60);
-        button2.rightTop(5, 15);
+        button2.rightTop(10, 15);
         button2.addEffect(new TouchEffect(button2));
         button2.getPicture().setMaterial(button2.getPicture().getMaterial().clone());
+        
+        TouchButton leftButton = new TouchButton(panel, "left-remove-button-"+idB1);
+        leftButton.leftTop(15, 20);
+        leftButton.addEffect(new TouchEffect(leftButton));
+        
+        TouchButton rightButton = new TouchButton(panel, "right-remove-button-"+idB1);
+        rightButton.rightTop(15, 20);
+        rightButton.addEffect(new TouchEffect(rightButton));
 
-        return new ButtonGroup(button1, button2);
+        return new ButtonGroup(button1, button2, img2, img, leftButton, rightButton);
     }
 
     private TouchButton createLabeledModelButton(String text, String id) {
@@ -813,10 +821,7 @@ public class TerrainPanel extends Panel {
                 slopeScale.getParent().setVisible(false);
                 paintRadius.getParent().setVisible(true);
                 paintStrength.getParent().setVisible(true);
-                paintScale.getParent().setVisible(terrainAction.getTool() == TerrainAction.TOOL_GRASS1
-                        || terrainAction.getTool() == TerrainAction.TOOL_GRASS2
-                        || terrainAction.getTool() == TerrainAction.TOOL_GRASS3
-                        || terrainAction.getTool() == TerrainAction.TOOL_TREES1);
+                paintScale.getParent().setVisible(isObjectPaintToolSelected());
 
 //                baseTextureButton.getButton2().setVisible(true);
                 setButtonTextureFromTerrain(selectedNormalMap, baseTextureButton.getButton2());
@@ -840,6 +845,8 @@ public class TerrainPanel extends Panel {
 
                 baseTextureButton.getButton1().setId("DiffuseMap");
                 baseTextureButton.getButton2().setId("NormalMap");
+                
+                window.getApplication().getMessageManager().sendMessage(Action.TERRAIN_MODEL_EDIT, grass1);
 
             } else if (terrainAction.getTool() == TerrainAction.TOOL_GRASS2) {
                 BatchNode grass2Node = (BatchNode) terrain.getChild(TerrainAction.BATCH_GRASS2);
@@ -849,6 +856,8 @@ public class TerrainPanel extends Panel {
 
                 baseTextureButton.getButton1().setId("DiffuseMap");
                 baseTextureButton.getButton2().setId("NormalMap");
+                
+                window.getApplication().getMessageManager().sendMessage(Action.TERRAIN_MODEL_EDIT, grass2);
 
             } else if (terrainAction.getTool() == TerrainAction.TOOL_GRASS3) {
                 BatchNode grass3Node = (BatchNode) terrain.getChild(TerrainAction.BATCH_GRASS3);
@@ -858,6 +867,8 @@ public class TerrainPanel extends Panel {
 
                 baseTextureButton.getButton1().setId("DiffuseMap");
                 baseTextureButton.getButton2().setId("NormalMap");
+                
+                window.getApplication().getMessageManager().sendMessage(Action.TERRAIN_MODEL_EDIT, grass3);
 
             } else if (terrainAction.getTool() == TerrainAction.TOOL_TREES1) {
                 BatchNode trees1Node = (BatchNode) terrain.getChild(TerrainAction.BATCH_TREES1);
@@ -867,6 +878,11 @@ public class TerrainPanel extends Panel {
 
 //                baseTextureButton.getButton1().setId("DiffuseMap");
 //                baseTextureButton.getButton2().setId("NormalMap");
+
+                window.getApplication().getMessageManager().sendMessage(Action.TERRAIN_MODEL_EDIT, tree1);
+                
+            } else {
+                window.getApplication().getMessageManager().sendMessage(Action.TERRAIN_MODEL_CLEAR, null);
             }
 
         }
@@ -1095,6 +1111,13 @@ public class TerrainPanel extends Panel {
 
     public Spatial getSelectedModel() {
         return selectedInstancedNode.getUserData(EditorUtils.MODEL);
+    }
+
+    private boolean isObjectPaintToolSelected() {
+        return terrainAction.getTool() == TerrainAction.TOOL_GRASS1
+                        || terrainAction.getTool() == TerrainAction.TOOL_GRASS2
+                        || terrainAction.getTool() == TerrainAction.TOOL_GRASS3
+                        || terrainAction.getTool() == TerrainAction.TOOL_TREES1;
     }
 
 }

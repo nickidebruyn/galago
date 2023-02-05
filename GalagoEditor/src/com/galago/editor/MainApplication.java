@@ -62,6 +62,9 @@ public class MainApplication extends Base3DApplication {
         registerInputMappings("delete", new KeyTrigger(keyInput.KEY_DELETE));
         registerInputMappings("up_arrow", new KeyTrigger(keyInput.KEY_UP));
         registerInputMappings("down_arrow", new KeyTrigger(keyInput.KEY_DOWN));
+        registerInputMappings("shift", new KeyTrigger(keyInput.KEY_LSHIFT));
+        registerInputMappings("copy", new KeyTrigger(keyInput.KEY_C));
+        registerInputMappings("paste", new KeyTrigger(keyInput.KEY_V));
         
         showScreen(EditorScreen.NAME);
 

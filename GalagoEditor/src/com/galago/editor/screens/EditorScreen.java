@@ -139,6 +139,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
     private Gizmo transformGizmo;
     private PaintGizmo paintGizmo;
     private Spatial selectedSpatial;
+    private Spatial copySpatial;
     private Node chaseCameraTarget;
     private SelectObjectOutliner outliner;
 
@@ -154,6 +155,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
     private File lastSavedFile;
 
     private boolean ctrlDown = false;
+    private boolean shiftDown = false;
     private boolean leftMouseDown = false;
     private boolean overUI = false;
     private boolean statsVisible = false;
@@ -165,9 +167,6 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
     protected void init() {
 
         ModelUtils.loadAllModels();
-
-        toolbarPanel = new ToolbarPanel(hudPanel);
-        toolbarPanel.leftCenter(0, 0);
 
         hierarchyPanel = new HierarchyPanel(hudPanel);
         hierarchyPanel.leftCenter(EditorUtils.TOOLBAR_WIDTH, 0);
@@ -227,6 +226,9 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         statusLabel.rightTop(EditorUtils.HIERARCHYBAR_WIDTH + 10, 0);
 
         terrainDialog = new TerrainDialog(window);
+
+        toolbarPanel = new ToolbarPanel(hudPanel);
+        toolbarPanel.leftCenter(0, 0);
 
         messageBubble = new TouchButton(hudPanel, "message-bubble", "Interface/hierarchy-header.png", 400, 32);
         messageBubble.setTextAlignment(TextAlign.LEFT);
@@ -288,6 +290,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         flyCamAppState.getCamera().setRotationSpeed(2f);
 
         chaseCamera.setEnabled(false);
+        chaseCameraTarget.removeControl(chaseCamera);
     }
 
     protected void showMessage(String text) {
@@ -902,7 +905,20 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             }
 
         } else if (Action.TERRAIN.equals(message)) {
+            setActiveToolbarItem(Action.TERRAIN);
             showPanel(terrainPanel);
+
+        } else if (Action.TERRAIN_MODEL_EDIT.equals(message)) {
+            if (object != null) {
+                if (object instanceof Geometry) {
+
+                } else if (object instanceof Node) {
+
+                }
+
+            }
+
+        } else if (Action.TERRAIN_MODEL_CLEAR.equals(message)) {
 
         } else if (Action.CREATE_TERRAIN.equals(message)) {
             TerrainAction terrainAction = (TerrainAction) object;
@@ -946,7 +962,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 if (terrainAction.getTerrainMaterial() == TerrainAction.MATERIAL_PAINTABLE) {
                     log("Generated paintable terrain material");
                     try {
-                        material = TerrainUtils.generatePaintableTerrainMaterial(assetManager, terrainAction.getTerrainSize()*4);
+                        material = TerrainUtils.generatePaintableTerrainMaterial(assetManager, terrainAction.getTerrainSize() * 4);
                     } catch (IOException ex) {
                         Logger.getLogger(EditorScreen.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -958,7 +974,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 } else if (terrainAction.getTerrainMaterial() == TerrainAction.MATERIAL_PBR) {
                     log("Generated paintable PBR terrain material");
                     try {
-                        material = TerrainUtils.generatePaintablePBRTerrainMaterial(assetManager, terrainAction.getTerrainSize()*4);
+                        material = TerrainUtils.generatePaintablePBRTerrainMaterial(assetManager, terrainAction.getTerrainSize() * 4);
                     } catch (IOException ex) {
                         Logger.getLogger(EditorScreen.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -1203,23 +1219,27 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         ModelReference modelReference = ModelUtils.getModelByName(modelName);
         if (modelReference != null) {
             Spatial s = modelReference.getModel().clone(); //TODO: Can set it to not clone the material
-            s.setUserData(EditorUtils.GUID, UUID.randomUUID().toString());
-            TangentBinormalGenerator.generate(s);
-            rootNode.attachChild(s);
-
-            //Remove the previous selected object from the outliner
-            if (selectedSpatial != null) {
-                outliner.deselect(selectedSpatial);
-            }
-
-            selectedSpatial = s;
-            placingObject = true;
-
-            transformGizmo.setTarget(null);
-            transformGizmo.removeFromParent();
+            setupNewObject(s);
 
         }
 
+    }
+
+    private void setupNewObject(Spatial s) {
+        s.setUserData(EditorUtils.GUID, UUID.randomUUID().toString());
+        TangentBinormalGenerator.generate(s);
+        rootNode.attachChild(s);
+
+        //Remove the previous selected object from the outliner
+        if (selectedSpatial != null) {
+            outliner.deselect(selectedSpatial);
+        }
+
+        selectedSpatial = s;
+        placingObject = true;
+
+        transformGizmo.setTarget(null);
+        transformGizmo.removeFromParent();
     }
 
     /**
@@ -1283,7 +1303,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 m.setUserData(EditorUtils.GUID, UUID.randomUUID().toString());
                 sceneNode.attachChild(m);
                 setSelectedObject(m);
-                
+
             }
 
             return m;
@@ -1326,7 +1346,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             baseApplication.getGameSaves().save();
 
             assetManager.registerLocator(file.getParent(), FileLocator.class);
-            Texture texture = assetManager.loadTexture(new TextureKey(file.getName(), false));
+            Texture texture = assetManager.loadTexture(new TextureKey(file.getName(), true));
             texture.setKey(null); //Set the key to null so that it can be embedded
 
             if (EditorUtils.BASE_TEXTURE.equals(uid)) {
@@ -1404,6 +1424,49 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
             }
 
+            if (Input.get("shift") == 1) {
+//                toolbarPanel.setSelectedButtonByName(Action.SELECT);
+                shiftDown = true;
+                touchPickListener.setTargetNode(sceneNode); //Set the scene as the target
+
+            } else if (Input.get("shift") == -1) {
+                shiftDown = false;
+
+            }
+
+            //Check for copy and past
+            if (ctrlDown && selectedSpatial != null && !placingObject) {
+                if (Input.get("copy") == 1) {
+                    //Make a copy of the selected object
+                    log("Copy an object: " + selectedSpatial.getName());
+                    //copySpatial = selectedSpatial;
+                    setupNewObject(selectedSpatial.clone(false));
+                    if (getTerrain() == null) {
+                        touchPickListener.setTargetNode(gridNode);
+                    } else {
+                        touchPickListener.setTargetNode(getTerrain());
+                    }
+                    Input.consume("copy");
+                }
+            }
+
+            //Check for paste
+//            if (ctrlDown && copySpatial != null && !placingObject) {
+//
+//                if (Input.get("paste") == -1) {
+//                    //Paste the copied object
+//                    log("Paste an object: " + copySpatial.getName());
+//                    setupNewObject(copySpatial.clone(false));
+//                    if (getTerrain() == null) {
+//                        touchPickListener.setTargetNode(gridNode);
+//                    } else {
+//                        touchPickListener.setTargetNode(getTerrain());
+//                    }
+//
+//                    Input.consume("paste");
+//                }
+//
+//            }
         }
     }
 
@@ -1439,18 +1502,18 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             }
 
             //This is when we want to select an object in the scene
-            if (isObjectSelectionActive()) {
+            if (isObjectSelectionActive() || shiftDown) {
                 if (leftMouseDown) {
                     log("Picking object: " + pickEvent.getContactObject());
 
                     //Avoid selection of the terrain
                     if (!(pickEvent.getContactObject() instanceof TerrainPatch)) {
-                        
+
                         if (ctrlDown) {
                             setSelectedObject(pickEvent.getContactObject());
                         } else {
                             setSelectedObject(findRootNodeForSelection(pickEvent.getContactObject()));
-                        }                        
+                        }
 
                     }
 
@@ -1673,15 +1736,17 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
     }
 
     /**
-     * This is a helper method which will return the root node for a child spatial
+     * This is a helper method which will return the root node for a child
+     * spatial
+     *
      * @param child
-     * @return 
+     * @return
      */
     private Spatial findRootNodeForSelection(Spatial child) {
-        if (child.getUserData(EditorUtils.GUID) != null) {
-            return child;            
+        if (child.getParent() == null || child.getUserData(EditorUtils.GUID) != null) {
+            return child;
         } else if (child.getParent().equals(sceneNode)) {
-            return child;            
+            return child;
         } else {
             return findRootNodeForSelection(child.getParent());
         }

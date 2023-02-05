@@ -268,8 +268,8 @@ public class TextField extends ImageWidget implements InputType {
 
                 if (enabled && focus && evt.isReleased()) {
                     String keyChar = keyNames.getName(evt.getKeyCode());
-//                    System.out.println("Keyinput ***************** code = " + evt.getKeyCode());
-//                    System.out.println("Keyinput ***************** char = " + evt.getKeyChar());
+                    System.out.println("Keyinput ***************** code = " + evt.getKeyCode());
+                    System.out.println("Keyinput ***************** char = " + keyChar);
 
                     if (evt.getKeyCode() == 14) {
                         if (getText().length() > 0) {
@@ -292,6 +292,9 @@ public class TextField extends ImageWidget implements InputType {
                             keyChar = keyChar.toLowerCase();
                         }
                         setText(getText() + keyChar);
+                        
+                    } else if (keyChar != null && keyChar.length() > 1 && keyChar.startsWith("Numpad")) {
+                        setText(getText() + keyChar.replaceFirst("Numpad ", "").trim());
                     }
 
                     if (getText().length() > maxLength) {

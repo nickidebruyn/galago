@@ -19,7 +19,7 @@ public class ToolbarPanel extends Panel {
     private ToolbarButton paintButton;
     private ToolbarButton transformButton;
     private ToolbarButton hierarchyButton;
-    
+
     private ToolbarButton addButton;
     private ToolbarButton terrainButton;
     private ToolbarButton waterButton;
@@ -68,6 +68,14 @@ public class ToolbarPanel extends Panel {
 
     };
 
+    public void setSelectedButtonByName(String name) {
+        ToolbarButton overButton = getButtonByName(name);
+        setSelectedButton(overButton);
+        window.getApplication().getMessageManager().sendMessage(name, null);
+        toolTip.hide();
+
+    }
+
     public ToolbarPanel(Panel parent) {
         super(parent, "Interface/toolbar-left.png", EditorUtils.TOOLBAR_WIDTH, parent.getWindow().getHeight());
 
@@ -96,7 +104,7 @@ public class ToolbarPanel extends Panel {
         skyButton = addButtonTop(Action.SKY, "Interface/sky.png", "Sky");
         importButton = addButtonTop(Action.IMPORT, "Interface/import.png", "Import object");
         statsButton = addButtonTop(Action.STATS, "Interface/stats.png", "Statistics");
-        gridButton = addButtonTop(Action.GRID, "Interface/grid.png", "Show/Hide grid");        
+        gridButton = addButtonTop(Action.GRID, "Interface/grid.png", "Show/Hide grid");
 
         helpButton = addButtonBottom(Action.HELP, "Interface/question.png", "Help");
         settingsButton = addButtonBottom(Action.SETTINGS, "Interface/settings.png", "Settings");
@@ -127,7 +135,7 @@ public class ToolbarPanel extends Panel {
         bottomSpacing += spacing;
 
         button.addTouchButtonListener(touchButtonAdapter);
-        
+
         button.getWidgetNode().setUserData("tooltip", tooltip);
 
         return button;
@@ -166,7 +174,7 @@ public class ToolbarPanel extends Panel {
 
         return button;
     }
-    
+
     public void reset() {
         toolTip.hide();
     }

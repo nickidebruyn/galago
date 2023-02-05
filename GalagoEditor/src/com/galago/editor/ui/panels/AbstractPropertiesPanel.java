@@ -5,8 +5,10 @@ import com.bruynhuis.galago.ui.Label;
 import com.bruynhuis.galago.ui.TextAlign;
 import com.bruynhuis.galago.ui.button.TouchButton;
 import com.bruynhuis.galago.ui.effect.TouchEffect;
+import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
 import com.bruynhuis.galago.ui.panel.Panel;
 import com.bruynhuis.galago.ui.panel.VFlowPanel;
+import com.galago.editor.ui.Button;
 import com.galago.editor.ui.ButtonGroup;
 import com.galago.editor.ui.ColorButton;
 import com.galago.editor.ui.FloatField;
@@ -14,6 +16,7 @@ import com.galago.editor.ui.LongField;
 import com.galago.editor.ui.SliderField;
 import com.galago.editor.ui.SpinnerButton;
 import com.galago.editor.ui.TextField;
+import com.galago.editor.utils.Action;
 import com.galago.editor.utils.EditorUtils;
 import com.jme3.material.MatParamTexture;
 import com.jme3.material.Material;
@@ -78,12 +81,41 @@ public abstract class AbstractPropertiesPanel extends Panel {
         return header;
     }
 
+    protected ButtonGroup createLabledButtonGroup(String labelText, String uid1, String uid2, String text1, String text2) {
+        Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, verticalSpacing);
+        flowPanel.add(panel);
+
+        Label label = new Label(panel, labelText, 12, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, verticalSpacing/1.5f);
+        label.setAlignment(TextAlign.LEFT);
+        label.setVerticalAlignment(TextAlign.CENTER);
+        label.leftTop(5, 5);
+
+        float scale = 0.5f;
+        TouchButton button1 = new TouchButton(panel, uid1, "Interface/texture-button.png", 150 * scale, 48 * scale);
+        button1.setBackgroundColor(EditorUtils.theme.getButtonColor());
+        button1.setText(text1);
+        button1.setFontSize(12);
+        button1.setTextColor(EditorUtils.theme.getButtonTextColor());
+        button1.rightTop(86, 0);
+        button1.addEffect(new TouchEffect(button1));
+
+        TouchButton button2 = new TouchButton(panel, uid2, "Interface/texture-button.png", 150 * scale, 48 * scale);
+        button2.setBackgroundColor(EditorUtils.theme.getButtonColor());
+        button2.setText(text2);
+        button2.setFontSize(12);
+        button2.setTextColor(EditorUtils.theme.getButtonTextColor());        
+        button2.rightTop(6, 0);
+        button2.addEffect(new TouchEffect(button2));
+
+        return new ButtonGroup(button1, button2, null, null, null, null);
+    }
+
     protected SpinnerButton createLabeledSpinner(String text, String id, String[] ops) {
         System.out.println("Setting options: " + ops);
         Panel p = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, verticalSpacing);
         flowPanel.add(p);
 
-        Label label = new Label(p, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, verticalSpacing);
+        Label label = new Label(p, text, 12, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, verticalSpacing / 1.5f);
         label.setAlignment(TextAlign.LEFT);
         label.setVerticalAlignment(TextAlign.CENTER);
         label.leftCenter(5, 0);
@@ -98,7 +130,7 @@ public abstract class AbstractPropertiesPanel extends Panel {
         Panel p = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, verticalSpacing);
         flowPanel.add(p);
 
-        Label label = new Label(p, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, verticalSpacing);
+        Label label = new Label(p, text, 12, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, verticalSpacing / 1.5f);
         label.setAlignment(TextAlign.LEFT);
         label.setVerticalAlignment(TextAlign.CENTER);
         label.leftCenter(5, 0);
@@ -113,7 +145,7 @@ public abstract class AbstractPropertiesPanel extends Panel {
         Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, verticalSpacing);
         flowPanel.add(panel);
 
-        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, verticalSpacing);
+        Label label = new Label(panel, text, 12, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, verticalSpacing / 1.5f);
         label.setAlignment(TextAlign.LEFT);
         label.setVerticalAlignment(TextAlign.CENTER);
         label.leftCenter(5, 0);
@@ -128,7 +160,7 @@ public abstract class AbstractPropertiesPanel extends Panel {
         Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, verticalSpacing);
         flowPanel.add(panel);
 
-        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, verticalSpacing);
+        Label label = new Label(panel, text, 12, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, verticalSpacing / 1.5f);
         label.setAlignment(TextAlign.LEFT);
         label.setVerticalAlignment(TextAlign.CENTER);
         label.leftCenter(5, 0);
@@ -144,7 +176,7 @@ public abstract class AbstractPropertiesPanel extends Panel {
         Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, verticalSpacing);
         flowPanel.add(panel);
 
-        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, verticalSpacing);
+        Label label = new Label(panel, text, 12, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, verticalSpacing / 1.5f);
         label.setAlignment(TextAlign.LEFT);
         label.setVerticalAlignment(TextAlign.CENTER);
         label.leftCenter(5, 0);
@@ -158,12 +190,12 @@ public abstract class AbstractPropertiesPanel extends Panel {
     protected FloatField createLabeledFloatInput(String text, String id, float labelLeftPadding, ColorRGBA textColor) {
         return createLabeledFloatInput(text, id, labelLeftPadding, textColor, -1000000, 1000000);
     }
-    
+
     protected FloatField createLabeledFloatInput(String text, String id, float labelLeftPadding, ColorRGBA textColor, float minAmount, float maxAmount) {
         Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, verticalSpacing);
         flowPanel.add(panel);
 
-        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, verticalSpacing);
+        Label label = new Label(panel, text, 12, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, verticalSpacing / 1.5f);
         label.setAlignment(TextAlign.LEFT);
         label.setVerticalAlignment(TextAlign.CENTER);
         label.leftCenter(labelLeftPadding, 0);
@@ -176,7 +208,7 @@ public abstract class AbstractPropertiesPanel extends Panel {
 
         return field;
     }
-    
+
     protected FloatField createLabeledFloatInput(String text, String id, float minAmount, float maxAmount) {
         return createLabeledFloatInput(text, id, 5, ColorRGBA.White, minAmount, maxAmount);
     }
@@ -189,7 +221,7 @@ public abstract class AbstractPropertiesPanel extends Panel {
         Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, verticalSpacing);
         flowPanel.add(panel);
 
-        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, verticalSpacing);
+        Label label = new Label(panel, text, 12, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, verticalSpacing / 1.5f);
         label.setAlignment(TextAlign.LEFT);
         label.setVerticalAlignment(TextAlign.CENTER);
         label.leftCenter(5, 0);
@@ -199,12 +231,12 @@ public abstract class AbstractPropertiesPanel extends Panel {
 
         return field;
     }
-    
+
     protected TouchButton createLabeledTextureButton(String text, String id) {
         Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, 80);
         flowPanel.add(panel);
 
-        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, 60);
+        Label label = new Label(panel, text, 12, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, 60);
         label.setAlignment(TextAlign.LEFT);
         label.setVerticalAlignment(TextAlign.CENTER);
         label.leftTop(5, 5);
@@ -238,9 +270,9 @@ public abstract class AbstractPropertiesPanel extends Panel {
         button.center();
         button.addEffect(new TouchEffect(button));
         button.getPicture().setMaterial(button.getPicture().getMaterial().clone());
-        
+
         if (texture != null) {
-            button.getPicture().getMaterial().setTexture("Texture", texture);            
+            button.getPicture().getMaterial().setTexture("Texture", texture);
         }
 
         return button;
@@ -250,30 +282,38 @@ public abstract class AbstractPropertiesPanel extends Panel {
         Panel panel = new Panel(flowPanel, null, EditorUtils.HIERARCHYBAR_WIDTH - 6, 80);
         flowPanel.add(panel);
 
-        Label label = new Label(panel, text, 14, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, 60);
+        Label label = new Label(panel, text, 12, EditorUtils.HIERARCHYBAR_WIDTH * 0.5f, 60);
         label.setAlignment(TextAlign.LEFT);
         label.setVerticalAlignment(TextAlign.CENTER);
         label.leftTop(5, 5);
 
-        Image img = new Image(panel, "Interface/texture-button.png", 70, 70);
+        Image img = new Image(panel, "Interface/texture-button.png", 64, 64);
         img.setBackgroundColor(EditorUtils.theme.getButtonColor());
-        img.rightTop(0, 10);
+        img.rightTop(14, 13);
 
-        Image img2 = new Image(panel, "Interface/texture-button.png", 70, 70);
+        Image img2 = new Image(panel, "Interface/texture-button.png", 64, 64);
         img2.setBackgroundColor(EditorUtils.theme.getButtonColor());
-        img2.rightTop(75, 10);
+        img2.rightTop(94, 13);
 
-        TouchButton button1 = new TouchButton(panel, idB1, "Interface/texture-button.png", 60, 60);
-        button1.rightTop(80, 15);
+        TouchButton button1 = new TouchButton(panel, idB1, "Interface/texture-button.png", 56, 56);
+        button1.rightTop(98, 17);
         button1.addEffect(new TouchEffect(button1));
         button1.getPicture().setMaterial(button1.getPicture().getMaterial().clone());
 
-        TouchButton button2 = new TouchButton(panel, idB2, "Interface/texture-button.png", 60, 60);
-        button2.rightTop(5, 15);
+        TouchButton button2 = new TouchButton(panel, idB2, "Interface/texture-button.png", 56, 56);
+        button2.rightTop(18, 17);
         button2.addEffect(new TouchEffect(button2));
         button2.getPicture().setMaterial(button2.getPicture().getMaterial().clone());
 
-        return new ButtonGroup(button1, button2, img, img2);
+        TouchButton leftButton = new TouchButton(panel, "left-remove-button-" + idB1, "Interface/cross.png", 18, 18);
+        leftButton.rightTop(79, 10);
+        leftButton.addEffect(new TouchEffect(leftButton));
+
+        TouchButton rightButton = new TouchButton(panel, "right-remove-button-" + idB1, "Interface/cross.png", 18, 18);
+        rightButton.rightTop(0, 10);
+        rightButton.addEffect(new TouchEffect(rightButton));
+
+        return new ButtonGroup(button1, button2, img2, img, leftButton, rightButton);
     }
 
     @Override
@@ -284,11 +324,14 @@ public abstract class AbstractPropertiesPanel extends Panel {
 
     protected void setButtonTextureFromMaterial(Material material, String materialTextureName, TouchButton button) {
         MatParamTexture mpt = material.getTextureParam(materialTextureName);
+        System.out.println("Setting, " + materialTextureName + " on preview button with, " + mpt);
         if (mpt != null) {
             Texture texture = mpt.getTextureValue();
             button.getPicture().getMaterial().setTexture("Texture", texture);
         } else {
-            button.updatePicture("Interface/texture-button.png");
+//            button.updatePicture("Interface/texture-button.png");
+            Texture texture = window.getApplication().getAssetManager().loadTexture("Interface/texture-button.png");
+            button.getPicture().getMaterial().setTexture("Texture", texture);
         }
 
     }

@@ -5,6 +5,7 @@ import com.galago.editor.themes.EditorTheme;
 import com.jme3.asset.AssetManager;
 import com.jme3.export.binary.BinaryExporter;
 import com.jme3.export.binary.BinaryImporter;
+import com.jme3.material.Material;
 import com.jme3.scene.BatchNode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
@@ -25,6 +26,7 @@ public class EditorUtils {
 
     public static String GAME_EXTENSION = ".j3g";
     public static String SPATIAL_EXTENSION = ".j3o";
+    public static String MATERIAL_EXTENSION = ".j3m";
     public static float TOOLBAR_WIDTH = 46f;
     public static float TOOLBAR_BUTTON_SIZE = 42f;
     public static float HIERARCHYBAR_WIDTH = 256f;
@@ -112,6 +114,23 @@ public class EditorUtils {
 
         return null;
     }
+    
+    public static void saveMaterial(Material material, File file) throws Exception {
+        //String userHome = System.getProperty("user.home");
+        BinaryExporter exporter = BinaryExporter.getInstance();
+        if (file != null && !file.getName().endsWith(MATERIAL_EXTENSION)) {
+            throw new Exception("Invalid file extension, must be " + MATERIAL_EXTENSION);
+        }
+
+        try {
+            exporter.save(material, file);
+            System.out.println("Material file " + file.getName() + " successfully saved!");
+
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+    }    
 
     /**
      * Helper method to decompress a file to gzip

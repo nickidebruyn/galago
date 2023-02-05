@@ -16,6 +16,7 @@ import com.galago.editor.utils.EditorUtils;
 import com.galago.editor.utils.MaterialUtils;
 import com.jme3.input.event.KeyInputEvent;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
@@ -35,6 +36,7 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
     private Geometry geometry;
     private Mesh mesh;
     private Material geometryMaterial;
+    private Material copiedMaterial;
     private TextField nameField;
 
     private Quaternion tempQuat = new Quaternion();
@@ -55,9 +57,13 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
 //    private FloatField textureScaleYField;
     private SpinnerButton shadowSpinner;
     private SpinnerButton renderQueueSpinner;
+    private SpinnerButton blendSpinner;
+    private SpinnerButton backfaceRenderSpinner;
+    private ButtonGroup copyPasteButton;
 
     private SpinnerButton materialType;
     private ColorButton baseColorButton;
+    private ColorButton ambientColorButton;
     private ColorButton emissiveColorButton;
     private FloatField alphaThreshholdField;
     private FloatField shininessField;
@@ -222,7 +228,7 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
 //            }
 //
 //        });
-        createHeader("shadows", "Shadows");
+        createHeader("rendering", "Rendering");
         shadowSpinner = createLabeledSpinner("Shadows", "shadows", new String[]{"Off", "Receive", "Cast", "Both"});
         shadowSpinner.addTouchButtonListener(new TouchButtonAdapter() {
             @Override
@@ -245,7 +251,7 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
             }
         });
 
-        renderQueueSpinner = createLabeledSpinner("Rendering", "render-queue", new String[]{"Normal", "Transparent", "Translucent", "Inherit", "Sky", "Gui"});
+        renderQueueSpinner = createLabeledSpinner("Layer", "render-queue", new String[]{"Normal", "Transparent", "Translucent", "Inherit", "Sky", "Gui"});
         renderQueueSpinner.addTouchButtonListener(new TouchButtonAdapter() {
             @Override
             public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
@@ -272,7 +278,68 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
             }
         });
 
+        String blendOptions[] = new String[RenderState.BlendMode.values().length];
+        for (int i = 0; i < blendOptions.length; i++) {
+            blendOptions[i] = RenderState.BlendMode.values()[i].name();
+
+        }
+
+        blendSpinner = createLabeledSpinner("Blend", "blendmode", blendOptions);
+        blendSpinner.addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                String selectionStr = blendSpinner.getOptions()[blendSpinner.getIndex()];
+                geometryMaterial.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.valueOf(selectionStr));
+            }
+        });
+
+        backfaceRenderSpinner = createLabeledSpinner("Face cull", "face-culling", new String[]{"Off", "Front", "Back", "Both"});
+        backfaceRenderSpinner.addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                if (backfaceRenderSpinner.getIndex() == 0) {
+                    geometryMaterial.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+
+                } else if (shadowSpinner.getIndex() == 1) {
+                    geometryMaterial.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Front);
+
+                } else if (shadowSpinner.getIndex() == 2) {
+                    geometryMaterial.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Back);
+
+                } else if (shadowSpinner.getIndex() == 3) {
+                    geometryMaterial.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.FrontAndBack);
+
+                }
+
+            }
+        });
+
         createHeader("material", "Material");
+        
+        copyPasteButton = createLabledButtonGroup("Function", "mat-copy", "mat-paste", "Copy", "Paste");
+        copyPasteButton.getButton1().addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+//                window.getApplication().getMessageManager().sendMessage(Action.COPY_MATERIAL, geometryMaterial);
+                copiedMaterial = geometryMaterial;
+            }
+            
+        });
+        
+        copyPasteButton.getButton2().addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+//                window.getApplication().getMessageManager().sendMessage(Action.PASTE_MATERIAL, geometry);
+                if (copiedMaterial != null) {
+                    geometry.setMaterial(copiedMaterial);
+                    setGeometry(geometry);
+                    
+                }
+                
+            }
+            
+        });
+        
         materialType = createLabeledSpinner("Type", "material-type", new String[]{"Default", "PBR", "Shadeless"});
         materialType.addTouchButtonListener(new TouchButtonAdapter() {
             @Override
@@ -316,14 +383,14 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
                     if (emissiveColor != null) {
                         newMaterial.setColor("Emissive", emissiveColor);
                     }
-                    
+
                     if (emissivePower != null) {
                         newMaterial.setFloat("EmissivePower", emissivePower);
                     }
 
                     if (emissiveIntensity != null) {
                         newMaterial.setFloat("EmissiveIntensity", emissiveIntensity);
-                    }                    
+                    }
 
                 } else if (materialType.getIndex() == 2) {
                     newMaterial = MaterialUtils.createShadelessMaterial(SharedSystem.getInstance().getBaseApplication().getAssetManager(), color);
@@ -349,7 +416,7 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
 
             }
         });
-
+        
         baseTextureButtonGroup = createLabeledTextureButtonGroup("Textures", EditorUtils.BASE_TEXTURE, EditorUtils.NORMAL_TEXTURE);
         metalicTextureButton = createLabeledTextureButton("Metalic", EditorUtils.METALIC_TEXTURE);
 
@@ -372,7 +439,34 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
 
         });
 
-        alphaThreshholdField = createLabeledFloatInput("Alpha", "alpha threshold", 0, 1);
+        ambientColorButton = createLabeledColorButton("Ambient", "ambient-color-button");
+        ambientColorButton.addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                Color currentColor = MaterialUtils.convertColor(MaterialUtils.getAmbientColor(geometryMaterial));
+                Color newColor = JColorChooser.showDialog(null, "Choose a color", currentColor);
+
+                if (newColor != null) {
+                    ColorRGBA colorRGBA = MaterialUtils.convertColor(newColor);
+
+                    System.out.println("New Color: " + colorRGBA);
+                    MaterialUtils.setAmbientColor(geometryMaterial, colorRGBA);
+                    ambientColorButton.setColor(colorRGBA);
+                }
+
+            }
+
+        });
+
+//        baseColorAlphaButton = createLabeledFloatInput("Opacity", "base-alpha", 0, 1f);
+//        baseColorAlphaButton.addKeyboardListener(new KeyboardListener() {
+//            @Override
+//            public void doKeyPressed(KeyInputEvent evt) {
+//                ColorRGBA color = MaterialUtils.getBaseColor(geometryMaterial);
+//                color.setAlpha(baseColorAlphaButton.getValue());
+//            }
+//        });
+        alphaThreshholdField = createLabeledFloatInput("Alpha Dsc", "alpha threshold", 0, 1);
         alphaThreshholdField.addKeyboardListener(new KeyboardListener() {
             @Override
             public void doKeyPressed(KeyInputEvent evt) {
@@ -440,7 +534,7 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
             }
 
         });
-        
+
         emissiveIntensityField = createLabeledFloatInput("Intensity", "EmissiveIntensity", 0, 1);
         emissiveIntensityField.addKeyboardListener(new KeyboardListener() {
             @Override
@@ -471,8 +565,11 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
             scaleZField.setValue(0);
 
             shadowSpinner.setSelection(0);
-
             renderQueueSpinner.setSelection(0);
+            backfaceRenderSpinner.setSelection(0);
+            blendSpinner.setSelection(0);
+            baseColorButton.setColor(ColorRGBA.White);
+            ambientColorButton.setColor(ColorRGBA.White);
 
         } else {
             nameField.setValue(geometry.getName());
@@ -524,6 +621,29 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
 
             }
 
+            //Set the Blend Mode
+            for (int i = 0; i < RenderState.BlendMode.values().length; i++) {
+                RenderState.BlendMode blend = RenderState.BlendMode.values()[i];
+                if (geometryMaterial.getAdditionalRenderState().getBlendMode().equals(blend)) {
+                    blendSpinner.setSelection(i);
+                }
+            }
+
+            //Backface Culling
+            if (geometryMaterial.getAdditionalRenderState().getFaceCullMode().equals(RenderState.FaceCullMode.Off)) {
+                backfaceRenderSpinner.setSelection(0);
+
+            } else if (geometryMaterial.getAdditionalRenderState().getFaceCullMode().equals(RenderState.FaceCullMode.Front)) {
+                backfaceRenderSpinner.setSelection(1);
+
+            } else if (geometryMaterial.getAdditionalRenderState().getFaceCullMode().equals(RenderState.FaceCullMode.Back)) {
+                backfaceRenderSpinner.setSelection(2);
+
+            } else if (geometryMaterial.getAdditionalRenderState().getFaceCullMode().equals(RenderState.FaceCullMode.FrontAndBack)) {
+                backfaceRenderSpinner.setSelection(3);
+
+            }
+
             //Setup the material type
             if (MaterialUtils.isLightingMaterial(geometryMaterial)) {
                 materialType.setSelection(0);
@@ -547,6 +667,7 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
 //            textureScaleYField.setValue(textureScale.y);
             baseColorButton.setColor(MaterialUtils.getBaseColor(geometryMaterial));
 
+            flowPanel.remove(ambientColorButton.getParent());
             flowPanel.remove(metalicTextureButton.getParent());
             flowPanel.remove(alphaThreshholdField.getParent());
             flowPanel.remove(shininessField.getParent());
@@ -557,11 +678,13 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
             flowPanel.remove(emissiveIntensityField.getParent());
 
             if (MaterialUtils.isLightingMaterial(geometryMaterial)) {
+                flowPanel.add(ambientColorButton.getParent());
                 flowPanel.add(alphaThreshholdField.getParent());
                 flowPanel.add(shininessField.getParent());
 
-                baseTextureButtonGroup.getButton2().setVisible(true);
-                baseTextureButtonGroup.getBackImage2().setVisible(true);
+                baseTextureButtonGroup.setRightButtonVisible(true);
+
+                ambientColorButton.setColor(MaterialUtils.getAmbientColor(geometryMaterial));
 
                 setButtonTextureFromMaterial(geometryMaterial, "DiffuseMap", baseTextureButtonGroup.getButton1());
                 setButtonTextureFromMaterial(geometryMaterial, "NormalMap", baseTextureButtonGroup.getButton2());
@@ -578,8 +701,7 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
                 flowPanel.add(emissivePowerField.getParent());
                 flowPanel.add(emissiveIntensityField.getParent());
 
-                baseTextureButtonGroup.getButton2().setVisible(true);
-                baseTextureButtonGroup.getBackImage2().setVisible(true);
+                baseTextureButtonGroup.setRightButtonVisible(true);
 
                 setButtonTextureFromMaterial(geometryMaterial, "BaseColorMap", baseTextureButtonGroup.getButton1());
                 setButtonTextureFromMaterial(geometryMaterial, "NormalMap", baseTextureButtonGroup.getButton2());
@@ -588,7 +710,7 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
                 alphaThreshholdField.setValue(geometryMaterial.getParamValue("AlphaDiscardThreshold") != null ? geometryMaterial.getParamValue("AlphaDiscardThreshold") : 0);
                 metallicField.setValue(geometryMaterial.getParamValue("Metallic") != null ? geometryMaterial.getParamValue("Metallic") : 0);
                 roughnessField.setValue(geometryMaterial.getParamValue("Roughness") != null ? geometryMaterial.getParamValue("Roughness") : 0);
-                
+
                 emissivePowerField.setValue(geometryMaterial.getParamValue("EmissivePower") != null ? geometryMaterial.getParamValue("EmissivePower") : 0);
                 emissiveIntensityField.setValue(geometryMaterial.getParamValue("EmissiveIntensity") != null ? geometryMaterial.getParamValue("EmissiveIntensity") : 0);
 
@@ -597,8 +719,7 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
             } else {
                 flowPanel.add(alphaThreshholdField.getParent());
 
-                baseTextureButtonGroup.getButton2().setVisible(false);
-                baseTextureButtonGroup.getBackImage2().setVisible(false);
+                baseTextureButtonGroup.setRightButtonVisible(false);
 
                 setButtonTextureFromMaterial(geometryMaterial, "ColorMap", baseTextureButtonGroup.getButton1());
 

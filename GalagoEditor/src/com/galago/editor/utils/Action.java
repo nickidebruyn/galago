@@ -17,6 +17,8 @@ public class Action {
     public static final String ADD_SUN = "add_sun";
     public static final String TERRAIN = "terrain";
     public static final String CREATE_TERRAIN = "create_terrain";
+    public static final String TERRAIN_MODEL_EDIT = "TERRAIN_MODEL_EDIT";
+    public static final String TERRAIN_MODEL_CLEAR = "TERRAIN_MODEL_CLEAR";
     public static final String AUTO_PAINT = "auto_paint";
     public static final String WATER = "water";
     public static final String SKY = "sky";
@@ -32,5 +34,7 @@ public class Action {
     public static final String UI_OVER = "ui_over";
     public static final String UI_OFF = "ui_off";
     public static final String UPDATE_OBJECT = "update_object";
+    public static final String COPY_MATERIAL = "copy_material";
+    public static final String PASTE_MATERIAL = "paste_material";
 
 }

@@ -19,15 +19,28 @@ public class ColorButton extends TouchButton {
 
         setBackgroundColor(ColorRGBA.White);
         setFontSize(14);
-        setTextColor(EditorUtils.theme.getButtonTextColor());
+        setTextColor(ColorRGBA.DarkGray);
         addEffect(new TouchEffect(this));
-        setText("Color");
+        setText("SELECT");
 
     }
 
     public void setColor(ColorRGBA color) {
         if (color != null) {
             setBackgroundColor(color);
+            
+            //This code will set the text color to white if the button color is dark
+            //and set the text color to dark if the button is white.
+            if (color.r > 0.5f && color.b > 0.5f && color.g > 0.5f) {
+                setTextColor(ColorRGBA.DarkGray);
+                
+            } else {
+                setTextColor(ColorRGBA.White);
+                
+            }
+            
+//            setText(color.r + ", " + color.g + ", " + color.b);
+            
         }
 
     }

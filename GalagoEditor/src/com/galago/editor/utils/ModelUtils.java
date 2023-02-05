@@ -99,28 +99,28 @@ public class ModelUtils {
         //Load the vegetation models
 //        easyAddModel("Vegetation", "Pine Tree", "Models/trees/pine_tree/scene.j3o", null, 7, 4, 1);
 //        easyAddModel("Vegetation", "Palm Trees", "Models/trees/palm_trees/scene.j3o", null, 7, 4, 1);
-
-        String s = "";
-        for (int i = 1; i < 14; i++) {
-            s = i +"";
-            if (i < 10) s = "0" + i;
-            easyAddModel("Vegetation", "Tree " + i, "Models/Editor/Fantacy/tree_"+s+"_combined.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
-            
-        }      
-
-
-        //Load buildings
-        easyAddModel("Buildings", "House 1", "Models/Editor/Fantacy/house01_01.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
-        easyAddModel("Buildings", "House 2", "Models/Editor/Fantacy/house01_02.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
-        easyAddModel("Buildings", "House 3", "Models/Editor/Fantacy/house01_03.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
-        easyAddModel("Buildings", "House 4", "Models/Editor/Fantacy/house01_04.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
-        easyAddModel("Buildings", "House 5", "Models/Editor/Fantacy/house01_05.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
-        
-        easyAddModel("Buildings", "House 6", "Models/Editor/Fantacy/house02_01.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
-        easyAddModel("Buildings", "House 7", "Models/Editor/Fantacy/house02_02.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
-        easyAddModel("Buildings", "House 8", "Models/Editor/Fantacy/house02_03.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
-        easyAddModel("Buildings", "House 9", "Models/Editor/Fantacy/house02_04.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
-        easyAddModel("Buildings", "House 10", "Models/Editor/Fantacy/house02_05.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
+//
+//        String s = "";
+//        for (int i = 1; i < 14; i++) {
+//            s = i +"";
+//            if (i < 10) s = "0" + i;
+//            easyAddModel("Vegetation", "Tree " + i, "Models/Editor/Fantacy/tree_"+s+"_combined.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
+//            
+//        }      
+//
+//
+//        //Load buildings
+//        easyAddModel("Buildings", "House 1", "Models/Editor/Fantacy/house01_01.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
+//        easyAddModel("Buildings", "House 2", "Models/Editor/Fantacy/house01_02.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
+//        easyAddModel("Buildings", "House 3", "Models/Editor/Fantacy/house01_03.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
+//        easyAddModel("Buildings", "House 4", "Models/Editor/Fantacy/house01_04.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
+//        easyAddModel("Buildings", "House 5", "Models/Editor/Fantacy/house01_05.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
+//        
+//        easyAddModel("Buildings", "House 6", "Models/Editor/Fantacy/house02_01.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
+//        easyAddModel("Buildings", "House 7", "Models/Editor/Fantacy/house02_02.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
+//        easyAddModel("Buildings", "House 8", "Models/Editor/Fantacy/house02_03.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
+//        easyAddModel("Buildings", "House 9", "Models/Editor/Fantacy/house02_04.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
+//        easyAddModel("Buildings", "House 10", "Models/Editor/Fantacy/house02_05.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
 
 //        easyAddModel("Vegetation", "Pine detail", "Models/temp/treePine_large.j3o", 7, 4);
     }
