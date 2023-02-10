@@ -19,7 +19,7 @@ import com.galago.editor.ui.SpinnerButton;
 import com.galago.editor.ui.actions.TerrainAction;
 import com.galago.editor.utils.Action;
 import com.galago.editor.utils.EditorUtils;
-import com.galago.editor.utils.MaterialUtils;
+import com.bruynhuis.galago.util.MaterialUtils;
 import com.jme3.input.event.KeyInputEvent;
 import com.jme3.material.MatParamTexture;
 import com.jme3.material.Material;

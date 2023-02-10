@@ -6,7 +6,7 @@ import com.bruynhuis.galago.ui.panel.Panel;
 import com.galago.editor.ui.ColorButton;
 import com.galago.editor.ui.SliderField;
 import com.galago.editor.ui.SpinnerButton;
-import com.galago.editor.utils.MaterialUtils;
+import com.bruynhuis.galago.util.MaterialUtils;
 import com.jme3.math.ColorRGBA;
 import com.jme3.water.WaterFilter;
 import java.awt.Color;

@@ -25,6 +25,7 @@ public class ToolbarPanel extends Panel {
     private ToolbarButton waterButton;
     private ToolbarButton skyButton;
     private ToolbarButton importButton;
+    private ToolbarButton exportButton;
     private ToolbarButton settingsButton;
     private ToolbarButton helpButton;
     private ToolbarButton saveButton;
@@ -103,13 +104,14 @@ public class ToolbarPanel extends Panel {
         waterButton = addButtonTop(Action.WATER, "Interface/water.png", "Water");
         skyButton = addButtonTop(Action.SKY, "Interface/sky.png", "Sky");
         importButton = addButtonTop(Action.IMPORT, "Interface/import.png", "Import object");
+        exportButton = addButtonTop(Action.EXPORT, "Interface/open.png", "Export selection");
         statsButton = addButtonTop(Action.STATS, "Interface/stats.png", "Statistics");
         gridButton = addButtonTop(Action.GRID, "Interface/grid.png", "Show/Hide grid");
 
         helpButton = addButtonBottom(Action.HELP, "Interface/question.png", "Help");
         settingsButton = addButtonBottom(Action.SETTINGS, "Interface/settings.png", "Settings");
         saveButton = addButtonBottom(Action.SAVE, "Interface/save.png", "Save scene");
-        openButton = addButtonBottom(Action.OPEN, "Interface/open.png", "Open scene");
+        openButton = addButtonBottom(Action.OPEN, "Interface/open-file-button.png", "Open scene");
         newButton = addButtonBottom(Action.NEW, "Interface/plus.png", "New scene");
 
         setSelectedButton(selectButton);

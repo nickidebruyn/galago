@@ -1,5 +1,6 @@
 package com.galago.editor.utils;
 
+import com.bruynhuis.galago.util.MaterialUtils;
 import com.galago.editor.themes.DefaultTheme;
 import com.galago.editor.themes.EditorTheme;
 import com.jme3.asset.AssetManager;
@@ -41,6 +42,7 @@ public class EditorUtils {
     public static String NORMAL_TEXTURE = "NORMAL_TEXTURE";
     public static String METALIC_TEXTURE = "METALIC_TEXTURE";
     public static String GUID = "GUID";
+    public static String GROUP = "GROUP";
 
     public static boolean isCompatableModel(File file) {
         return file.getPath().endsWith(".obj") || file.getPath().endsWith(".gltf") || file.getPath().endsWith(".fbx") || file.getPath().endsWith(".j3o");
@@ -114,7 +116,7 @@ public class EditorUtils {
 
         return null;
     }
-    
+
     public static void saveMaterial(Material material, File file) throws Exception {
         //String userHome = System.getProperty("user.home");
         BinaryExporter exporter = BinaryExporter.getInstance();
@@ -130,7 +132,27 @@ public class EditorUtils {
             ex.printStackTrace();
         }
 
-    }    
+    }
+
+    public static Material loadMaterial(File file, AssetManager assetManager) throws Exception {
+        //String userHome = System.getProperty("user.home");
+        BinaryImporter importer = BinaryImporter.getInstance();
+        importer.setAssetManager(assetManager);
+        if (file != null && !file.getName().endsWith(MATERIAL_EXTENSION)) {
+            throw new Exception("Invalid file extension, must be " + MATERIAL_EXTENSION);
+        }
+
+        try {
+            Material material = (Material)importer.load(file);
+            System.out.println("Material file " + file.getName() + " successfully loaded!");
+            return material;
+
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+        return null;
+    }
 
     /**
      * Helper method to decompress a file to gzip

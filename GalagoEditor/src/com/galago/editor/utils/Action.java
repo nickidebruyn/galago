@@ -23,6 +23,9 @@ public class Action {
     public static final String WATER = "water";
     public static final String SKY = "sky";
     public static final String IMPORT = "import";
+    public static final String IMPORT_MATERIAL = "import_material";
+    public static final String EXPORT = "export";
+    public static final String EXPORT_MATERIAL = "export_material";
     public static final String STATS = "stats";
     public static final String GRID = "grid";
     public static final String NEW = "new";

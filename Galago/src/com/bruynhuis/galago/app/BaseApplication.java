@@ -177,7 +177,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     protected Window window;
     protected Panel splash;
     protected Label info;
-    protected String splashInfoMessage = "GalagoFramework @ 2017";
+    protected String splashInfoMessage = "Galago @ 2023";
     protected ProgressBar loadingBar;
     protected VideoRecorderAppState recorderAppState;
     protected boolean record = false;
@@ -608,11 +608,11 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         window.add(splash);
         splash.center();
 
-        info = new Label(splash, splashInfoMessage, 14, 500, 40);
-        info.centerAt(0, -100);
-        info.setTextColor(ColorRGBA.DarkGray);
+        info = new Label(splash, splashInfoMessage, 16, 500, 40);
+        info.centerAt(0, -120);
+        info.setTextColor(TEXT_COLOR);
 
-        loadingBar = new ProgressBar(splash, "Resources/progressbar-border.png", "Resources/progressbar.png", 256, 10);
+        loadingBar = new ProgressBar(splash, "Resources/progressbar-border.png", "Resources/progressbar.png", 256, 20);
         loadingBar.centerAt(0, -150);
 
         splash.add(loadingBar);

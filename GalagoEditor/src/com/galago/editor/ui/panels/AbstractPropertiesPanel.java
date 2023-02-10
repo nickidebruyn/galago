@@ -5,10 +5,8 @@ import com.bruynhuis.galago.ui.Label;
 import com.bruynhuis.galago.ui.TextAlign;
 import com.bruynhuis.galago.ui.button.TouchButton;
 import com.bruynhuis.galago.ui.effect.TouchEffect;
-import com.bruynhuis.galago.ui.listener.TouchButtonAdapter;
 import com.bruynhuis.galago.ui.panel.Panel;
 import com.bruynhuis.galago.ui.panel.VFlowPanel;
-import com.galago.editor.ui.Button;
 import com.galago.editor.ui.ButtonGroup;
 import com.galago.editor.ui.ColorButton;
 import com.galago.editor.ui.FloatField;
@@ -16,7 +14,6 @@ import com.galago.editor.ui.LongField;
 import com.galago.editor.ui.SliderField;
 import com.galago.editor.ui.SpinnerButton;
 import com.galago.editor.ui.TextField;
-import com.galago.editor.utils.Action;
 import com.galago.editor.utils.EditorUtils;
 import com.jme3.material.MatParamTexture;
 import com.jme3.material.Material;
@@ -306,14 +303,37 @@ public abstract class AbstractPropertiesPanel extends Panel {
         button2.getPicture().setMaterial(button2.getPicture().getMaterial().clone());
 
         TouchButton leftButton = new TouchButton(panel, "left-remove-button-" + idB1, "Interface/cross.png", 18, 18);
-        leftButton.rightTop(79, 10);
+        leftButton.rightTop(79, 14);
         leftButton.addEffect(new TouchEffect(leftButton));
+        
+        TouchButton leftHFlipButton = new TouchButton(panel, "left-h-flip-button-" + idB1, "Interface/scrollHorizontal.png", 20, 20);
+        leftHFlipButton.rightTop(79, 34);
+        leftHFlipButton.addEffect(new TouchEffect(leftHFlipButton));
+        
+        TouchButton leftVFlipButton = new TouchButton(panel, "left-v-flip-button-" + idB1, "Interface/scrollVertical.png", 20, 20);
+        leftVFlipButton.rightTop(79, 54);
+        leftVFlipButton.addEffect(new TouchEffect(leftVFlipButton));
 
         TouchButton rightButton = new TouchButton(panel, "right-remove-button-" + idB1, "Interface/cross.png", 18, 18);
-        rightButton.rightTop(0, 10);
+        rightButton.rightTop(0, 14);
         rightButton.addEffect(new TouchEffect(rightButton));
+        
+        
+        TouchButton rightHFlipButton = new TouchButton(panel, "right-h-flip-button-" + idB1, "Interface/scrollHorizontal.png", 20, 20);
+        rightHFlipButton.rightTop(0, 34);
+        rightHFlipButton.addEffect(new TouchEffect(rightHFlipButton));
+        
+        TouchButton rightVFlipButton = new TouchButton(panel, "right-v-flip-button-" + idB1, "Interface/scrollVertical.png", 20, 20);
+        rightVFlipButton.rightTop(0, 54);
+        rightVFlipButton.addEffect(new TouchEffect(leftVFlipButton));                
+        
+        ButtonGroup buttonGroup = new ButtonGroup(button1, button2, img2, img, leftButton, rightButton);
+        buttonGroup.setHorizontalFlipButton1(leftHFlipButton);
+        buttonGroup.setVerticalFlipButton1(leftVFlipButton);
+        buttonGroup.setHorizontalFlipButton2(rightHFlipButton);
+        buttonGroup.setVerticalFlipButton2(rightVFlipButton);
 
-        return new ButtonGroup(button1, button2, img2, img, leftButton, rightButton);
+        return buttonGroup;
     }
 
     @Override

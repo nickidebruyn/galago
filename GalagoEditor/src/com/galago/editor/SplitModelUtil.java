@@ -1,7 +1,7 @@
 package com.galago.editor;
 
 import com.galago.editor.utils.EditorUtils;
-import com.galago.editor.utils.MaterialUtils;
+import com.bruynhuis.galago.util.MaterialUtils;
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.ModelKey;
 import com.jme3.asset.plugins.FileLocator;

@@ -1,5 +1,6 @@
 package com.galago.editor.utils;
 
+import com.bruynhuis.galago.util.MaterialUtils;
 import com.galago.editor.terrain.FlatHeightmap;
 import com.galago.editor.terrain.IslandHeightMap;
 import com.jme3.asset.AssetManager;

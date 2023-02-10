@@ -34,7 +34,7 @@ import com.galago.editor.ui.panels.NodePropertiesPanel;
 import com.galago.editor.ui.panels.SkyPanel;
 import com.galago.editor.ui.panels.WaterPanel;
 import com.galago.editor.utils.Action;
-import com.galago.editor.utils.MaterialUtils;
+import com.bruynhuis.galago.util.MaterialUtils;
 import com.galago.editor.utils.ModelReference;
 import com.galago.editor.utils.ModelUtils;
 import com.galago.editor.utils.TerrainFlattenTool;
@@ -297,7 +297,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         messageBubble.setText(text);
 //        messageBubble.centerAt(300, -800);
         messageBubble.setVisible(true);
-        messageBubble.moveFromToCenter(750, -800, 750, -510, 2, 1, new TweenCallback() {
+        messageBubble.moveFromToCenter(0, 800, 0, 510, 0.4f, 0, new TweenCallback() {
             @Override
             public void onEvent(int i, BaseTween<?> bt) {
                 messageBubble.fadeFromTo(1, 0, 1, 1);
@@ -399,6 +399,8 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 rootNode.attachChild(gridNode);
 
             }
+
+            clearSelectedObject();
 
         } else {
             initGrid();
@@ -798,6 +800,71 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
         }
     }
 
+    protected void exportObject(Spatial scene) {
+        File selectedFile = null;
+
+        JFileChooser fileChooser = new JFileChooser();
+
+        String destFolder = System.getProperty("user.home");
+        if (baseApplication.getGameSaves().getGameData().getProperties().get(EditorUtils.LAST_LOCATION) != null) {
+            destFolder = (String) baseApplication.getGameSaves().getGameData().getProperties().get(EditorUtils.LAST_LOCATION);
+        }
+
+        fileChooser.setCurrentDirectory(new File(destFolder));
+        fileChooser.setDialogTitle("Save Spatial As");
+        fileChooser.setApproveButtonText("Save");
+        FileFilter fileFilter = new FileFilter() {
+            @Override
+            public boolean accept(File file) {
+                return file != null && (file.getName().endsWith(EditorUtils.SPATIAL_EXTENSION) || file.isDirectory());
+            }
+
+            @Override
+            public String getDescription() {
+                return EditorUtils.SPATIAL_EXTENSION;
+            }
+        };
+        fileChooser.setFileFilter(fileFilter);
+        int result = fileChooser.showOpenDialog(null);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            selectedFile = fileChooser.getSelectedFile();
+
+        }
+
+        //Here I save the scene to the specified file if the file actually exist
+        if (selectedFile != null) {
+            if (!selectedFile.getAbsolutePath().endsWith(EditorUtils.SPATIAL_EXTENSION)) {
+                selectedFile = new File(selectedFile.getAbsolutePath() + EditorUtils.SPATIAL_EXTENSION);
+
+            }
+            log("Game to save: " + selectedFile);
+            try {
+
+                EditorUtils.saveSpatial(scene, selectedFile);
+                showMessage("File successfully saved!");
+                baseApplication.getGameSaves().getGameData().getProperties().setProperty(EditorUtils.LAST_LOCATION, selectedFile.getPath());
+                baseApplication.getGameSaves().save();
+//
+//                if (selectedSpatial instanceof Geometry) {
+//                    Material material = ((Geometry) scene).getMaterial();
+//                    String matFilePath = selectedFile.getParent() + File.separator + selectedFile.getName().replace(".j3o", "") + EditorUtils.MATERIAL_EXTENSION;
+////                    log(matFilePath);
+//                    File materialFile = new File(matFilePath);
+//                    EditorUtils.saveMaterial(material, materialFile);
+//                    log("Done saving material, " + matFilePath);
+//
+//                }
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+
+            }
+
+        }
+
+    }
+
     protected void importModel() {
         JFileChooser fileChooser = new JFileChooser();
         String destFolder = System.getProperty("user.home");
@@ -831,6 +898,119 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 importModelFromFile(selectedFile, true);
             }
         }
+    }
+
+    protected void importMaterial(Spatial spatial) {
+        JFileChooser fileChooser = new JFileChooser();
+
+        String destFolder = System.getProperty("user.home");
+        if (baseApplication.getGameSaves().getGameData().getProperties().get(EditorUtils.LAST_LOCATION) != null) {
+            destFolder = (String) baseApplication.getGameSaves().getGameData().getProperties().get(EditorUtils.LAST_LOCATION);
+        }
+
+        fileChooser.setCurrentDirectory(new File(destFolder));
+        fileChooser.setDialogTitle("Open Material");
+        fileChooser.setApproveButtonText("Open");
+        FileFilter fileFilter = new FileFilter() {
+            @Override
+            public boolean accept(File file) {
+                return file != null && (file.getName().endsWith(EditorUtils.MATERIAL_EXTENSION) || file.isDirectory());
+            }
+
+            @Override
+            public String getDescription() {
+                return EditorUtils.MATERIAL_EXTENSION;
+            }
+        };
+        fileChooser.setFileFilter(fileFilter);
+        int result = fileChooser.showOpenDialog(null);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+
+            if (selectedFile != null) {
+                baseApplication.getGameSaves().getGameData().getProperties().setProperty(EditorUtils.LAST_LOCATION, selectedFile.getPath());
+                baseApplication.getGameSaves().save();
+
+                log("Importing material: " + selectedFile);
+                log("Parent: " + selectedFile.getParent());
+                log("FileName: " + selectedFile.getName());
+
+                Material m = null;
+                try {
+                    m = EditorUtils.loadMaterial(selectedFile, assetManager);
+                    log("Material (" + m.getName() + ") successfully imported.");
+
+                    if (spatial != null && m != null) {
+                        spatial.setMaterial(m);
+                        MaterialUtils.convertTexturesToEmbedded(m);
+                        TangentBinormalGenerator.generate(spatial);
+                        setSelectedObject(spatial);
+
+                    }
+
+                } catch (Exception ex) {
+                    Logger.getLogger(EditorScreen.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+            }
+        }
+
+    }
+
+    protected void exportMaterial(final Material material) {
+        File selectedFile = null;
+
+        JFileChooser fileChooser = new JFileChooser();
+
+        String destFolder = System.getProperty("user.home");
+        if (baseApplication.getGameSaves().getGameData().getProperties().get(EditorUtils.LAST_LOCATION) != null) {
+            destFolder = (String) baseApplication.getGameSaves().getGameData().getProperties().get(EditorUtils.LAST_LOCATION);
+        }
+
+        fileChooser.setCurrentDirectory(new File(destFolder));
+        fileChooser.setDialogTitle("Save Material");
+        fileChooser.setApproveButtonText("Save");
+        FileFilter fileFilter = new FileFilter() {
+            @Override
+            public boolean accept(File file) {
+                return file != null && (file.getName().endsWith(EditorUtils.MATERIAL_EXTENSION) || file.isDirectory());
+            }
+
+            @Override
+            public String getDescription() {
+                return EditorUtils.MATERIAL_EXTENSION;
+            }
+        };
+        fileChooser.setFileFilter(fileFilter);
+        int result = fileChooser.showOpenDialog(null);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            selectedFile = fileChooser.getSelectedFile();
+
+        }
+
+        //Here I save the scene to the specified file if the file actually exist
+        if (selectedFile != null) {
+            if (!selectedFile.getAbsolutePath().endsWith(EditorUtils.MATERIAL_EXTENSION)) {
+                selectedFile = new File(selectedFile.getAbsolutePath() + EditorUtils.MATERIAL_EXTENSION);
+
+            }
+            log("Material to save: " + selectedFile);
+            try {
+
+                EditorUtils.saveMaterial(material, selectedFile);
+                showMessage("Material " + selectedFile.getName() + " successfully saved!");
+                baseApplication.getGameSaves().getGameData().getProperties().setProperty(EditorUtils.LAST_LOCATION, selectedFile.getPath());
+                baseApplication.getGameSaves().save();
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+
+            }
+
+        }
+
     }
 
     @Override
@@ -1050,13 +1230,25 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
         } else if (Action.IMPORT.equals(message)) {
             hidePanels();
-//            baseApplication.enqueue(new Runnable() {
-//                @Override
-//                public void run() {
             importObject();
-//                }
-//
-//            });
+
+        } else if (Action.IMPORT_MATERIAL.equals(message)) {
+            if (object != null && object instanceof Geometry) {
+                importMaterial((Geometry) object);
+            }
+
+        } else if (Action.EXPORT.equals(message)) {
+            if (selectedSpatial != null) {
+                exportObject(selectedSpatial);
+            } else {
+                exportObject(sceneNode);
+            }
+
+        } else if (Action.EXPORT_MATERIAL.equals(message)) {
+            if (object != null && object instanceof Material) {
+                exportMaterial((Material) object);
+
+            }
 
         } else if (Action.HIERARCHY.equals(message)) {
             showPanel(hierarchyPanel);
@@ -1218,7 +1410,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
 
         ModelReference modelReference = ModelUtils.getModelByName(modelName);
         if (modelReference != null) {
-            Spatial s = modelReference.getModel().clone(); //TODO: Can set it to not clone the material
+            Spatial s = modelReference.getModel().clone(false); //TODO: Can set it to not clone the material
             setupNewObject(s);
 
         }
@@ -1269,16 +1461,13 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             ModelKey key = new ModelKey(selectedFile.getName());
             Spatial m = baseApplication.getAssetManager().loadModel(key);
 
-            log("Model (" + m.getName() + ") successfully imported.");
-
             baseApplication.getAssetManager().deleteFromCache(key);
             baseApplication.getAssetManager().unregisterLocator(selectedFile.getParent(), FileLocator.class);
 
             //Name the file the name of the folder
-            if (selectedFile.getParentFile() != null) {
-                selectedFile = selectedFile.getParentFile();
-            }
-
+//            if (selectedFile.getParentFile() != null) {
+//                selectedFile = selectedFile.getParentFile();
+//            }
             if (selectedFile.getName().endsWith(".obj")) {
                 m.setName(selectedFile.getName().replace(".obj", ""));
 
@@ -1292,6 +1481,8 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
                 m.setName(selectedFile.getName());
 
             }
+
+            log("Model (" + m.getName() + ") successfully imported.");
 
             //NB
             MaterialUtils.convertTexturesToEmbedded(m);
@@ -1346,7 +1537,7 @@ public class EditorScreen extends AbstractScreen implements MessageListener, Pic
             baseApplication.getGameSaves().save();
 
             assetManager.registerLocator(file.getParent(), FileLocator.class);
-            Texture texture = assetManager.loadTexture(new TextureKey(file.getName(), true));
+            Texture texture = assetManager.loadTexture(new TextureKey(file.getName(), false));
             texture.setKey(null); //Set the key to null so that it can be embedded
 
             if (EditorUtils.BASE_TEXTURE.equals(uid)) {

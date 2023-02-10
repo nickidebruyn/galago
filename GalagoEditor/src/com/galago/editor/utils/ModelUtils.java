@@ -1,5 +1,7 @@
 package com.galago.editor.utils;
 
+import com.bruynhuis.galago.util.MaterialUtils;
+import com.bruynhuis.galago.util.ColorUtils;
 import com.bruynhuis.galago.util.SharedSystem;
 import com.bruynhuis.galago.util.SpatialUtils;
 import com.jme3.light.AmbientLight;
@@ -96,33 +98,6 @@ public class ModelUtils {
         SpatialUtils.addColor(ring, ColorRGBA.White, false);
         easyAddModel("Primitives", "Ring", ring);
 
-        //Load the vegetation models
-//        easyAddModel("Vegetation", "Pine Tree", "Models/trees/pine_tree/scene.j3o", null, 7, 4, 1);
-//        easyAddModel("Vegetation", "Palm Trees", "Models/trees/palm_trees/scene.j3o", null, 7, 4, 1);
-//
-//        String s = "";
-//        for (int i = 1; i < 14; i++) {
-//            s = i +"";
-//            if (i < 10) s = "0" + i;
-//            easyAddModel("Vegetation", "Tree " + i, "Models/Editor/Fantacy/tree_"+s+"_combined.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
-//            
-//        }      
-//
-//
-//        //Load buildings
-//        easyAddModel("Buildings", "House 1", "Models/Editor/Fantacy/house01_01.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
-//        easyAddModel("Buildings", "House 2", "Models/Editor/Fantacy/house01_02.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
-//        easyAddModel("Buildings", "House 3", "Models/Editor/Fantacy/house01_03.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
-//        easyAddModel("Buildings", "House 4", "Models/Editor/Fantacy/house01_04.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
-//        easyAddModel("Buildings", "House 5", "Models/Editor/Fantacy/house01_05.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
-//        
-//        easyAddModel("Buildings", "House 6", "Models/Editor/Fantacy/house02_01.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
-//        easyAddModel("Buildings", "House 7", "Models/Editor/Fantacy/house02_02.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
-//        easyAddModel("Buildings", "House 8", "Models/Editor/Fantacy/house02_03.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
-//        easyAddModel("Buildings", "House 9", "Models/Editor/Fantacy/house02_04.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
-//        easyAddModel("Buildings", "House 10", "Models/Editor/Fantacy/house02_05.fbx", "Materials/Editor/fantacy.j3m", 12, 4, 0.015f);
-
-//        easyAddModel("Vegetation", "Pine detail", "Models/temp/treePine_large.j3o", 7, 4);
     }
 
     private static void addGroup(String group) {
@@ -146,26 +121,50 @@ public class ModelUtils {
     private static void easyAddModel(String group, String name, String modelPath, String materialPath, float camDis, float camHeight, float scale) {
         Spatial s = SharedSystem.getInstance().getBaseApplication().getAssetManager().loadModel(modelPath);
         s.setName(name);
-                
+
         if (materialPath != null) {
             Material material = SharedSystem.getInstance().getBaseApplication().getAssetManager().loadMaterial(materialPath);
             s.setMaterial(material);
         }
-        
+
         SceneGraphVisitor sgv = new SceneGraphVisitor() {
             @Override
             public void visit(Spatial sptl) {
                 sptl.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
                 if (sptl instanceof Geometry) {
-                    sptl.setLocalScale(scale);                    
+                    sptl.setLocalScale(scale);
                 }
             }
         };
         s.depthFirstTraversal(sgv);
-        
+
         MaterialUtils.convertTexturesToEmbedded(s);
         modelReferences.add(addModel(group, s.getName(), s, camDis, camHeight));
         addGroup(group);
+    }
+
+    private static void easyAddModelPack(String group, String modelPath) {
+        Node node = (Node) SharedSystem.getInstance().getBaseApplication().getAssetManager().loadModel(modelPath);
+        System.out.println("Node name = " + node.getName());
+        System.out.println("Children = " + node.getQuantity());
+        int count = node.getQuantity();
+
+        if (node != null) {
+            for (int i = 0; i < node.getQuantity(); i++) {
+                Spatial child = node.getChild(i);
+                String childGroup = child.getUserData(EditorUtils.GROUP);
+                if (childGroup == null) {
+                    childGroup = group;
+
+                }
+                System.out.println("\t-Child: " + child.getName());
+                child.setLocalTranslation(0, 0, 0);
+                modelReferences.add(addModel(childGroup, child.getName(), child, 5, 4));
+                addGroup(childGroup);
+
+            }
+
+        }
     }
 
     public static List<ModelReference> getAllModels() {
@@ -226,7 +225,7 @@ public class ModelUtils {
 
         ViewPort offView = renderManager.createPreView("Offscreen View", offCamera);
         offView.setClearFlags(true, true, true);
-        offView.setBackgroundColor(EditorUtils.theme.getBackgroundColor());
+        offView.setBackgroundColor(ColorUtils.rgb(149, 175, 192));
 
         // create offscreen framebuffer
         FrameBuffer offBuffer = new FrameBuffer(256, 256, 1);
@@ -253,11 +252,11 @@ public class ModelUtils {
         Node rootNode = new Node("root");
         offView.attachScene(rootNode);
 
-        rootNode.attachChild(spatial);
+        rootNode.attachChild(spatial.clone(true));
 
         DirectionalLight sun = new DirectionalLight(new Vector3f(0.25f, -0.5f, -0.7f), ColorRGBA.White);
         rootNode.addLight(sun);
-        
+
         AmbientLight al = new AmbientLight(ColorRGBA.LightGray);
         rootNode.addLight(al);
 

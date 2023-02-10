@@ -7,6 +7,7 @@ import com.galago.editor.ui.FloatField;
 import com.galago.editor.ui.SpinnerButton;
 import com.galago.editor.ui.TextField;
 import com.galago.editor.utils.Action;
+import com.galago.editor.utils.EditorUtils;
 import com.jme3.input.event.KeyInputEvent;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
@@ -23,6 +24,7 @@ public class NodePropertiesPanel extends AbstractPropertiesPanel {
     private Node node;
 
     private TextField nameField;
+    private TextField groupField;
 
     private Quaternion tempQuat = new Quaternion();
 
@@ -65,6 +67,17 @@ public class NodePropertiesPanel extends AbstractPropertiesPanel {
             }
 
         });
+        
+        groupField = createLabeledTextInput("Group", "group-field");
+        groupField.addKeyboardListener(new KeyboardListener() {
+
+            @Override
+            public void doKeyPressed(KeyInputEvent evt) {
+                node.setUserData(EditorUtils.GROUP, groupField.getValue());
+
+            }
+
+        });        
 
         createHeader("position", "Position");
         positionXField = createLabeledFloatInput("X", "x-pos", 70, ColorRGBA.Red);
@@ -218,7 +231,9 @@ public class NodePropertiesPanel extends AbstractPropertiesPanel {
     protected void reload() {
 
         if (node == null) {
-            nameField.setValue("no name");
+            nameField.setValue("");
+            groupField.setValue("");
+            
             positionXField.setValue(0);
             positionYField.setValue(0);
             positionZField.setValue(0);
@@ -237,6 +252,11 @@ public class NodePropertiesPanel extends AbstractPropertiesPanel {
 
         } else {
             nameField.setValue(node.getName());
+            
+            String group = node.getUserData(EditorUtils.GROUP);
+            if (group == null) group = "";            
+            groupField.setValue(group);
+            
             positionXField.setValue(node.getLocalTranslation().x);
             positionYField.setValue(node.getLocalTranslation().y);
             positionZField.setValue(node.getLocalTranslation().z);

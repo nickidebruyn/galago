@@ -13,7 +13,7 @@ import com.galago.editor.ui.SpinnerButton;
 import com.galago.editor.ui.TextField;
 import com.galago.editor.utils.Action;
 import com.galago.editor.utils.EditorUtils;
-import com.galago.editor.utils.MaterialUtils;
+import com.bruynhuis.galago.util.MaterialUtils;
 import com.jme3.input.event.KeyInputEvent;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
@@ -60,6 +60,7 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
     private SpinnerButton blendSpinner;
     private SpinnerButton backfaceRenderSpinner;
     private ButtonGroup copyPasteButton;
+    private ButtonGroup importExportButton;
 
     private SpinnerButton materialType;
     private ColorButton baseColorButton;
@@ -315,7 +316,7 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
         });
 
         createHeader("material", "Material");
-        
+
         copyPasteButton = createLabledButtonGroup("Function", "mat-copy", "mat-paste", "Copy", "Paste");
         copyPasteButton.getButton1().addTouchButtonListener(new TouchButtonAdapter() {
             @Override
@@ -323,9 +324,9 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
 //                window.getApplication().getMessageManager().sendMessage(Action.COPY_MATERIAL, geometryMaterial);
                 copiedMaterial = geometryMaterial;
             }
-            
+
         });
-        
+
         copyPasteButton.getButton2().addTouchButtonListener(new TouchButtonAdapter() {
             @Override
             public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
@@ -333,13 +334,32 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
                 if (copiedMaterial != null) {
                     geometry.setMaterial(copiedMaterial);
                     setGeometry(geometry);
-                    
+
                 }
-                
+
             }
-            
+
         });
-        
+
+        importExportButton = createLabledButtonGroup("", "mat-import", "mat-export", "Import", "Export");
+        importExportButton.getButton1().addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                window.getApplication().getMessageManager().sendMessage(Action.IMPORT_MATERIAL, geometry);
+
+            }
+
+        });
+
+        importExportButton.getButton2().addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                window.getApplication().getMessageManager().sendMessage(Action.EXPORT_MATERIAL, geometryMaterial);
+
+            }
+
+        });
+
         materialType = createLabeledSpinner("Type", "material-type", new String[]{"Default", "PBR", "Shadeless"});
         materialType.addTouchButtonListener(new TouchButtonAdapter() {
             @Override
@@ -416,8 +436,54 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
 
             }
         });
-        
+
         baseTextureButtonGroup = createLabeledTextureButtonGroup("Textures", EditorUtils.BASE_TEXTURE, EditorUtils.NORMAL_TEXTURE);
+        baseTextureButtonGroup.getRemoveButton1().addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                System.out.println("Remove Texture for " + uid);
+                MaterialUtils.setBaseTexture(geometryMaterial, null);
+                setBaseTexture(null);
+
+            }
+            
+        });
+        baseTextureButtonGroup.getHorizontalFlipButton1().addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                Texture texture = MaterialUtils.getBaseTexture(geometryMaterial);
+                MaterialUtils.flipTextureOnY(texture);
+            }
+            
+        });
+        baseTextureButtonGroup.getVerticalFlipButton1().addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                Texture texture = MaterialUtils.getBaseTexture(geometryMaterial);
+                MaterialUtils.flipTextureOnX(texture);
+            }
+            
+        });
+        baseTextureButtonGroup.getHorizontalFlipButton2().addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                Texture texture = MaterialUtils.getNormalTexture(geometryMaterial);
+                MaterialUtils.flipTextureOnY(texture);
+            }
+            
+        });
+        baseTextureButtonGroup.getVerticalFlipButton2().addTouchButtonListener(new TouchButtonAdapter() {
+            @Override
+            public void doTouchUp(float touchX, float touchY, float tpf, String uid) {
+                Texture texture = MaterialUtils.getBaseTexture(geometryMaterial);
+                MaterialUtils.flipTextureOnX(texture);
+            }
+            
+        });
+        
+        
+        
+        
         metalicTextureButton = createLabeledTextureButton("Metalic", EditorUtils.METALIC_TEXTURE);
 
         baseColorButton = createLabeledColorButton("Color", "base-color-button");
@@ -750,23 +816,31 @@ public class GeometryPropertiesPanel extends AbstractPropertiesPanel {
 
     }
 
-    public void setBaseTexture(Texture texture) {
+    public void setBaseTexture(Texture texture) {        
         baseTextureButtonGroup.getButton1().getPicture().getMaterial().setTexture("Texture", texture);
-        texture.setWrap(Texture.WrapMode.Repeat);
+        
+        if (texture != null) {
+            texture.setWrap(Texture.WrapMode.Repeat);
+        }
+        
         MaterialUtils.setBaseTexture(geometryMaterial, texture);
-
+        
     }
 
     public void setNormalTexture(Texture texture) {
         baseTextureButtonGroup.getButton2().getPicture().getMaterial().setTexture("Texture", texture);
-        //texture.setWrap(Texture.WrapMode.Repeat);
+        if (texture != null) {
+            texture.setWrap(Texture.WrapMode.Repeat);
+        }
         MaterialUtils.setNormalTexture(geometryMaterial, texture);
 
     }
 
     public void setMetalicTexture(Texture texture) {
         metalicTextureButton.getPicture().getMaterial().setTexture("Texture", texture);
-        texture.setWrap(Texture.WrapMode.Repeat);
+        if (texture != null) {
+            texture.setWrap(Texture.WrapMode.Repeat);
+        }
         MaterialUtils.setMetalicTexture(geometryMaterial, texture);
 
     }

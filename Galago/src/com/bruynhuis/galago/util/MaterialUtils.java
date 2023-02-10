@@ -1,4 +1,4 @@
-package com.galago.editor.utils;
+package com.bruynhuis.galago.util;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.TextureKey;
@@ -14,8 +14,11 @@ import com.jme3.scene.Node;
 import com.jme3.scene.SceneGraphVisitor;
 import com.jme3.scene.Spatial;
 import com.jme3.texture.Texture;
+import com.jme3.texture.image.ImageRaster;
+import com.jme3.util.BufferUtils;
 
 import java.awt.*;
+import java.nio.ByteBuffer;
 
 public class MaterialUtils {
 
@@ -554,4 +557,45 @@ public class MaterialUtils {
 
     }
 
+    public static void flipTextureOnX(Texture texture) {
+        if (texture != null) {
+            com.jme3.texture.Image img = texture.getImage();
+            byte[] data = new byte[img.getWidth() * img.getHeight() * 4];
+            ByteBuffer buffer = BufferUtils.createByteBuffer(data);
+            com.jme3.texture.Image flippedImg = new com.jme3.texture.Image(img.getFormat(), img.getWidth(), img.getHeight(), buffer, img.getColorSpace());
+            ImageRaster raster = ImageRaster.create(img);
+            ImageRaster copy = ImageRaster.create(flippedImg);
+
+            for (int x = 0; x < raster.getWidth(); x++) {
+                for (int y = 0; y < raster.getHeight(); y++) {
+                    copy.setPixel(img.getWidth() - 1 - x, y, raster.getPixel(x, y));
+                }
+
+            }
+
+            texture.setImage(flippedImg);
+
+        }
+    }
+    
+    public static void flipTextureOnY(Texture texture) {
+        if (texture != null) {
+            com.jme3.texture.Image img = texture.getImage();
+            byte[] data = new byte[img.getWidth() * img.getHeight() * 4];
+            ByteBuffer buffer = BufferUtils.createByteBuffer(data);
+            com.jme3.texture.Image flippedImg = new com.jme3.texture.Image(img.getFormat(), img.getWidth(), img.getHeight(), buffer, img.getColorSpace());
+            ImageRaster raster = ImageRaster.create(img);
+            ImageRaster copy = ImageRaster.create(flippedImg);
+
+            for (int x = 0; x < raster.getWidth(); x++) {
+                for (int y = 0; y < raster.getHeight(); y++) {
+                    copy.setPixel(x, img.getHeight() - 1 - y, raster.getPixel(x, y));
+                }
+
+            }
+
+            texture.setImage(flippedImg);
+
+        }
+    }
 }

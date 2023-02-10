@@ -10,7 +10,7 @@ import com.galago.editor.ui.LongField;
 import com.galago.editor.ui.SliderField;
 import com.galago.editor.ui.SpinnerButton;
 import com.galago.editor.utils.Action;
-import com.galago.editor.utils.MaterialUtils;
+import com.bruynhuis.galago.util.MaterialUtils;
 import com.jme3.input.event.KeyInputEvent;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;

@@ -22,6 +22,7 @@ public class TextField extends Panel {
 
         inputField = new InputField(this, id);
         inputField.center();
+        inputField.setMaxLength(20);
         
         focusImage = new Image(this, "Interface/field-focus.png", 260 * scale, 48 * scale);
         focusImage.setBackgroundColor(EditorUtils.theme.getSelectionColor());
