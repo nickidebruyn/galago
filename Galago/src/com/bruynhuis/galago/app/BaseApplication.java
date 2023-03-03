@@ -245,6 +245,8 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         settings.setGammaCorrection(false);
         settings.setSettingsDialogImage("Resources/jme-logo.png");
 
+        settings.setRenderer(AppSettings.LWJGL_OPENGL2);
+        
 //        settings.setSettingsDialogImage(splashImage);
         setSettings(settings);
         setPauseOnLostFocus(false);

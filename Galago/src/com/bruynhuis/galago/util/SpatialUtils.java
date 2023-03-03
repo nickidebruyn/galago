@@ -13,7 +13,9 @@ import com.bruynhuis.galago.control.SpatialLifeControl;
 import com.bruynhuis.galago.control.camera.CameraStickControl;
 import com.bruynhuis.galago.control.tween.RigidbodyAccessor;
 import com.bruynhuis.galago.control.tween.SpatialAccessor;
+import com.bruynhuis.galago.spatial.Road;
 import com.bruynhuis.galago.sprite.Sprite;
+import com.jme3.asset.AssetManager;
 import com.jme3.bounding.BoundingSphere;
 import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.bullet.collision.shapes.CollisionShape;
@@ -51,6 +53,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.control.AbstractControl;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.CenterQuad;
+import com.jme3.scene.shape.Curve;
 import com.jme3.scene.shape.Cylinder;
 import com.jme3.scene.shape.Dome;
 import com.jme3.scene.shape.Line;
@@ -671,7 +674,7 @@ public class SpatialUtils {
 
         return geometry;
     }
-    
+
     /**
      * Add a dome to the scene.
      *
@@ -690,7 +693,7 @@ public class SpatialUtils {
         geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
 
         return geometry;
-    }    
+    }
 
     public static Spatial addCone(Node parent, int radialSamples, float radius, float height) {
 
@@ -738,6 +741,27 @@ public class SpatialUtils {
 
         return geometry;
     }
+    
+    /**
+     * Add a simple box to the node.
+     *
+     * @param parent
+     * @param xExtend
+     * @param yExtend
+     * @param zExtend
+     * @return
+     */
+    public static Spatial addCurve(Node parent, List<Vector3f> points) {
+
+//        Curve curve = new Curve(points, nbSubSegments);  
+        Road road = new Road(1, 1, points);
+        Geometry geometry = new Geometry("curve", road);
+        parent.attachChild(geometry);
+//        geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+//        TangentUtils.generateBindPoseTangentsIfNecessary(box);
+
+        return geometry;
+    }
 
     /**
      * Add a simple plane to the node.
@@ -780,15 +804,16 @@ public class SpatialUtils {
 
     /**
      * Add a torus to the parent node
+     *
      * @param parent
      * @param circleSamples
      * @param radialSamples
      * @param innerRadius
      * @param outerRadius
-     * @return 
+     * @return
      */
     public static Spatial addTorus(Node parent, int circleSamples, int radialSamples, float innerRadius, float outerRadius) {
-        
+
         Torus torus = new Torus(circleSamples, radialSamples, innerRadius, outerRadius);
         Geometry geometry = new Geometry("torus", torus);
 //        geometry.rotate(-FastMath.DEG_TO_RAD * 90, 0, 0);
@@ -797,7 +822,7 @@ public class SpatialUtils {
         geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
 
         return geometry;
-    }    
+    }
 
     /**
      * Add a sprite to the scene
@@ -833,6 +858,41 @@ public class SpatialUtils {
             material.setBoolean("UseMaterialColors", true);
 //            material.setColor("Ambient", colorRGBA);
             material.setColor("Diffuse", colorRGBA);
+
+        }
+
+        spatial.setMaterial(material);
+
+        return material;
+    }
+
+    /**
+     * Add color to the spatial.
+     *
+     *
+     * @param colorRGBA
+     * @return
+     */
+    public static Material addColor(AssetManager assetManager, Spatial spatial, ColorRGBA colorRGBA, int type) {
+        Material material = null;
+
+        if (type == 1) {
+            material = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+            material.setBoolean("UseMaterialColors", true);
+            material.setColor("Ambient", colorRGBA);
+            material.setColor("Diffuse", colorRGBA);
+
+        } else if (type == 2) {
+            material = new Material(assetManager, "Common/MatDefs/Light/PBRLighting.j3md");
+            material.setColor("BaseColor", colorRGBA);
+            material.setFloat("Metallic", 0f);
+            material.setFloat("Roughness", 0.5f);
+
+            spatial.setMaterial(material);
+
+        } else {
+            material = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+            material.setColor("Color", colorRGBA);
 
         }
 
@@ -1585,12 +1645,13 @@ public class SpatialUtils {
             return (Node) spatial;
         }
     }
-    
+
     /**
      * Check if a spatial has a specific tag
+     *
      * @param spatial
      * @param tag
-     * @return 
+     * @return
      */
     public static boolean hasTag(Spatial spatial, String tag) {
         if (spatial != null && tag != null) {
@@ -1598,15 +1659,16 @@ public class SpatialUtils {
             if (t != null && t.equalsIgnoreCase(tag)) {
                 return true;
             }
-            
+
         }
         return false;
     }
-    
+
     /**
      * For now a spatial can have only one tag
+     *
      * @param spatial
-     * @param tag 
+     * @param tag
      */
     public static void addTag(Spatial spatial, String tag) {
         if (spatial != null && tag != null) {
