@@ -239,7 +239,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
             settings.setHeight((int) heightSample);
         }
 
-        settings.setVSync(true);
+        settings.setVSync(false);
         settings.setUseJoysticks(true);
         settings.setSettingsDialogImage(null);
         settings.setGammaCorrection(false);
@@ -1565,6 +1565,10 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         } else {
             stateManager.attach(statsAppState);
         }
+    }
+
+    public StatsAppState getStatsAppState() {
+        return statsAppState;
     }
 
     /**

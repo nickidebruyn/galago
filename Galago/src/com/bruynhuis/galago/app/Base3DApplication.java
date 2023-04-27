@@ -49,6 +49,7 @@ public abstract class Base3DApplication extends BaseApplication {
          * Set up Physics
          */
         bulletAppState = new BulletAppState();
+        bulletAppState.setThreadingType(BulletAppState.ThreadingType.PARALLEL);
         stateManager.attach(bulletAppState);
 //        bulletAppState.getPhysicsSpace().setAccuracy(1f/80f);
 //        bulletAppState.getPhysicsSpace().setMaxSubSteps(2);

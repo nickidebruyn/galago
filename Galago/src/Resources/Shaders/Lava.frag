@@ -71,13 +71,8 @@ void main() {
         vec2 res = m_TextureScale;	
 	vec2 p = texCoord.xy / res.xy;
 	p.x *= res.x / res.y;
-	p *= 5.0;
+	p *= 3.0;
 	float rz = flow(p);
-
-	//vec2 p = texCoord.xy;
-	//p.xy -= 0.5;
-	//p *= 5.0;
-	//float rz = flow(p);
 	
 	vec3 col = vec3(m_BaseColor.r, m_BaseColor.g, m_BaseColor.b)/rz;
 	col = pow(col,vec3(1.4));
