@@ -754,13 +754,14 @@ public class SpatialUtils {
     public static Spatial addCurve(Node parent, List<Vector3f> points) {
 
 //        Curve curve = new Curve(points, nbSubSegments);  
-        Road road = new Road(1, 1, points);
-        Geometry geometry = new Geometry("curve", road);
-        parent.attachChild(geometry);
-//        geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
-//        TangentUtils.generateBindPoseTangentsIfNecessary(box);
-
-        return geometry;
+//        Road road = new Road(1, points);
+//        Geometry geometry = new Geometry("curve", road);
+//        parent.attachChild(geometry);
+////        geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+////        TangentUtils.generateBindPoseTangentsIfNecessary(box);
+//
+//        return geometry;
+        return null;
     }
 
     /**

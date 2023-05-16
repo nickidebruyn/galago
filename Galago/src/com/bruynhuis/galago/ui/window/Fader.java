@@ -163,4 +163,22 @@ public class Fader extends ImageWidget {
     public void setOutWait(float outwait) {
         this.outwait = outwait;
     }
+
+    public float getInspeed() {
+        return inspeed;
+    }
+
+    public void setInspeed(float inspeed) {
+        this.inspeed = inspeed;
+    }
+
+    public float getOutspeed() {
+        return outspeed;
+    }
+
+    public void setOutspeed(float outspeed) {
+        this.outspeed = outspeed;
+    }
+    
+    
 }

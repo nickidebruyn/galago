@@ -41,6 +41,7 @@ import com.galago.tests.screens.TrailRenderScreen;
 import com.galago.tests.screens.WaterMovementScreen;
 import com.galago.tests.screens.WaterWaveScreen;
 import com.jme3.bullet.BulletAppState;
+import com.jme3.input.controls.KeyTrigger;
 import com.jme3.math.Vector3f;
 
 /**
@@ -64,6 +65,9 @@ public class MainApplication extends Base3DApplication {
 
     @Override
     protected void postInitApp() {
+        registerInputMappings("left_arrow", new KeyTrigger(keyInput.KEY_LEFT));
+        registerInputMappings("right_arrow", new KeyTrigger(keyInput.KEY_RIGHT));        
+        
         showScreen(MenuScreen.NAME);
     }
 

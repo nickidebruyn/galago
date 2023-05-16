@@ -59,6 +59,7 @@ public class Window {
     protected CollisionResults results;
     protected Ray ray;
     protected boolean buttonTriggered = false;
+    protected Widget focusedWidget;
 
     /**
      *
@@ -230,9 +231,10 @@ public class Window {
         getWindowNode().collideWith(ray, results);
 
         // 5. Use the results (we mark the hit object)
-        if (results.size() > 0) {
+        if (results.size() > 0) {            
 
             if (collisionResultsContainsButton(results)) {
+//                System.out.println("collision resutls = " + results.size());
                 for (int i = 0; i < results.size(); i++) {
                     CollisionResult cr = results.getCollision(i);
                     fireCollisionOnButtons(cr, down, move, cursorPointX, cursorPointY, tpf);
@@ -256,7 +258,9 @@ public class Window {
             CollisionResult cr = collisionResults.getCollision(i);
             if (cr.getGeometry().getParent() != null
                     && cr.getGeometry().getParent().getUserData(TouchButton.TYPE_TOUCH_BUTTON) != null
-                    && cr.getGeometry().getParent().getUserData(TouchButton.TYPE_TOUCH_BUTTON) instanceof TouchButton) {
+                    && cr.getGeometry().getParent().getUserData(TouchButton.TYPE_TOUCH_BUTTON) instanceof TouchButton
+                    && ((TouchButton)cr.getGeometry().getParent().getUserData(TouchButton.TYPE_TOUCH_BUTTON)).isEnabled()
+                    && ((TouchButton)cr.getGeometry().getParent().getUserData(TouchButton.TYPE_TOUCH_BUTTON)).isVisible()) {
                 contains = true;
                 break;
             }
@@ -378,6 +382,8 @@ public class Window {
     }
 
     public void removeFocusFromFields() {
+        this.focusedWidget = null;
+        
         for (Iterator<Panel> it = panels.iterator(); it.hasNext();) {
             Panel panel = it.next();
             removeFocusFromFieldOnPanel(panel);
@@ -541,4 +547,22 @@ public class Window {
         }
         return text;
     }
+
+    /**
+     * This method will check if there exist any foced field
+     */
+    public boolean hasFocusesField() {
+        return focusedWidget != null;
+
+    }
+
+    public Widget getFocusedWidget() {
+        return focusedWidget;
+    }
+
+    public void setFocusedWidget(Widget focusedWidget) {
+        this.focusedWidget = focusedWidget;
+    }
+    
+    
 }

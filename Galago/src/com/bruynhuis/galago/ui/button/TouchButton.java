@@ -414,7 +414,8 @@ public class TouchButton extends ImageWidget implements Touchable {
             wasDown = true;
             lastTouchX = x;
             lastTouchY = y;
-            
+            System.out.println("Fire down on: " + getId());
+
             getWindow().removeFocusFromFields();
 
             for (Effect effect : effects) {
@@ -473,7 +474,7 @@ public class TouchButton extends ImageWidget implements Touchable {
     @Override
     public void fireHoverOver(float x, float y, float tpf) {
         if (enabled && isClickable() && !isHovered() && isVisible()) {
-            
+
             wasHovered = true;
             lastTouchX = x;
             lastTouchY = y;
@@ -486,15 +487,15 @@ public class TouchButton extends ImageWidget implements Touchable {
                 touchButtonListener.doHoverOver(x, y, tpf, id);
             }
 
-
         }
 
     }
-    
+
     @Override
     public void fireHoverOff(float x, float y, float tpf) {
+
         if (enabled && isClickable() && isHovered() && isVisible()) {
-                       
+
             lastTouchX = x;
             lastTouchY = y;
 
@@ -510,7 +511,7 @@ public class TouchButton extends ImageWidget implements Touchable {
 
         }
 
-    }    
+    }
 
     @Override
     public void fireTouchMove(float x, float y, float tpf) {
@@ -525,11 +526,11 @@ public class TouchButton extends ImageWidget implements Touchable {
     public boolean isTouched() {
         return wasDown;
     }
-    
+
     @Override
     public boolean isHovered() {
         return wasHovered;
-    }    
+    }
 
     /**
      * Use this method to set the TouchButtonListener
@@ -679,4 +680,9 @@ public class TouchButton extends ImageWidget implements Touchable {
         }
 
     }
+
+    public String getId() {
+        return id;
+    }
+
 }

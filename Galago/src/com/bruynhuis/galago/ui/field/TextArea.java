@@ -639,7 +639,7 @@ public class TextArea extends ImageWidget implements InputType {
      */
     public void append(String text) {
         
-        System.out.println("######### SET TEXT: " + bitmapText.getText());
+//        System.out.println("######### SET TEXT: " + bitmapText.getText());
 
         if (bitmapText != null) {
             if (bitmapText.getText() == null || bitmapText.getText().length() == 0) {

@@ -46,6 +46,7 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.bruynhuis.galago.ui.effect.Effect;
 import com.bruynhuis.galago.util.Debug;
+import static com.google.typography.font.sfntly.table.opentype.ScriptTag.java;
 import com.jme3.font.LineWrapMode;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
@@ -226,11 +227,12 @@ public class TextField extends ImageWidget implements InputType {
                                 CollisionResult cr = results.getCollision(i);
 //                                System.out.println("\t-> Hit: " + cr.getGeometry().getParent().getName());
 
-                                if (widgetNode.hasChild(cr.getGeometry())) {
-//                                    System.out.println("\t\t\tCollision -> " + TouchButton.this.id);
+                                if (widgetNode.hasChild(cr.getGeometry())) {                                    
                                     if (isPressed) {
+//                                        System.out.println("\t\tField focus -> " + TextField.this.id);
                                         wasDown = true;
                                         getWindow().removeFocusFromFields();
+                                        getWindow().setFocusedWidget(TextField.this);
                                         focus = true;
                                         fireFocusListener(TextField.this.id);
                                     }
@@ -275,8 +277,8 @@ public class TextField extends ImageWidget implements InputType {
                         if (getText().length() > 0) {
                             setText(getText().substring(0, getText().length() - 1));
                         }
-                    } else if (evt.getKeyCode() == 15) {
-                        focus = false;
+                    } else if (evt.getKeyCode() == 15 || evt.getKeyCode() == 156 || evt.getKeyCode() == 28) {
+                        blur();
 
                     } else if (keyChar != null && evt.getKeyCode() == 57) {
                         setText(getText() + " ");
@@ -404,7 +406,7 @@ public class TextField extends ImageWidget implements InputType {
         this.keyboardListener = keyboardListener;
     }
 
-    protected void fireKeyboardListener(KeyInputEvent event) {
+    public void fireKeyboardListener(KeyInputEvent event) {
         if (keyboardListener != null) {
             keyboardListener.doKeyPressed(event);
         }
@@ -686,4 +688,14 @@ public class TextField extends ImageWidget implements InputType {
     public void append(String text) {
         bitmapText.setText(bitmapText.getText() + text);
     }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+    
+    
 }

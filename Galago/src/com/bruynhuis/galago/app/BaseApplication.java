@@ -76,8 +76,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import com.bruynhuis.galago.listener.AndroidInputEventListener;
 import com.jme3.input.controls.Trigger;
-import com.jme3.system.JmeCanvasContext;
-import com.jme3.system.lwjgl.LwjglDisplay;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;

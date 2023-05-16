@@ -61,12 +61,21 @@ public class Spinner extends TouchButton {
     }
 
     @Override
-    public void fireTouchUp(float x, float y, float tpf) {        
+    public void fireTouchUp(float x, float y, float tpf) {
+//        System.out.println("x="+x+";y="+y);
+//        System.out.println("wx="+widgetNode.getWorldTranslation().x+";y="+widgetNode.getWorldTranslation().y);
+        
+        int dir = 1;
+        if (x < widgetNode.getWorldTranslation().x) {
+            dir = -1;
+        }
 
         if (options != null && options.length > 0) {
-            index++;
+            index += dir;
             if (index >= options.length) {
                 index = 0;
+            } else if (index < 0) {
+                index = options.length-1;
             }
 
         }

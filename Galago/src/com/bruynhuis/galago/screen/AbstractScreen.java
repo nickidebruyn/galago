@@ -179,6 +179,16 @@ public abstract class AbstractScreen extends AbstractAppState implements EscapeL
     protected void setWaitEnter(float wait) {
         fader.setInWait(wait);
     }
+    
+    protected void setSpeedExit(float speed) {
+        fader.setOutspeed(speed);
+        
+    }
+    
+    protected void setSpeedEnter(float speed) {
+        fader.setInspeed(speed);
+        
+    }
 
     /**
      * Log some text to the console

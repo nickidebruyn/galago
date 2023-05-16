@@ -5,22 +5,28 @@
  */
 package com.bruynhuis.galago.spatial;
 
-import com.jme3.math.FastMath;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Mesh;
+import com.jme3.scene.Spatial;
 import com.jme3.scene.VertexBuffer;
-import java.util.ArrayList;
+import com.jme3.util.BufferUtils;
 import java.util.List;
 
 /**
  * This is a road mesh. It can be used for creation of a road like surface.
- * 
+ *
  * @author NideBruyn
  */
 public class Road extends Mesh {
 
     private float width;
-    private List<Vector3f> cp;
+    private List<Spatial> controlPoints;
+
+    private int[] vertexIndices;
+    private Vector3f[] vertexPositions;
+    private Vector3f[] normalPositions;
+    private Vector2f[] vertexTexCoordinates;
 
     /**
      * Serialization only. Do not use.
@@ -33,270 +39,103 @@ public class Road extends Mesh {
      * in the XY plane.
      *
      * @param width The X extent or width
-     * @param controlPoint
+     * @param vertices
      */
-    public Road(float width, float height, List<Vector3f> controlPoint) {
-        updateGeometry(width, height, controlPoint);
-    }
+    public Road(float width, List<Spatial> points) {
+        System.out.println("Test");
 
-    /**
-     * Create a quad with the given width and height. The quad is always created
-     * in the XY plane.
-     *
-     * @param width The X extent or width
-     * @param controlPoint
-     * @param flipCoords If true, the texture coordinates will be flipped along
-     * the Y axis.
-     */
-    public Road(float width, float height, List<Vector3f> controlPoint, boolean flipCoords) {
-        updateGeometry(width, height, controlPoint, flipCoords, false);
-    }
-
-    /**
-     * Create a quad with the given width and height. The quad is always created
-     * in the XY plane.
-     *
-     * @param width The X extent or width
-     * @param height
-     * @param controlPoint
-     * @param flipCoords If true, the texture coordinates will be flipped along
-     * the Y axis.
-     * @param tessellation Set if to use Tesselation indexation
-     */
-    public Road(float width, float height, List<Vector3f> controlPoint, boolean flipCoords, boolean tessellation) {
-        updateGeometry(width, height, controlPoint, flipCoords, tessellation);
-    }
-
-//    public float getHeight() {
-//        return height;
-//    }
-    public float getWidth() {
-        return width;
-    }
-
-    public void updateGeometry(float width, float height, List<Vector3f> controlPoint) {
-        updateGeometry(width, height, controlPoint, false, false);
-    }
-
-    @Override
-    public void clearBuffer(VertexBuffer.Type type) {
-        super.clearBuffer(type); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    public void updateGeometry(float width, float height, List<Vector3f> controlPoint, boolean flipCoords, boolean tessellation) {
         this.width = width;
-        if (controlPoint.get(0).z > controlPoint.get(3).z) {
-            cp = new ArrayList();
-            cp.add(controlPoint.get(3));
-            cp.add(controlPoint.get(2));
-            cp.add(controlPoint.get(1));
-            cp.add(controlPoint.get(0));
-        } else {
-            cp = controlPoint;
-        }
+        this.controlPoints = points;
+        this.generateVertices();
+        this.generateIndices();
+        this.buildMesh();
 
-        float lenght = FastMath.getBezierP1toP2Length(cp.get(0), cp.get(1), cp.get(2), cp.get(3));
+    }
 
-        int modulo = (int) (lenght % height);
-        int nbSection = (int) ((lenght - modulo) / height);
-        //nbSection = (int) ((lenght) / width)+1;
-        List<Vector3f> computePosition = new ArrayList();
-        for (float i = 0; i <= nbSection; i++) {
-            if (i < nbSection) {
-                Vector3f v1 = FastMath.interpolateBezier(i / nbSection, cp.get(0), cp.get(1), cp.get(2), cp.get(3));
-                Vector3f v2 = FastMath.interpolateBezier((i + 1) / nbSection, cp.get(0), cp.get(1), cp.get(2), cp.get(3));
-
-                Vector3f vv1 = v2.subtract(v1);
-                float anglex = FastMath.acos(vv1.x / height);
-                float anglez = FastMath.asin(vv1.z / height);
-
-                float angle1 = anglex - FastMath.HALF_PI;
-                float angle2 = anglex + FastMath.HALF_PI;
-
-                float angle3 = anglez - FastMath.HALF_PI;
-                float angle4 = anglez + FastMath.HALF_PI;
-                
-                computePosition.add( v1.add(new Vector3f(FastMath.cos(angle1) * width , 1, FastMath.sin(angle1) * width )));
-                computePosition.add( v1.add(new Vector3f(FastMath.cos(angle2) * width , 1, FastMath.sin(angle2) * width )));
-            } 
-            else {
-                Vector3f v1 = FastMath.interpolateBezier((i) / nbSection, cp.get(0), cp.get(1), cp.get(2), cp.get(3));
-                Vector3f v2 = FastMath.interpolateBezier((i+1) / nbSection, cp.get(0), cp.get(1), cp.get(2), cp.get(3));
-                
-                Vector3f vv1 = v2.subtract(v1);
-                float anglex = FastMath.acos(vv1.x / height);
-                float anglez = FastMath.asin(vv1.z / height);
-
-                float angle1 = anglex - FastMath.HALF_PI;
-                float angle2 = anglex + FastMath.HALF_PI;
-
-                float angle3 = anglez - FastMath.HALF_PI;
-                float angle4 = anglez + FastMath.HALF_PI;
-                
-                computePosition.add( v1.add(new Vector3f(FastMath.cos(angle1) * width , 1, FastMath.sin(angle1) * width )));
-                computePosition.add( v1.add(new Vector3f(FastMath.cos(angle2) * width , 1, FastMath.sin(angle2) * width )));
-//                computePosition.add(v1);
-//                computePosition.add(v1);
-            }
-        }
-
-//        Vector3f v1 = FastMath.interpolateBezier(0 / nbSection, cp.get(0), cp.get(1), cp.get(2), cp.get(3));
-//        Vector3f v2 = FastMath.interpolateBezier(0.1f / nbSection, cp.get(0), cp.get(1), cp.get(2), cp.get(3));
-//
-//        Vector3f vv1 = v2.subtract(v1);
-//        float anglex = FastMath.acos(vv1.x / width);
-//        float anglez = FastMath.asin(vv1.z / width);
-//
-//        float angle1 = anglex - FastMath.HALF_PI;
-//        float angle2 = anglex + FastMath.HALF_PI;
-//
-//        float angle3 = anglez - FastMath.HALF_PI;
-//        float angle4 = anglez + FastMath.HALF_PI;
-//
-//        List<Vector3f> bezier1 = new ArrayList();
-//        bezier1.add(cp.get(0).add(new Vector3f(FastMath.cos(angle1) * (width/2), 1, FastMath.sin(angle3) * (width/2))));
-//        bezier1.add(cp.get(1).add(new Vector3f(FastMath.cos(angle1) * (width/2), 1, FastMath.sin(angle3) * (width/2))));
-//        bezier1.add(cp.get(2).add(new Vector3f(FastMath.cos(angle1) * (width/2), 1, FastMath.sin(angle3) * (width/2))));
-//        bezier1.add(cp.get(3).add(new Vector3f(FastMath.cos(angle1) * (width/2), 1, FastMath.sin(angle3) * (width/2))));
-//
-//        List<Vector3f> bezier2 = new ArrayList();
-//        bezier2.add(cp.get(0).add(new Vector3f(FastMath.cos(angle2) * (width/2), 1, FastMath.sin(angle4) * (width/2))));
-//        bezier2.add(cp.get(1).add(new Vector3f(FastMath.cos(angle2) * (width/2), 1, FastMath.sin(angle4) * (width/2))));
-//        bezier2.add(cp.get(2).add(new Vector3f(FastMath.cos(angle2) * (width/2), 1, FastMath.sin(angle4) * (width/2))));
-//        bezier2.add(cp.get(3).add(new Vector3f(FastMath.cos(angle2) * (width/2), 1, FastMath.sin(angle4) * (width/2))));
-//
-//        for (float i = 0; i <= nbSection; i++) {
-//            if(1 < nbSection){
-//            computePosition.add(FastMath.interpolateBezier(i / nbSection, bezier1.get(0), bezier1.get(1), bezier1.get(2), bezier1.get(3)));
-//            computePosition.add(FastMath.interpolateBezier(i / nbSection, bezier2.get(0), bezier2.get(1), bezier2.get(2), bezier2.get(3)));
-//            } else {
-//                
-//            }
-//        }
-
-        float[] vertexPosition = new float[(nbSection + 1) * 2 * 3];
-        float[] vertexTexCoord = new float[nbSection * 4 * 2];
-        float[] vertexNormalCoord = new float[nbSection * 4 * 3];
-        int[] vertexIndex = new int[(nbSection) * 2 * 3];
-
-        int i = 0;
-        while (i <= nbSection) {
-            int inPos = i * 2;
-            int pos = i * 6;
-            if (i % 2 == 0) {
-                vertexPosition[pos + 0] = computePosition.get(inPos).x;
-                vertexPosition[pos + 1] = computePosition.get(inPos).y;//Height <---- Will use the 3D Interpolation of the Start and End Height
-                vertexPosition[pos + 2] = computePosition.get(inPos).z;
-
-                vertexPosition[pos + 3] = computePosition.get(inPos + 1).x;
-                vertexPosition[pos + 4] = computePosition.get(inPos + 1).y;//Height <---- Will use the 3D Interpolation of the Start and End Height
-                vertexPosition[pos + 5] = computePosition.get(inPos + 1).z;
-
-            } else {
-                vertexPosition[pos + 3] = computePosition.get(inPos).x;
-                vertexPosition[pos + 4] = computePosition.get(inPos).y;//Height <---- Will use the 3D Interpolation of the Start and End Height
-                vertexPosition[pos + 5] = computePosition.get(inPos).z;
-
-                vertexPosition[pos + 0] = computePosition.get(inPos + 1).x;
-                vertexPosition[pos + 1] = computePosition.get(inPos + 1).y;//Height <---- Will use the 3D Interpolation of the Start and End Height
-                vertexPosition[pos + 2] = computePosition.get(inPos + 1).z;
-
-            }
-            i++;
-        }
-        System.out.println(i);
-        i = 0;
-        while (i <= nbSection) {
-
-            int pos = i * 4;
-            if (i % 2 == 0) {
-                vertexTexCoord[pos + 0] = 0;
-                vertexTexCoord[pos + 1] = 0;
-
-                vertexTexCoord[pos + 2] = 1;
-                vertexTexCoord[pos + 3] = 0;
-            } else {
-                vertexTexCoord[pos + 0] = 1;
-                vertexTexCoord[pos + 1] = 1;
-
-                vertexTexCoord[pos + 2] = 0;
-                vertexTexCoord[pos + 3] = 1;
-            }
-
-            i++;
-        }
-        i = 0;
-        while (i < nbSection) {
-
-            int pos = i * 6;
-            vertexNormalCoord[pos + 0] = 0;
-            vertexNormalCoord[pos + 1] = 0;
-            vertexNormalCoord[pos + 2] = 1;
-
-            vertexNormalCoord[pos + 3] = 0;
-            vertexNormalCoord[pos + 4] = 0;
-            vertexNormalCoord[pos + 5] = 1;
-            i++;
-        }
-        i = 0;
-        if (tessellation) {
-            while (i < nbSection) {
-                int inPos = i * 2;
-                int pos = i * 4;
-                if (i % 2 == 0) {
-
-                    vertexIndex[pos + 0] = inPos + 0;
-                    vertexIndex[pos + 1] = inPos + 1;
-                    vertexIndex[pos + 2] = inPos + 2;
-                    vertexIndex[pos + 3] = inPos + 3;
-
-                } else {
-
-                    vertexIndex[pos + 0] = inPos + 1;
-                    vertexIndex[pos + 1] = inPos + 0;
-                    vertexIndex[pos + 2] = inPos + 3;
-                    vertexIndex[pos + 3] = inPos + 2;
-
-                }
-
-                i++;
-            }
-            setBuffer(VertexBuffer.Type.Index, 4, vertexIndex);
-            setMode(Mesh.Mode.Patch);
-            setPatchVertexCount(4);
-        } else {
-            while (i < nbSection) {
-                int inPos = i * 2;
-                int pos = i * 6;
-                if (i % 2 == 0) {
-                    vertexIndex[pos + 0] = inPos + 0;
-                    vertexIndex[pos + 1] = inPos + 1;
-                    vertexIndex[pos + 2] = inPos + 2;
-
-                    vertexIndex[pos + 3] = inPos + 0;
-                    vertexIndex[pos + 4] = inPos + 2;
-                    vertexIndex[pos + 5] = inPos + 3;
-                } else {
-                    vertexIndex[pos + 0] = inPos + 0;
-                    vertexIndex[pos + 1] = inPos + 2;
-                    vertexIndex[pos + 2] = inPos + 1;
-
-                    vertexIndex[pos + 3] = inPos + 0;
-                    vertexIndex[pos + 4] = inPos + 3;
-                    vertexIndex[pos + 5] = inPos + 2;
-                }
-
-                i++;
-            }
-            setBuffer(VertexBuffer.Type.Index, 3, vertexIndex);
-        }
-
-        setBuffer(VertexBuffer.Type.Position, 3, vertexPosition);
-        setBuffer(VertexBuffer.Type.TexCoord, 2, vertexTexCoord);
-        setBuffer(VertexBuffer.Type.Normal, 3, vertexNormalCoord);
-
+    private void buildMesh() {
+        setMode(Mode.Triangles);
+        setBuffer(VertexBuffer.Type.Index, 3, BufferUtils.createIntBuffer(vertexIndices));
+        setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(vertexPositions));
+        setBuffer(VertexBuffer.Type.TexCoord, 2, BufferUtils.createFloatBuffer(vertexTexCoordinates));
+        setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(normalPositions));
+        updateCounts();
         updateBound();
         setStatic();
     }
 
+    private void generateIndices() {
+        // Set the index buffer for the mesh (each pair of vertices defines a quad)
+        vertexIndices = new int[(controlPoints.size() - 1) * 6];
+        for (int i = 0; i < controlPoints.size() - 1; i++) {
+            vertexIndices[i * 6] = i * 2;
+            vertexIndices[i * 6 + 1] = i * 2 + 1;
+            vertexIndices[i * 6 + 2] = i * 2 + 2;
+            vertexIndices[i * 6 + 3] = i * 2 + 1;
+            vertexIndices[i * 6 + 4] = i * 2 + 3;
+            vertexIndices[i * 6 + 5] = i * 2 + 2;
+        }
+
+    }
+
+    private void generateVertices() {
+
+        this.vertexPositions = new Vector3f[controlPoints.size() * 2];
+        this.normalPositions = new Vector3f[controlPoints.size() * 2];
+        this.vertexTexCoordinates = new Vector2f[controlPoints.size() * 2];
+
+        Spatial current = null;
+        Vector3f left = null;
+        Vector3f right = null;
+
+        for (int i = 0; i < controlPoints.size(); i++) {
+            // Calculate the position of the point along the road            
+            current = controlPoints.get(i);
+            width = current.getLocalScale().x;
+            
+            left = new Vector3f(-width, 0, 0);
+            left = current.getWorldRotation().mult(left);            
+            left = current.getWorldTranslation().add(left);
+            
+            right = new Vector3f(width, 0, 0);
+            right = current.getWorldRotation().mult(right);
+            right = current.getWorldTranslation().add(right);
+
+            vertexPositions[i * 2] = new Vector3f(left.x,left.y, left.z);
+            vertexPositions[i * 2 + 1] = new Vector3f(right.x, right.y, right.z);
+
+//            // Calculate the UV coordinates for the left and right vertices
+            if (i % 2 == 0) {
+                System.out.println("mod: " + i);
+                vertexTexCoordinates[i * 2] = new Vector2f(0, 0);
+                vertexTexCoordinates[i * 2 + 1] = new Vector2f(1, 0);
+
+            } else {
+                System.out.println("not: " + i);
+                vertexTexCoordinates[i * 2] = new Vector2f(0, 1);
+                vertexTexCoordinates[i * 2 + 1] = new Vector2f(1, 1);                
+
+            }
+            
+            normalPositions[i * 2] = new Vector3f(0, 1, 0);
+            normalPositions[i * 2 + 1] = new Vector3f(0, 1, 0);
+            
+
+//            int index = i * 6;
+//            vertexPositions[index] = vertex.x;
+//            verticesArray[index + 1] = vertex.y;
+//            verticesArray[index + 2] = vertex.z;
+//            verticesArray[index + 3] = 0;
+//            verticesArray[index + 4] = 1;
+//            verticesArray[index + 5] = 0;
+//
+//            // Add the left and right vertices to the arrays
+//            vertexPositions[i * 2] = point.add(new Vector3f(0, 0, - / 2f));
+//            vertexPositions[i * 2 + 1] = point.add(new Vector3f(0, 0, roadWidth / 2f));
+//
+//            // Calculate the UV coordinates for the left and right vertices
+//            texCoord[i * 2] = new Vector2f(t, 0);
+//            texCoord[i * 2 + 1] = new Vector2f(t, 1);
+        }
+
+    }
 }
