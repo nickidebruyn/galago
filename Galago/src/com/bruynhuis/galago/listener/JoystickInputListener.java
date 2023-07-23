@@ -280,7 +280,7 @@ public class JoystickInputListener implements RawInputListener, JoystickConnecti
 
             fireJoystickEvent(joystickEvent, 1);
 
-            evt.setConsumed();
+//            evt.setConsumed();
         }
 
     }

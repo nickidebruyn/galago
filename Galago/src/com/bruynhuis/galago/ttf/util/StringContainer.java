@@ -628,7 +628,7 @@ public class StringContainer implements Cloneable {
 
                     if (glyphs.length == 0) {
                         newLines.add(glyphs);
-                        lineWidthsArray.add(new Float(0));
+                        lineWidthsArray.add(Float.valueOf(0));
                         continue;
                     }
 
@@ -650,7 +650,7 @@ public class StringContainer implements Cloneable {
 
                     if (glyphs.length == 0) {
                         newLines.add(glyphs);
-                        lineWidthsArray.add(new Float(0));
+                        lineWidthsArray.add(Float.valueOf(0));
                         continue;
                     }
 
@@ -688,7 +688,7 @@ public class StringContainer implements Cloneable {
                     if (glyphs.length == 0) {
                         newLines.add(glyphs);
                         height += font.getScaledLineHeight();
-                        lineWidthsArray.add(new Float(0));
+                        lineWidthsArray.add(Float.valueOf(0));
                         if (height + font.getScaledLineHeight() - font.getScaledLineGap() > textBox.height)
                             break;
                         continue;
@@ -724,7 +724,7 @@ public class StringContainer implements Cloneable {
                     if (glyphs.length == 0) {
                         newLines.add(glyphs);
                         height += font.getScaledLineHeight();
-                        lineWidthsArray.add(new Float(0));
+                        lineWidthsArray.add(Float.valueOf(0));
                         if (height + font.getScaledLineHeight() - font.getScaledLineGap() > textBox.height)
                             break;
                         continue;
@@ -821,7 +821,7 @@ public class StringContainer implements Cloneable {
     private TrueTypeBitmapGlyph[] getCharClippedLine(int start, TrueTypeBitmapGlyph[] glyphs,
             float ellipsisWidth, List<Float>lineWidths) {
         if (ellipsisWidth > textBox.width) {
-            lineWidths.add(new Float(0));
+            lineWidths.add(Float.valueOf(0));
             return new TrueTypeBitmapGlyph[0];
         }
         
@@ -976,7 +976,7 @@ public class StringContainer implements Cloneable {
     private TrueTypeBitmapGlyph[] getWordClippedLine(int start, TrueTypeBitmapGlyph[] glyphs,
             float ellipsisWidth, List<Float>lineWidths) {
         if (ellipsisWidth > textBox.width) {
-            lineWidths.add(new Float(0));
+            lineWidths.add(Float.valueOf(0));
             return new TrueTypeBitmapGlyph[0];
         }
         int pos = start;

@@ -61,8 +61,10 @@ public class JoystickRawScreen extends AbstractScreen implements RawInputListene
     protected void show() {
         Joystick[] joysticks = inputManager.getJoysticks();
         if (joysticks == null || joysticks.length <= 0) {
+            log("No joystick were found");
             info.append("No joystick were found");
         } else {
+            log("Joystick found");
             info.append("Joystick found");
         }
             
@@ -87,7 +89,7 @@ public class JoystickRawScreen extends AbstractScreen implements RawInputListene
 
     public void onJoyButtonEvent(JoyButtonEvent evt) {
         if (evt.getButton() != null) {
-            info.append("Joystick Button id: " + evt.getButton().getButtonId());
+            log("Joystick Button id: " + evt.getButton().getButtonId());
         }        
 
     }
@@ -101,20 +103,20 @@ public class JoystickRawScreen extends AbstractScreen implements RawInputListene
     }
 
     public void onMouseMotionEvent(MouseMotionEvent evt) {
-        info.append("Motion event: " + evt.getDX());
+        log("Motion event: " + evt.getDX());
     }
 
     public void onMouseButtonEvent(MouseButtonEvent evt) {
-        info.append("Mouse button event: " + evt.getButtonIndex());
+        log("Mouse button event: " + evt.getButtonIndex());
     }
 
     public void onKeyEvent(KeyInputEvent evt) {
-        info.append("Key event: " + evt.getKeyCode());
+        log("Key event: " + evt.getKeyCode());
     }
 
     public void onTouchEvent(TouchEvent evt) {
         if (!evt.isConsumed()) {
-            info.append("Touched: x=" + evt.getX() + "; y=" + evt.getY() + "; keycode=" + evt.getKeyCode() + "; type=" + evt.getType() + "; dx=" + evt.getDeltaX() + "; dy=" + evt.getDeltaY());
+            log("Touched: x=" + evt.getX() + "; y=" + evt.getY() + "; keycode=" + evt.getKeyCode() + "; type=" + evt.getType() + "; dx=" + evt.getDeltaX() + "; dy=" + evt.getDeltaY());
         }        
 
     }

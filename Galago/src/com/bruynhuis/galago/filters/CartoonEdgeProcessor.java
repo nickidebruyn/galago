@@ -37,10 +37,7 @@ public class CartoonEdgeProcessor implements SceneProcessor {
 
     @Override
     public boolean isInitialized() {
-        if (this.rm != null) {
-            return true;
-        }
-        return false;
+        return this.rm != null;
     }
 
     @Override

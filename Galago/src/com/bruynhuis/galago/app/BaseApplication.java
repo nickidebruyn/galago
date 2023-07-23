@@ -241,7 +241,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         settings.setUseJoysticks(true);
         settings.setSettingsDialogImage(null);
         settings.setGammaCorrection(false);
-        settings.setSettingsDialogImage("Resources/jme-logo.png");
+        settings.setSettingsDialogImage(getSettingImage());
 
         settings.setRenderer(AppSettings.LWJGL_OPENGL2);
         
@@ -299,6 +299,8 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 //            assetManager.registerLoader(AndroidImageLoader.class, "jpg", "bmp", "gif", "png", "jpeg");            
         }
 
+        SharedSystem.getInstance().setBaseApplication(this);
+        
         preInitApp();
 
         initCamera();
@@ -1798,6 +1800,10 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         inputManager.addListener(this, name);
         Input.registerInput(name);
         
+    }
+
+    protected String getSettingImage() {
+        return "Resources/jme-logo.png";
     }
     
 }

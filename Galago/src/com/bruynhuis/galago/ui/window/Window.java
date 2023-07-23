@@ -221,7 +221,8 @@ public class Window {
 
         // 1. calc direction
         Vector3f origin = new Vector3f(cursorPointX, cursorPointY, 10f);
-        Vector3f direction = new Vector3f(0, 0, -10f);
+        Vector3f direction = new Vector3f(0, 0, -1f);
+        direction = direction.normalizeLocal();
 
         // 2. Aim the ray from cam loc to cam direction.        
         ray.setOrigin(origin);
@@ -230,8 +231,11 @@ public class Window {
         // 3. Collect intersections between Ray and Shootables in results list.
         getWindowNode().collideWith(ray, results);
 
+        //Clear all buttons temp mouseIsOver variable
+        clearMousOverButtons(null);
+
         // 5. Use the results (we mark the hit object)
-        if (results.size() > 0) {            
+        if (results.size() > 0) {
 
             if (collisionResultsContainsButton(results)) {
 //                System.out.println("collision resutls = " + results.size());
@@ -243,9 +247,13 @@ public class Window {
 
             } else {
                 buttonTriggered = false;
+                
+                //Release all buttons where the mouse is not over any more
                 releaseSelectedButtons(null);
 
             }
+            
+            releaseSelectedButtonsHoverOff();
 
         } else if (down) {
 //                releaseSelectedButtons(null);
@@ -259,8 +267,8 @@ public class Window {
             if (cr.getGeometry().getParent() != null
                     && cr.getGeometry().getParent().getUserData(TouchButton.TYPE_TOUCH_BUTTON) != null
                     && cr.getGeometry().getParent().getUserData(TouchButton.TYPE_TOUCH_BUTTON) instanceof TouchButton
-                    && ((TouchButton)cr.getGeometry().getParent().getUserData(TouchButton.TYPE_TOUCH_BUTTON)).isEnabled()
-                    && ((TouchButton)cr.getGeometry().getParent().getUserData(TouchButton.TYPE_TOUCH_BUTTON)).isVisible()) {
+                    && ((TouchButton) cr.getGeometry().getParent().getUserData(TouchButton.TYPE_TOUCH_BUTTON)).isEnabled()
+                    && ((TouchButton) cr.getGeometry().getParent().getUserData(TouchButton.TYPE_TOUCH_BUTTON)).isVisible()) {
                 contains = true;
                 break;
             }
@@ -292,15 +300,16 @@ public class Window {
 
             //Now we check what to do
             touchButton = (TouchButton) cr.getGeometry().getParent().getUserData(TouchButton.TYPE_TOUCH_BUTTON);
+            touchButton.setMouseIsOver(true);
 
             if (touchButton.isEnabled() && touchButton.isVisible()) {
+
                 if (move) {
-                    
                     touchButton.fireTouchMove(cursorPointX, cursorPointY, tpf);
-                    
+
                     //TODO: Figure out how to check if the mouse was down to fire the move or hover event
 //                    log("Down ===== " + down);
-                    if (down) {                        
+                    if (down) {
                         touchButton.fireTouchMove(cursorPointX, cursorPointY, tpf);
                     } else {
                         touchButton.fireHoverOver(cursorPointX, cursorPointY, tpf);
@@ -383,7 +392,7 @@ public class Window {
 
     public void removeFocusFromFields() {
         this.focusedWidget = null;
-        
+
         for (Iterator<Panel> it = panels.iterator(); it.hasNext();) {
             Panel panel = it.next();
             removeFocusFromFieldOnPanel(panel);
@@ -454,6 +463,28 @@ public class Window {
         return windowNode;
     }
 
+    public void clearMousOverButtons(Widget widget) {
+        for (Iterator<Panel> it = panels.iterator(); it.hasNext();) {
+            Panel panel = it.next();
+            clearMousOverButtons(panel, widget);
+
+        }
+    }
+
+    protected void clearMousOverButtons(Panel panel, Widget widget) {
+        for (Iterator<Widget> it1 = panel.getWidgets().iterator(); it1.hasNext();) {
+            Widget w = it1.next();
+            if (w instanceof TouchButton) {
+                TouchButton touchButton = (TouchButton) w;
+                touchButton.setMouseIsOver(false);
+
+            } else if (w instanceof Panel) {
+                clearMousOverButtons((Panel) w, widget);
+            }
+
+        }
+    }
+
     public void releaseSelectedButtons(Widget widget) {
         for (Iterator<Panel> it = panels.iterator(); it.hasNext();) {
             Panel panel = it.next();
@@ -463,6 +494,7 @@ public class Window {
     }
 
     protected void releaseSelectedButtonsPanel(Panel panel, Widget widget) {
+        
         for (Iterator<Widget> it1 = panel.getWidgets().iterator(); it1.hasNext();) {
             Widget w = it1.next();
             if (w instanceof TouchButton) {
@@ -472,11 +504,11 @@ public class Window {
                             getInputManager().getCursorPosition().y, 1);
                     buttonTriggered = false;
                 }
-                if (touchButton.isEnabled() && touchButton.isVisible() && touchButton.isHovered()) {
-                    touchButton.fireHoverOff(getInputManager().getCursorPosition().x,
-                            getInputManager().getCursorPosition().y, 1);
-                    buttonTriggered = false;
-                }
+//                if (touchButton.isEnabled() && touchButton.isVisible() && touchButton.isHovered() && !touchButton.isMouseIsOver()) {
+//                    touchButton.fireHoverOff(getInputManager().getCursorPosition().x,
+//                            getInputManager().getCursorPosition().y, 1);
+//                    buttonTriggered = false;
+//                }
 //                //TODO:
 //                if (widget != null && !touchButton.equals(widget) && touchButton.isTouched()) {
 //                    touchButton.fireTouchCancel(getInputManager().getCursorPosition().x,
@@ -494,6 +526,32 @@ public class Window {
 
         }
     }
+    
+    public void releaseSelectedButtonsHoverOff() {
+        for (Iterator<Panel> it = panels.iterator(); it.hasNext();) {
+            Panel panel = it.next();
+            releaseSelectedButtonsHoverOff(panel);
+
+        }
+    }
+
+    protected void releaseSelectedButtonsHoverOff(Panel panel) {
+        
+        for (Iterator<Widget> it1 = panel.getWidgets().iterator(); it1.hasNext();) {
+            Widget w = it1.next();
+            if (w instanceof TouchButton) {
+                TouchButton touchButton = (TouchButton) w;
+                if (touchButton.isEnabled() && touchButton.isVisible() && touchButton.isHovered() && !touchButton.isMouseIsOver()) {
+                    touchButton.fireHoverOff(getInputManager().getCursorPosition().x, getInputManager().getCursorPosition().y, 1);
+                }
+
+            } else if (w instanceof Panel) {
+                releaseSelectedButtonsHoverOff((Panel) w);
+            }
+
+        }
+    }    
+    
 
     public boolean isButtonTriggered() {
         return buttonTriggered;
@@ -563,6 +621,5 @@ public class Window {
     public void setFocusedWidget(Widget focusedWidget) {
         this.focusedWidget = focusedWidget;
     }
-    
-    
+
 }

@@ -63,6 +63,7 @@ public class TouchButton extends ImageWidget implements Touchable {
     protected float lastTouchX = 0;
     protected float lastTouchY = 0;
     protected float padding = 0;
+    private boolean mouseIsOver;
 
     /**
      *
@@ -96,6 +97,10 @@ public class TouchButton extends ImageWidget implements Touchable {
     public TouchButton(Panel panel, String id, String pictureFile, float width, float height, boolean lockscale) {
         this(panel, id, pictureFile, width, height, new FontStyle(FontManager.DEFAULT_FONT, 18), lockscale);
     }
+    
+    public TouchButton(Panel panel, String id, String pictureFile, float width, float height, float pad, boolean lockscale) {
+        this(panel, id, pictureFile, width, height, pad, new FontStyle(FontManager.DEFAULT_FONT, 18), lockscale);
+    }
 
     /**
      *
@@ -115,6 +120,10 @@ public class TouchButton extends ImageWidget implements Touchable {
         init();
 
     }
+    
+    public TouchButton(Panel panel, String id, String pictureFile, float width, float height, FontStyle fontStyle, boolean lockscale) {
+        this(panel, id, pictureFile, width, height, 0, new FontStyle(FontManager.DEFAULT_FONT, 18), lockscale);
+    }
 
     /**
      *
@@ -126,11 +135,12 @@ public class TouchButton extends ImageWidget implements Touchable {
      * @param lockscale Lock the scale effect when the game runs at a diffener
      * resolution than designed by.
      */
-    public TouchButton(Panel panel, String id, String pictureFile, float width, float height, FontStyle fontStyle, boolean lockscale) {
+    public TouchButton(Panel panel, String id, String pictureFile, float width, float height, float pad, FontStyle fontStyle, boolean lockscale) {
         super(panel.getWindow(), panel, pictureFile, width, height, lockscale);
         this.panel = panel;
         this.id = id;
         this.fontStyle = fontStyle;
+        this.padding = pad;
         setName(id);
 
         init();
@@ -156,8 +166,7 @@ public class TouchButton extends ImageWidget implements Touchable {
 //        if (textStr == null || textStr.length() == 0 || textStr.equals(" ")) {
 //            textStr = ".";
 //        }
-        this.padding = window.getScaleFactorWidth() * 0;
-
+        
         bitmapFont = panel.getWindow().getApplication().getFontManager().getBitmapFonts(fontStyle);
 
         if (bitmapFont != null) {
@@ -165,7 +174,7 @@ public class TouchButton extends ImageWidget implements Touchable {
             bitmapText = bitmapFont.createLabel(textStr);
             bitmapText.setText(textStr);             // the text
             //The Rectangle box height value for bitmap text is not a physical height but half the height
-            Rectangle rectangle = new Rectangle((-getWidth() * 0.5f) + padding, ((getHeight() * 0.55f) - padding), getWidth() - padding, (getHeight()) - padding);
+            Rectangle rectangle = new Rectangle((-getWidth() * 0.5f) + padding, ((getHeight() * 0.55f)), getWidth() - padding, (getHeight()));
 //            System.out.println("TouchButton Rectange = " + rectangle);
             bitmapText.setBox(rectangle);
             bitmapText.setSize(fontStyle.getFontSize() * window.getScaleFactorHeight());      // font size
@@ -683,6 +692,38 @@ public class TouchButton extends ImageWidget implements Touchable {
 
     public String getId() {
         return id;
+    }
+
+    public void setMouseIsOver(boolean b) {
+        this.mouseIsOver = b;
+    }
+    
+    public boolean isMouseIsOver() {
+        return this.mouseIsOver;
+    }
+    
+        public void updateFont(BitmapFont bitmapFont) {
+        if (bitmapText != null) {
+
+            BitmapText oldtext = bitmapText;
+            setText(null);
+
+            //Init the text
+            bitmapText = bitmapFont.createLabel(oldtext.getText());
+            bitmapText.setText(oldtext.getText());             // the text
+            //The Rectangle box height value for bitmap text is not a physical height but half the height
+            Rectangle rectangle = new Rectangle((-getWidth() * 0.5f) + padding, ((getHeight() * 0.55f)), getWidth() - padding, (getHeight()));
+
+            bitmapText.setBox(rectangle);
+            bitmapText.setSize(fontStyle.getFontSize() * window.getScaleFactorHeight()); // font size            
+            bitmapText.setLineWrapMode(LineWrapMode.Word);
+            bitmapText.setColor(oldtext.getColor());// font color
+            bitmapText.setAlignment(oldtext.getAlignment());
+            bitmapText.setVerticalAlignment(oldtext.getVerticalAlignment());
+
+            setText(oldtext.getText());
+        }
+
     }
 
 }

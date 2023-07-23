@@ -46,7 +46,6 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.bruynhuis.galago.ui.effect.Effect;
 import com.bruynhuis.galago.util.Debug;
-import static com.google.typography.font.sfntly.table.opentype.ScriptTag.java;
 import com.jme3.font.LineWrapMode;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
@@ -143,7 +142,7 @@ public class TextField extends ImageWidget implements InputType {
             //Init the text
             bitmapText = bitmapFont.createLabel(id);
             bitmapText.setText("Text");             // the text
-            Rectangle rectangle = new Rectangle((-getWidth() * 0.5f) + padding, (getHeight() * 0.55f) - padding, getWidth() - padding, (getHeight() * 0.5f) - padding);
+            Rectangle rectangle = new Rectangle((-getWidth() * 0.5f) + padding, (getHeight() * 0.5f) - padding, getWidth() - (padding*2), (getHeight() * 0.5f) - (padding*2));
 //            System.out.println("TextField Rectange = " + rectangle);
             bitmapText.setBox(rectangle);
             bitmapText.setSize(fontStyle.getFontSize() * panel.getWindow().getScaleFactorHeight());      // font size
@@ -277,7 +276,13 @@ public class TextField extends ImageWidget implements InputType {
                         if (getText().length() > 0) {
                             setText(getText().substring(0, getText().length() - 1));
                         }
-                    } else if (evt.getKeyCode() == 15 || evt.getKeyCode() == 156 || evt.getKeyCode() == 28) {
+                    } else if (evt.getKeyCode() == 12 && caps) {
+                        setText(getText() + "_");
+                        
+                    } else if (evt.getKeyCode() == 156 || evt.getKeyCode() == 28) {
+                        setText(getText() + "\n");
+                        
+                    } else if (evt.getKeyCode() == 15) {
                         blur();
 
                     } else if (keyChar != null && evt.getKeyCode() == 57) {

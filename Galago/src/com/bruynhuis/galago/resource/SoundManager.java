@@ -386,6 +386,23 @@ public class SoundManager {
         audioNode.playInstance(); // play once!
 
     }
+    
+    /**
+     * Play a sound track
+     *
+     * @param name
+     * @param volume
+     */
+    public void playSound(String name, float volume) {
+        if (muteSound) {
+            return;
+        }
+
+        AudioNode audioNode = soundFx.get(name);
+        audioNode.setVolume(volume);
+        audioNode.playInstance(); // play once!
+
+    }    
 
     public void playSoundRandomPitch(String name) {
         float pitch = 0.8f + ((float) FastMath.nextRandomInt(0, 40) / 100f);

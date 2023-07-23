@@ -76,6 +76,7 @@ public class Label extends Widget {
     public Label(Panel panel, String text, float width, float height, FontStyle fontStyle) {
         super(panel.getWindow(), panel, width, height, false);
         this.panel = panel;
+        this.fontStyle = fontStyle;
 
         bitmapFont = panel.getWindow().getApplication().getFontManager().getBitmapFonts(fontStyle);
 //        Rectangle textBox = new Rectangle(-getWidth() * 0.5f, getHeight() * 0.5f, getWidth(), getHeight() *0.5f);
@@ -241,6 +242,27 @@ public class Label extends Widget {
             }
             this.trueTypeContainer.updateGeometry();
 
+        }
+
+    }
+
+    public void updateFont(BitmapFont bitmapFont) {
+        if (bitmapText != null) {
+
+            BitmapText oldtext = bitmapText;
+            setText(null);
+
+            //Init the text
+            bitmapText = bitmapFont.createLabel(oldtext.getText());
+            bitmapText.setText(oldtext.getText());             // the text
+            //The Rectangle box height value for bitmap text is not a physical height but half the height
+            bitmapText.setBox(new Rectangle(-getWidth() * 0.5f, getHeight() * 0.5f, getWidth(), getHeight() * 0.5f));
+            bitmapText.setSize(fontStyle.getFontSize() * panel.getWindow().getScaleFactorHeight());      // font size
+            bitmapText.setColor(oldtext.getColor());// font color
+            bitmapText.setAlignment(oldtext.getAlignment());
+            bitmapText.setVerticalAlignment(oldtext.getVerticalAlignment());
+
+            setText(oldtext.getText());
         }
 
     }
