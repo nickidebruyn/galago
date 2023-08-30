@@ -244,7 +244,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         settings.setSettingsDialogImage(getSettingImage());
 
         settings.setRenderer(AppSettings.LWJGL_OPENGL2);
-        
+
 //        settings.setSettingsDialogImage(splashImage);
         setSettings(settings);
         setPauseOnLostFocus(false);
@@ -254,7 +254,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         } else {
             start(JmeContext.Type.Display);
         }
-                
+
         System.out.println("Context = " + getContext());
     }
 
@@ -300,7 +300,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         }
 
         SharedSystem.getInstance().setBaseApplication(this);
-        
+
         preInitApp();
 
         initCamera();
@@ -616,6 +616,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 
         loadingBar = new ProgressBar(splash, "Resources/progressbar-border.png", "Resources/progressbar.png", 256, 20);
         loadingBar.centerAt(0, -150);
+        loadingBar.setDepthPosition(0.1f);
 
         splash.add(loadingBar);
 
@@ -748,7 +749,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
                 }
             }
         }
-        
+
         //Listens to all other type of input mappings
         if (Input.hasMapping(name)) {
             if (isPressed) {
@@ -902,9 +903,13 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 //            joystickInputListener = null;
         }
 
-        if (midiPlayer != null) {
-            midiPlayer.stop();
-            midiPlayer.release();
+        if (midiPlayer != null && midiPlayer.isPlaying()) {
+            enqueue(() -> {
+                System.out.println("Closing the midi player");
+                midiPlayer.stop();
+                midiPlayer.release();
+            });
+
         }
         if (screenManager != null) {
             screenManager.destroy();
@@ -1799,11 +1804,11 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         inputManager.addMapping(name, triggers);
         inputManager.addListener(this, name);
         Input.registerInput(name);
-        
+
     }
 
     protected String getSettingImage() {
         return "Resources/jme-logo.png";
     }
-    
+
 }

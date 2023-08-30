@@ -857,7 +857,7 @@ public class SpatialUtils {
         } else {
             material = new Material(SharedSystem.getInstance().getBaseApplication().getAssetManager(), "Common/MatDefs/Light/Lighting.j3md");
             material.setBoolean("UseMaterialColors", true);
-//            material.setColor("Ambient", colorRGBA);
+            material.setColor("Ambient", colorRGBA);
             material.setColor("Diffuse", colorRGBA);
 
         }

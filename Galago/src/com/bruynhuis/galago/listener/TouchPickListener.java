@@ -94,6 +94,10 @@ public class TouchPickListener implements ActionListener, AnalogListener {
      *
      */
     private void checkCursorCollision() {
+        if (scene == null) {
+            return;
+            
+        }
 
         results.clear();
 
