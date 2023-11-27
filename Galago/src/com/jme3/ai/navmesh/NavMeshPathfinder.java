@@ -172,7 +172,7 @@ public class NavMeshPathfinder {
     }
 
     public boolean isAtGoalWaypoint() {
-        return nextWaypoint == path.getLast();
+        return path.getWaypoints().size() >= 0 && nextWaypoint == path.getLast();
     }
 
     public Waypoint getNextWaypoint() {
