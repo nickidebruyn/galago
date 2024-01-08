@@ -54,10 +54,13 @@ MaterialDef UnshadedToon {
         Matrix4 LightViewProjectionMatrix4
         Matrix4 LightViewProjectionMatrix5
         Vector3 LightPos
+        Vector3 LightDir
 
         Float PCFEdge
 
         Float ShadowMapSize
+
+        Boolean BackfaceShadows : false
     }
 
     Technique {
@@ -180,6 +183,7 @@ MaterialDef UnshadedToon {
             PSSM : Splits
             POINTLIGHT : LightViewProjectionMatrix5
             NUM_BONES : NumberOfBones
+            BACKFACE_SHADOWS: BackfaceShadows
         }
 
         ForcedRenderState {
@@ -209,6 +213,7 @@ MaterialDef UnshadedToon {
             PSSM : Splits
             POINTLIGHT : LightViewProjectionMatrix5
             NUM_BONES : NumberOfBones
+            BACKFACE_SHADOWS: BackfaceShadows
         }
 
         ForcedRenderState {
