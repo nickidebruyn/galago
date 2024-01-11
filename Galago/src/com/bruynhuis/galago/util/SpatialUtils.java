@@ -51,6 +51,7 @@ import com.jme3.scene.Node;
 import com.jme3.scene.SceneGraphVisitor;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.control.AbstractControl;
+import com.jme3.scene.debug.WireBox;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.CenterQuad;
 import com.jme3.scene.shape.Cylinder;
@@ -623,6 +624,26 @@ public class SpatialUtils {
     public static Spatial addBox(Node parent, float xExtend, float yExtend, float zExtend) {
 
         Box box = new Box(xExtend, yExtend, zExtend);
+        Geometry geometry = new Geometry("box", box);
+        parent.attachChild(geometry);
+//        geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
+//        TangentUtils.generateBindPoseTangentsIfNecessary(box);
+
+        return geometry;
+    }
+    
+    /**
+     * Add a simple box to the node.
+     *
+     * @param parent
+     * @param xExtend
+     * @param yExtend
+     * @param zExtend
+     * @return
+     */
+    public static Spatial addWireBox(Node parent, float xExtend, float yExtend, float zExtend) {
+
+        WireBox box = new WireBox(xExtend, yExtend, zExtend);
         Geometry geometry = new Geometry("box", box);
         parent.attachChild(geometry);
 //        geometry.setShadowMode(RenderQueue.ShadowMode.CastAndReceive);
