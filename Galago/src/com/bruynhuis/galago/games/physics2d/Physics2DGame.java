@@ -157,7 +157,7 @@ public abstract class Physics2DGame implements PhysicsCollisionListener {
                 collisionShape.setLocation(tile.getxPos(), tile.getyPos());
                 tile.getSpatial().setLocalTranslation(new Vector3f(tile.getxPos(), tile.getyPos(), tile.getzPos()));
             } else {
-                tile.getSpatial().getControl(RigidBodyControl.class).setPhysicLocation(new Vector3f(tile.getxPos(), tile.getyPos(), tile.getzPos()));
+                tile.getSpatial().getControl(RigidBodyControl.class).setPhysicsLocation(new Vector3f(tile.getxPos(), tile.getyPos(), tile.getzPos()));
             }
 
         } else if (tile.getSpatial().getUserData(SHAPE) != null && !edit) {

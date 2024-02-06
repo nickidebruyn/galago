@@ -21,7 +21,7 @@ public class RigidBodyRotationLock implements PhysicsTickListener {
     @Override
     public void prePhysicsTick(PhysicsSpace space, float tpf) {
         rigidBodyControl.setAngularVelocity(0);
-        rigidBodyControl.setPhysicRotation(0);
+        rigidBodyControl.setPhysicsRotation(0);
 //        rigidBodyControl.setPhysicsRotation(rigidBodyControl.getPhysicsRotation().fromAngles(axisLock.x, axisLock.y, axisLock.z));
 
     }

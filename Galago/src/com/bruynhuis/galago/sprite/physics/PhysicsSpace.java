@@ -34,26 +34,24 @@ package com.bruynhuis.galago.sprite.physics;
 import com.bruynhuis.galago.sprite.physics.joint.PhysicsJoint;
 import com.bruynhuis.galago.sprite.physics.shape.CollisionShape;
 import com.bruynhuis.galago.sprite.physics.vehicle.Vehicle;
-import java.util.logging.Logger;
-
-import org.dyn4j.collision.Bounds;
-import org.dyn4j.dynamics.Body;
-import org.dyn4j.dynamics.Capacity;
-import org.dyn4j.dynamics.Settings;
-import org.dyn4j.dynamics.World;
-import org.dyn4j.geometry.Vector2;
 
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
-import java.util.ArrayList;
-import java.util.List;
+import org.dyn4j.collision.Bounds;
+import org.dyn4j.collision.CollisionBody;
+import org.dyn4j.collision.Fixture;
 import org.dyn4j.collision.manifold.Manifold;
 import org.dyn4j.collision.manifold.ManifoldPoint;
-import org.dyn4j.dynamics.BodyFixture;
-import org.dyn4j.dynamics.CollisionAdapter;
-import org.dyn4j.dynamics.Step;
-import org.dyn4j.dynamics.StepAdapter;
+import org.dyn4j.dynamics.Settings;
+import org.dyn4j.dynamics.TimeStep;
+import org.dyn4j.geometry.Vector2;
+import org.dyn4j.world.*;
+import org.dyn4j.world.listener.CollisionListenerAdapter;
+import org.dyn4j.world.listener.StepListenerAdapter;
+
+import java.util.ArrayList;
+import java.util.logging.Logger;
 
 /**
  *
@@ -62,28 +60,31 @@ import org.dyn4j.dynamics.StepAdapter;
 public class PhysicsSpace {
 
     private static final Logger logger = Logger.getLogger(PhysicsSpace.class.getName());
-
     private static final float DEFAULT_SPEED = 1f;
 
     private World physicsWorld;
-
-    // TODO Dyn4j: Se puede agregar un setter para el speed pero tengo que ver si eso afecta en algo los calculos de
-    // jBox2D
     protected float speed = DEFAULT_SPEED;
 
-    protected CollisionAdapter collisionAdapter;
-    protected StepAdapter stepAdapter;
+    protected CollisionListenerAdapter collisionAdapter;
+
+    protected StepListenerAdapter stepAdapter;
     protected ArrayList<PhysicsCollisionListener> collisionListeners = new ArrayList<>();
     protected ArrayList<PhysicsTickListener> tickListeners = new ArrayList<>();
     protected ArrayList<PhysicsJoint> physicsJoints = new ArrayList<>();
     protected ArrayList<Vehicle> vehicles = new ArrayList<>();
-    protected Capacity initialCapacity;
+    protected Integer initialCapacity;
+
+    protected Integer initialJointCapacity;
     protected Bounds bounds;
 
-    private final List<PhysicsSpaceListener> listeners = new ArrayList<>();
+    public PhysicsSpace() {
+        init();
 
-    public PhysicsSpace(final Capacity initialCapacity, final Bounds bounds) {
+    }
+
+    public PhysicsSpace(final Integer initialCapacity, final Integer initialJointCapacity, final Bounds bounds) {
         this.initialCapacity = initialCapacity;
+        this.initialJointCapacity = initialJointCapacity;
         this.bounds = bounds;
 
         init();
@@ -91,33 +92,37 @@ public class PhysicsSpace {
     }
 
     private void init() {
-        if (initialCapacity != null) {
-            this.physicsWorld = new World(initialCapacity, bounds);
+        if (initialCapacity != null && initialJointCapacity != null) {
+            this.physicsWorld = new World<>(initialCapacity, initialJointCapacity);
         } else {
-            this.physicsWorld = new World(bounds);
+            this.physicsWorld = new World<>();
+        }
+        if (bounds != null) {
+            this.physicsWorld.setBounds(bounds);
         }
 
-        collisionAdapter = new CollisionAdapter() {
-
-//            @Override
-//            public boolean collision(Body body1, Body body2) {
-//                if (body1 != null && body2 != null) {
-//                    fireCollisionListenerEvent(body1, body2);
-//                    return true;
-//                    
-//                } else {
-//                    return false;
-//                }
-//            }
+        collisionAdapter = new CollisionListenerAdapter() {
             @Override
-            public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Manifold manifold) {
-                if (body1 != null && body2 != null) {
+            public boolean collision(BroadphaseCollisionData collision) {
+                return super.collision(collision);
+            }
+
+            @Override
+            public boolean collision(NarrowphaseCollisionData collision) {
+                return super.collision(collision);
+            }
+
+            @Override
+            public boolean collision(ManifoldCollisionData collision) {
+                if (collision.getBody1() != null && collision.getBody2() != null) {
                     Vector3f collisionPoint = null;
+                    Manifold manifold = collision.getManifold();
+
                     if (manifold.getPoints() != null && manifold.getPoints().size() > 0) {
                         ManifoldPoint mp = manifold.getPoints().get(0);
                         collisionPoint = new Vector3f((float) mp.getPoint().x, (float) mp.getPoint().y, (float) mp.getDepth());
                     }
-                    fireCollisionListenerEvent(body1, fixture1, body2, fixture2, collisionPoint);
+                    fireCollisionListenerEvent(collision.getBody1(), collision.getFixture1(), collision.getBody2(), collision.getFixture2(), collisionPoint);
                     return true;
 
                 } else {
@@ -125,29 +130,53 @@ public class PhysicsSpace {
                 }
             }
 
+//      @Override
+//      public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Manifold manifold) {
+//        if (body1 != null && body2 != null) {
+//          Vector3f collisionPoint = null;
+//          if (manifold.getPoints() != null && manifold.getPoints().size() > 0) {
+//            ManifoldPoint mp = manifold.getPoints().get(0);
+//            collisionPoint = new Vector3f((float) mp.getPoint().x, (float) mp.getPoint().y, (float) mp.getDepth());
+//          }
+//          fireCollisionListenerEvent(body1, fixture1, body2, fixture2, collisionPoint);
+//          return true;
+//
+//        } else {
+//          return false;
+//        }
+//      }
         };
 
-        physicsWorld.addListener(collisionAdapter);
+        physicsWorld.addCollisionListener(collisionAdapter);
 
-        stepAdapter = new StepAdapter() {
+        stepAdapter = new StepListenerAdapter() {
 
             @Override
-            public void begin(Step step, World world) {
+            public void begin(TimeStep step, PhysicsWorld world) {
                 firePreTickListenerEvent(step);
             }
 
             @Override
-            public void end(Step step, World world) {
+            public void updatePerformed(TimeStep step, PhysicsWorld world) {
+                super.updatePerformed(step, world);
+            }
+
+            @Override
+            public void postSolve(TimeStep step, PhysicsWorld world) {
+                super.postSolve(step, world);
+            }
+
+            @Override
+            public void end(TimeStep step, PhysicsWorld world) {
                 fireTickListenerEvent(step);
             }
 
         };
 
-        physicsWorld.addListener(stepAdapter);
+        physicsWorld.addStepListener(stepAdapter);
 
-        physicsWorld.getSettings().setContinuousDetectionMode(Settings.ContinuousDetectionMode.NONE);
+//    physicsWorld.getSettings().setContinuousDetectionMode(ContinuousDetectionMode.NONE);
 //        physicsWorld.getSettings().setSleepTime(speed);
-
     }
 
     public int getBodyCount() {
@@ -159,14 +188,7 @@ public class PhysicsSpace {
             ((PhysicsControl) obj).setPhysicsSpace(this);
             //Only add if it doesn't already contain the body
             if (!this.physicsWorld.containsBody(((PhysicsControl) obj).getBody())) {
-                Body body = ((PhysicsControl) obj).getBody();
-
-                // this.physicsWorld.addBody(((PhysicsControl) obj).getBody());
-                physicsWorld.addBody(body);
-
-                for (PhysicsSpaceListener listener : listeners) {
-                    listener.bodyAdded(body);
-                }
+                this.physicsWorld.addBody(((PhysicsControl) obj).getBody());
             }
 
         } else if (obj instanceof Spatial) {
@@ -176,10 +198,6 @@ public class PhysicsSpace {
             if (!this.physicsWorld.containsBody(control.getBody())) {
                 control.setPhysicsSpace(this);
                 this.physicsWorld.addBody(control.getBody());
-
-                for (PhysicsSpaceListener listener : listeners) {
-                    listener.bodyAdded(control.getBody());
-                }
             }
 
         } else {
@@ -189,28 +207,14 @@ public class PhysicsSpace {
 
     public void remove(Object obj) {
         if (obj instanceof PhysicsControl) {
-
-            PhysicsControl physicsControl = (PhysicsControl) obj;
-
-            // this.physicsWorld.removeBody(((PhysicsControl) obj).getBody());
-            // ((PhysicsControl) obj).setPhysicsSpace(null);
-            physicsWorld.removeBody(physicsControl.getBody());
-            physicsControl.setPhysicsSpace(null);
-
-            for (PhysicsSpaceListener listener : listeners) {
-                listener.bodyRemoved(physicsControl.getBody());
-            }
+            this.physicsWorld.removeBody(((PhysicsControl) obj).getBody());
+            ((PhysicsControl) obj).setPhysicsSpace(null);
 
         } else if (obj instanceof Spatial) {
             Spatial node = (Spatial) obj;
-            PhysicsControl physicsControl = node.getControl(PhysicsControl.class);
-
-            this.physicsWorld.removeBody(physicsControl.getBody());
-            physicsControl.setPhysicsSpace(null);
-
-            for (PhysicsSpaceListener listener : listeners) {
-                listener.bodyRemoved(physicsControl.getBody());
-            }
+            PhysicsControl control = node.getControl(PhysicsControl.class);
+            this.physicsWorld.removeBody(control.getBody());
+            control.setPhysicsSpace(null);
 
         } else {
             throw (new UnsupportedOperationException("Cannot remove this kind of object from the physics space."));
@@ -261,7 +265,7 @@ public class PhysicsSpace {
 
     public void setSpeed(final float speed) {
         this.speed = speed;
-        this.physicsWorld.getSettings().setSleepTime(Settings.DEFAULT_STEP_FREQUENCY * speed);
+        this.physicsWorld.getSettings().setMinimumAtRestTime(Settings.DEFAULT_STEP_FREQUENCY * speed);
     }
 
     public float getSpeed() {
@@ -288,18 +292,7 @@ public class PhysicsSpace {
         this.tickListeners.add(tickListener);
     }
 
-//    protected void fireCollisionListenerEvent(Body body1, Body body2) {
-//        for (int i = 0; i < collisionListeners.size(); i++) {
-//            PhysicsCollisionListener physicsCollisionListener = collisionListeners.get(i);
-//            Spatial spatialA = (Spatial)body1.getUserData();
-//            Spatial spatialB = (Spatial)body2.getUserData();
-//            
-//            if (spatialA != null && spatialB != null) {
-//                physicsCollisionListener.collision(spatialA, spatialB);
-//            }            
-//        }
-//    }
-    protected void fireCollisionListenerEvent(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Vector3f collisionPoint) {
+    protected void fireCollisionListenerEvent(CollisionBody body1, Fixture fixture1, CollisionBody body2, Fixture fixture2, Vector3f collisionPoint) {
         for (int i = 0; i < collisionListeners.size(); i++) {
             PhysicsCollisionListener physicsCollisionListener = collisionListeners.get(i);
             Spatial spatialA = (Spatial) body1.getUserData();
@@ -311,25 +304,17 @@ public class PhysicsSpace {
         }
     }
 
-    protected void firePreTickListenerEvent(Step step) {
+    protected void firePreTickListenerEvent(TimeStep step) {
         for (int i = 0; i < tickListeners.size(); i++) {
             PhysicsTickListener physicsTickListener = tickListeners.get(i);
             physicsTickListener.prePhysicsTick(this, (float) step.getDeltaTime());
         }
     }
 
-    protected void fireTickListenerEvent(Step step) {
+    protected void fireTickListenerEvent(TimeStep step) {
         for (int i = 0; i < tickListeners.size(); i++) {
             PhysicsTickListener physicsTickListener = tickListeners.get(i);
             physicsTickListener.physicsTick(this, (float) step.getDeltaTime());
         }
-    }
-
-    public void addPhysicsSpaceListener(PhysicsSpaceListener listener) {
-        listeners.add(listener);
-    }
-
-    public void removePhysicsSpaceListener(PhysicsSpaceListener listener) {
-        listeners.remove(listener);
     }
 }

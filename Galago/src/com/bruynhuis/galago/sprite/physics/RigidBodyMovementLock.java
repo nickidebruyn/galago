@@ -23,7 +23,7 @@ public class RigidBodyMovementLock implements PhysicsTickListener {
 
     @Override
     public void prePhysicsTick(PhysicsSpace space, float tpf) {
-        rigidBodyControl.setPhysicLocation(rigidBodyControl.getPhysicLocation().multLocal(axisLock.x, axisLock.y, axisLock.z));
+        rigidBodyControl.setPhysicsLocation(rigidBodyControl.getPhysicsLocation().multLocal(axisLock.x, axisLock.y, axisLock.z));
     }
 
     @Override

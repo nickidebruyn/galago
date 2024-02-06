@@ -149,8 +149,8 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     public static final String ACTION_GET_ACHIEVEMENTS = "GET_ACHIEVEMENTS";
     public static final String ACTION_UNLOCK_ACHIEVEMENT = "UNLOCK_ACHIEVEMENT";
     public static final String ACTION_INCREMENT_ACHIEVEMENT = "INCREMENT_ACHIEVEMENT";
-    public static final String ACTION_GOOGLE_SIGNIN = "GOOGLE_SIGNIN";
-    public static final String ACTION_GOOGLE_SIGNOUT = "GOOGLE_SIGNOUT";
+//    public static final String ACTION_GOOGLE_SIGNIN = "GOOGLE_SIGNIN";
+//    public static final String ACTION_GOOGLE_SIGNOUT = "GOOGLE_SIGNOUT";
     public static final String ACTION_ANALYTICS = "ACTION_ANALYTICS";
     public static final String ACTION_OPEN_SAVED_GAME = "ACTION_OPEN_SAVED_GAME";
     public static final String ACTION_COMMIT_SAVED_GAME = "ACTION_COMMIT_SAVED_GAME";
@@ -1247,7 +1247,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
      * @param score
      */
     public void doAddHighscore(String leaderboardID, int score) {
-        Properties properties = new Properties();
+        Properties properties = new Properties();   
         properties.put(ACTION, ACTION_ADD_SCORE);
         properties.put(SCORE, score + "");
         properties.put(LEADERBOARD, leaderboardID);
@@ -1326,25 +1326,28 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         properties.put(ID, achievementID);
         fireRemoteActionListener(properties);
     }
+    
+    //No need to sign in and out of google anymore
+    //https://developers.google.com/games/services/android/signin
 
-    /**
-     * If you are you are using android you can call this method from the game
-     * to let the user sign into google play services.
-     */
-    public void doGoogleSignIn() {
-        Properties properties = new Properties();
-        properties.put(ACTION, ACTION_GOOGLE_SIGNIN);
-        fireRemoteActionListener(properties);
-    }
-
-    /**
-     * Sign out of google
-     */
-    public void doGoogleSignOut() {
-        Properties properties = new Properties();
-        properties.put(ACTION, ACTION_GOOGLE_SIGNOUT);
-        fireRemoteActionListener(properties);
-    }
+//    /**
+//     * If you are you are using android you can call this method from the game
+//     * to let the user sign into google play services.
+//     */
+//    public void doGoogleSignIn() {
+//        Properties properties = new Properties();
+//        properties.put(ACTION, ACTION_GOOGLE_SIGNIN);
+//        fireRemoteActionListener(properties);
+//    }
+//
+//    /**
+//     * Sign out of google
+//     */
+//    public void doGoogleSignOut() {
+//        Properties properties = new Properties();
+//        properties.put(ACTION, ACTION_GOOGLE_SIGNOUT);
+//        fireRemoteActionListener(properties);
+//    }
 
     /**
      * Send a message to the analytics tracking system.

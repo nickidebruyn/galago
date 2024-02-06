@@ -164,8 +164,8 @@ public abstract class Platform2DGame implements PhysicsCollisionListener {
 
             } else {
                 RigidBodyControl rbc = tile.getSpatial().getControl(RigidBodyControl.class);
-                rbc.setPhysicLocation(new Vector3f(tile.getxPos(), tile.getyPos(), tile.getzPos()));
-                rbc.setPhysicRotation(tile.getAngle() * FastMath.DEG_TO_RAD);
+                rbc.setPhysicsLocation(new Vector3f(tile.getxPos(), tile.getyPos(), tile.getzPos()));
+                rbc.setPhysicsRotation(tile.getAngle() * FastMath.DEG_TO_RAD);
             }
 
         } else if (tile.getSpatial().getUserData(SHAPE) != null && !edit) {

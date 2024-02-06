@@ -142,28 +142,28 @@ public abstract class BlenderPhysics2DGame implements PhysicsCollisionListener {
                     log("##### ADDING SKY ################################################");
                     spatial.setName(TYPE_SKY);
                     addSky(spatial, 1);
-                    
+
                 } else if (spatial.getUserData(TYPE) != null
                         && spatial.getUserData(TYPE).equals(TYPE_SKY1)) {
 
                     log("##### ADDING SKY1 ################################################");
                     spatial.setName(TYPE_SKY1);
-                    addSky(spatial, 0.91f);                    
-                    
+                    addSky(spatial, 0.91f);
+
                 } else if (spatial.getUserData(TYPE) != null
                         && spatial.getUserData(TYPE).equals(TYPE_SKY2)) {
 
                     log("##### ADDING SKY2 ################################################");
                     spatial.setName(TYPE_SKY2);
-                    addSky(spatial, 0.95f);                    
-                    
+                    addSky(spatial, 0.95f);
+
                 } else if (spatial.getUserData(TYPE) != null
                         && spatial.getUserData(TYPE).equals(TYPE_SKY3)) {
 
                     log("##### ADDING SKY2 ################################################");
                     spatial.setName(TYPE_SKY3);
                     addSky(spatial, 0.98f);
-                    
+
                 } else if (spatial.getUserData(TYPE) != null
                         && spatial.getUserData(TYPE).equals(TYPE_END)) {
 
@@ -567,8 +567,8 @@ public abstract class BlenderPhysics2DGame implements PhysicsCollisionListener {
 
         float radians = spatial.getWorldRotation().toAngles(null)[2];
         log("\t World rotation: " + (radians * FastMath.RAD_TO_DEG));
-        rigidBodyControl.setPhysicLocation(spatial.getWorldTranslation().x, spatial.getWorldTranslation().y);
-        rigidBodyControl.setPhysicRotation(radians);
+        rigidBodyControl.setPhysicsLocation(spatial.getWorldTranslation().x, spatial.getWorldTranslation().y);
+        rigidBodyControl.setPhysicsRotation(radians);
 
     }
 

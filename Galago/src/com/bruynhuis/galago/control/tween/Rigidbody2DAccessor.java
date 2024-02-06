@@ -22,11 +22,11 @@ public class Rigidbody2DAccessor implements TweenAccessor<RigidBodyControl> {
     public int getValues(RigidBodyControl target, int tweenType, float[] returnValues) {
         switch (tweenType) {
             case POS:
-                returnValues[0] = target.getPhysicLocation().x;
-                returnValues[1] = target.getPhysicLocation().y;
+                returnValues[0] = target.getPhysicsLocation().x;
+                returnValues[1] = target.getPhysicsLocation().y;
                 return 2;
             case ROTATION:
-                returnValues[0] = target.getPhysicRotation() * FastMath.RAD_TO_DEG;                
+                returnValues[0] = target.getPhysicsRotation() * FastMath.RAD_TO_DEG;                
                 return 1;
 
             default:
@@ -39,10 +39,10 @@ public class Rigidbody2DAccessor implements TweenAccessor<RigidBodyControl> {
     public void setValues(RigidBodyControl target, int tweenType, float[] newValues) {
         switch (tweenType) {
             case POS:
-                target.setPhysicLocation(newValues[0], newValues[1]);
+                target.setPhysicsLocation(newValues[0], newValues[1]);
                 break;
               case ROTATION:
-                target.setPhysicRotation(newValues[0] * FastMath.DEG_TO_RAD);
+                target.setPhysicsRotation(newValues[0] * FastMath.DEG_TO_RAD);
                 break;
             default:
                 assert false;

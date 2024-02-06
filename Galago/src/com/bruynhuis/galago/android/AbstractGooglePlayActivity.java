@@ -641,12 +641,12 @@ public abstract class AbstractGooglePlayActivity extends AndroidHarness
 
                 } else if (action.equals(BaseApplication.ACTION_GET_ACHIEVEMENTS)) {
                     doGetAchievements(prprts);
-
-                } else if (action.equals(BaseApplication.ACTION_GOOGLE_SIGNIN)) {
-                    doGoogleSignIn(prprts);
-
-                } else if (action.equals(BaseApplication.ACTION_GOOGLE_SIGNOUT)) {
-                    doGoogleSignOut(prprts);
+//
+//                } else if (action.equals(BaseApplication.ACTION_GOOGLE_SIGNIN)) {
+//                    doGoogleSignIn(prprts);
+//
+//                } else if (action.equals(BaseApplication.ACTION_GOOGLE_SIGNOUT)) {
+//                    doGoogleSignOut(prprts);
 
                 } else if (action.equals(BaseApplication.ACTION_ANALYTICS)) {
                     doAnalyticsAction(prprts);

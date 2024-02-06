@@ -38,45 +38,44 @@ public class Vehicle {
     protected void initVehicle() {
         frontWheelJoint = new WheelJoint(vehicleBodyControl.getBody(), frontWheelControl.getBody(), frontWheelControl.getBody().getWorldCenter(), new Vector2(0.0, 1.0));
         frontWheelJoint.setCollisionAllowed(false);
-        frontWheelJoint.setFrequency(8.0); // setup a spring
-        frontWheelJoint.setDampingRatio(0.4);
-        frontWheelJoint.setMotorEnabled(allWheelDrive); // give the car rear-wheel-drive        
-        frontWheelJoint.setMotorSpeed(0); // set the speed to -180 degrees per second        
+        frontWheelJoint.setSpringFrequency(8.0); // setup a spring
+        frontWheelJoint.setSpringDampingRatio(0.4);
+        frontWheelJoint.setMotorEnabled(allWheelDrive); // give the car rear-wheel-drive
+        frontWheelJoint.setMotorSpeed(0); // set the speed to -180 degrees per second
         frontWheelJoint.setMaximumMotorTorque(50); // don't forget to set the maximum torque
 
         rearWheelJoint = new WheelJoint(vehicleBodyControl.getBody(), rearWheelControl.getBody(), rearWheelControl.getBody().getWorldCenter(), new Vector2(0.0, 1.0));
         rearWheelJoint.setCollisionAllowed(false);
-        rearWheelJoint.setFrequency(8.0); // setup a spring
-        rearWheelJoint.setDampingRatio(0.4);
-        rearWheelJoint.setMotorEnabled(true); // give the car rear-wheel-drive        
-        rearWheelJoint.setMotorSpeed(0); // set the speed to -180 degrees per second        
+        rearWheelJoint.setSpringFrequency(8.0); // setup a spring
+        rearWheelJoint.setSpringDampingRatio(0.4);
+        rearWheelJoint.setMotorEnabled(true); // give the car rear-wheel-drive
+        rearWheelJoint.setMotorSpeed(0); // set the speed to -180 degrees per second
         rearWheelJoint.setMaximumMotorTorque(50); // don't forget to set the maximum torque
     }
 
     protected void log(String text) {
         System.out.println(text);
     }
-    
+
     public void setMaximumMotorTorque(float torque) {
         rearWheelJoint.setMaximumMotorTorque(torque);
         frontWheelJoint.setMaximumMotorTorque(torque);
     }
-    
+
 //    public void setSpringTension(float tension) {
 //        rearWheelJoint.setFrequency(tension);
 //        frontWheelJoint.setFrequency(tension);
 //    }
-
     /**
      * Move vehicle forward
      */
     public void forward() {
         if (speed < 0) {
-            speed = speed + (acceleration*2f);
+            speed = speed + (acceleration * 2f);
         } else {
             speed = speed + acceleration;
         }
-        
+
         if (speed > maxSpeed) {
             speed = maxSpeed;
         }
@@ -90,15 +89,15 @@ public class Vehicle {
      */
     public void reverse() {
         if (speed > 0) {
-            speed = speed - (acceleration*2f);
+            speed = speed - (acceleration * 2f);
         } else {
             speed = speed - acceleration;
         }
-        
+
         if (speed < -maxSpeed) {
             speed = -maxSpeed;
         }
-        
+
         updateMotorSpeed();
     }
 
@@ -113,10 +112,10 @@ public class Vehicle {
         updateMotorSpeed();
 
     }
-    
+
     protected void updateMotorSpeed() {
-        rearWheelJoint.setMotorSpeed(speed); // set the speed to -180 degrees per second        
-        frontWheelJoint.setMotorSpeed(speed); // set the speed to -180 degrees per second                
+        rearWheelJoint.setMotorSpeed(speed); // set the speed to -180 degrees per second
+        frontWheelJoint.setMotorSpeed(speed); // set the speed to -180 degrees per second
     }
 
     public WheelJoint getFrontWheelJoint() {
@@ -162,15 +161,15 @@ public class Vehicle {
     public void setDecceleration(float decceleration) {
         this.decceleration = decceleration;
     }
-        
+
     public void setPhysicsLocation(Vector3f location) {
-        vehicleBodyControl.setPhysicLocation(location);
+        vehicleBodyControl.setPhysicsLocation(location);
     }
-    
+
     public Vector3f getPhysicsLocation() {
-        return vehicleBodyControl.getPhysicLocation();
+        return vehicleBodyControl.getPhysicsLocation();
     }
-    
+
     public void clearForces() {
         vehicleBodyControl.clearForces();
         frontWheelControl.clearForces();

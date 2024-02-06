@@ -36,25 +36,25 @@ public class RopeJoint extends PhysicsJoint {
 
     @Override
     protected Joint createJoint() {
-        org.dyn4j.dynamics.joint.RopeJoint ropeJoint = new org.dyn4j.dynamics.joint.RopeJoint(rigidBodyControl1.getBody(), rigidBodyControl2.getBody(), point1, point2);
+        org.dyn4j.dynamics.joint.DistanceJoint ropeJoint = new org.dyn4j.dynamics.joint.DistanceJoint(rigidBodyControl1.getBody(), rigidBodyControl2.getBody(), point1, point2);
         return ropeJoint;
     }
 
     public void setLimits(float lowerLimit, float upperLimit) {
-        ((org.dyn4j.dynamics.joint.RopeJoint) joint).setLimitsEnabled(lowerLimit, upperLimit);
+        ((org.dyn4j.dynamics.joint.DistanceJoint) joint).setLimitsEnabled(lowerLimit, upperLimit);
 
     }
 
     public void setLimitsEnabled(boolean enable) {
-        ((org.dyn4j.dynamics.joint.RopeJoint) joint).setLimitsEnabled(enable);
+        ((org.dyn4j.dynamics.joint.DistanceJoint) joint).setLimitsEnabled(enable);
 
     }
 
     public float getUpperLimit() {
-        return (float) ((org.dyn4j.dynamics.joint.RopeJoint) joint).getUpperLimit();
+        return (float) ((org.dyn4j.dynamics.joint.DistanceJoint) joint).getUpperLimit();
     }
 
     public float getLowerLimit() {
-        return (float) ((org.dyn4j.dynamics.joint.RopeJoint) joint).getLowerLimit();
+        return (float) ((org.dyn4j.dynamics.joint.DistanceJoint) joint).getLowerLimit();
     }
 }

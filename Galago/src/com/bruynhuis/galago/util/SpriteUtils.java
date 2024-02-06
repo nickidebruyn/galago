@@ -413,7 +413,7 @@ public class SpriteUtils {
 
         if (sprite.getControl(RigidBodyControl.class) != null) {
             sprite.setLocalTranslation(x, y, z);
-            sprite.getControl(RigidBodyControl.class).setPhysicLocation(new Vector3f(x, y, z));
+            sprite.getControl(RigidBodyControl.class).setPhysicsLocation(new Vector3f(x, y, z));
         } else {
             sprite.setLocalTranslation(x, y, z);
         }
@@ -432,13 +432,13 @@ public class SpriteUtils {
 
         if (sprite.getControl(RigidBodyControl.class) != null) {
             sprite.setLocalTranslation(new Vector3f(
-                    sprite.getControl(RigidBodyControl.class).getPhysicLocation().x + xAmount,
-                    sprite.getControl(RigidBodyControl.class).getPhysicLocation().y + yAmount,
-                    sprite.getControl(RigidBodyControl.class).getPhysicLocation().z + zAmount));
-            sprite.getControl(RigidBodyControl.class).setPhysicLocation(new Vector3f(
-                    sprite.getControl(RigidBodyControl.class).getPhysicLocation().x + xAmount,
-                    sprite.getControl(RigidBodyControl.class).getPhysicLocation().y + yAmount,
-                    sprite.getControl(RigidBodyControl.class).getPhysicLocation().z + zAmount));
+                    sprite.getControl(RigidBodyControl.class).getPhysicsLocation().x + xAmount,
+                    sprite.getControl(RigidBodyControl.class).getPhysicsLocation().y + yAmount,
+                    sprite.getControl(RigidBodyControl.class).getPhysicsLocation().z + zAmount));
+            sprite.getControl(RigidBodyControl.class).setPhysicsLocation(new Vector3f(
+                    sprite.getControl(RigidBodyControl.class).getPhysicsLocation().x + xAmount,
+                    sprite.getControl(RigidBodyControl.class).getPhysicsLocation().y + yAmount,
+                    sprite.getControl(RigidBodyControl.class).getPhysicsLocation().z + zAmount));
         } else {
             sprite.move(xAmount, yAmount, zAmount);
         }
@@ -477,7 +477,7 @@ public class SpriteUtils {
         }
 
     }
-    
+
     /**
      * This helper method will interpolate a spatial to a position.
      *
@@ -499,7 +499,7 @@ public class SpriteUtils {
                     .target(x, y, z)
                     .delay(delay)
                     .ease(tweenEquation)
-                    .repeatYoyo(repeat, delay)                    
+                    .repeatYoyo(repeat, delay)
                     .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
 
         } else {
@@ -511,7 +511,7 @@ public class SpriteUtils {
                     .start(SharedSystem.getInstance().getBaseApplication().getTweenManager());
         }
 
-    }    
+    }
 
     public static void bounce(Sprite sprite, float x, float y, float z, float time, float delay, int count) {
 
@@ -545,7 +545,7 @@ public class SpriteUtils {
     public static void rotateTo(Sprite sprite, float angle) {
 
         if (sprite.getControl(RigidBodyControl.class) != null) {
-            sprite.getControl(RigidBodyControl.class).setPhysicRotation(angle * FastMath.DEG_TO_RAD);
+            sprite.getControl(RigidBodyControl.class).setPhysicsRotation(angle * FastMath.DEG_TO_RAD);
         } else {
             Quaternion quaternion = new Quaternion();
             quaternion.fromAngleAxis(angle * FastMath.DEG_TO_RAD, Vector3f.UNIT_Z);
@@ -565,10 +565,10 @@ public class SpriteUtils {
     public static void rotate(Sprite sprite, float angle) {
 
         if (sprite.getControl(RigidBodyControl.class) != null) {
-            float a = sprite.getControl(RigidBodyControl.class).getPhysicRotation() * FastMath.RAD_TO_DEG;
+            float a = sprite.getControl(RigidBodyControl.class).getPhysicsRotation() * FastMath.RAD_TO_DEG;
             a = a + angle;
 
-            sprite.getControl(RigidBodyControl.class).setPhysicRotation(a * FastMath.DEG_TO_RAD);
+            sprite.getControl(RigidBodyControl.class).setPhysicsRotation(a * FastMath.DEG_TO_RAD);
 
         } else {
             sprite.rotate(0, 0, angle * FastMath.DEG_TO_RAD);
@@ -993,5 +993,5 @@ public class SpriteUtils {
         dir = dir.normalizeLocal().mult(speed);
         return start.add(dir.x, dir.y, dir.z);
 
-    }    
+    }
 }

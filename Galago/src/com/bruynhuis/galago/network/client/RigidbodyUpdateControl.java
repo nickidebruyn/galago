@@ -29,11 +29,11 @@ public class RigidbodyUpdateControl extends AbstractControl {
             rbc = spatial.getControl(RigidBodyControl.class);
 
         } else {
-            if (targetPosition != null && targetPosition.distance(rbc.getPhysicLocation()) < 2f) {
-                rbc.setPhysicLocation(rbc.getPhysicLocation().interpolateLocal(targetPosition, 0.4f));
+            if (targetPosition != null && targetPosition.distance(rbc.getPhysicsLocation()) < 2f) {
+                rbc.setPhysicsLocation(rbc.getPhysicsLocation().interpolateLocal(targetPosition, 0.4f));
 
             } else if (targetPosition != null) {
-                rbc.setPhysicLocation(targetPosition);
+                rbc.setPhysicsLocation(targetPosition);
             }
 
             if (targetRotation != null) {
