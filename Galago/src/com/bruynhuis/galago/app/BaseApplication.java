@@ -76,6 +76,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import com.bruynhuis.galago.listener.AndroidInputEventListener;
 import com.jme3.input.controls.Trigger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
@@ -229,6 +231,19 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 
         AppSettings settings = new AppSettings(true);
         settings.setTitle(title);
+        
+        
+        try {
+            Object[] icons = getIconList();
+            if (icons != null) {
+                settings.setIcons(icons);
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(BaseApplication.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        
+        
         if (widthSample == 0 || heightSample == 0) {
             settings.setWidth((int) SCREEN_WIDTH);
             settings.setHeight((int) SCREEN_HEIGHT);
@@ -261,6 +276,8 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     public BaseApplication(String title, float width, float height, String gameSaveFileName, String gameFont, String splashImage, boolean resizable) {
         this(title, width, height, gameSaveFileName, gameFont, splashImage, resizable, 0, 0);
     }
+    
+    protected abstract Object[] getIconList() throws IOException;
 
     /**
      * If you wish to record video when you run your game you can set this to
