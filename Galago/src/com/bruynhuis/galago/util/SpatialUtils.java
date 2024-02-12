@@ -802,6 +802,24 @@ public class SpatialUtils {
 
         return geometry;
     }
+    
+    /**
+     * Add a simple sprite to the node.
+     *
+     * @param parent
+     * @param xExtend
+     * @param zExtend
+     * @return
+     */
+    public static Spatial addCenterQuad(Node parent, float xExtend, float zExtend) {
+
+        CenterQuad quad = new CenterQuad(xExtend * 2, zExtend * 2);
+        Geometry geometry = new Geometry("sprite", quad);
+        parent.attachChild(geometry);
+        geometry.setShadowMode(RenderQueue.ShadowMode.Off);
+
+        return geometry;
+    }
 
     /**
      * Add a simple plane to the node.
