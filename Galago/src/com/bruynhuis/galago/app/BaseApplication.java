@@ -78,9 +78,6 @@ import com.bruynhuis.galago.listener.AndroidInputEventListener;
 import com.jme3.input.controls.Trigger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.lwjgl.LWJGLException;
-import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.DisplayMode;
 
 /**
  * When using this Galago game library you need to extend the BaseApplication.
@@ -1783,17 +1780,17 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
                 settings.setFrequency(60);
             }
 
-            DisplayMode[] modes = null;
-            try {
-                modes = Display.getAvailableDisplayModes();
-                for (DisplayMode mode : modes) {
-                    log("Mode: " + mode.getBitsPerPixel() + ", w: " + mode.getWidth() + ", h: " + mode.getHeight() + "; freq:" + mode.getFrequency());
-
-                }
-
-            } catch (LWJGLException e) {
-                e.printStackTrace();
-            }
+//            DisplayMode[] modes = null;
+//            try {
+//                modes = Display.getAvailableDisplayModes();
+//                for (DisplayMode mode : modes) {
+//                    log("Mode: " + mode.getBitsPerPixel() + ", w: " + mode.getWidth() + ", h: " + mode.getHeight() + "; freq:" + mode.getFrequency());
+//
+//                }
+//
+//            } catch (LWJGLException e) {
+//                e.printStackTrace();
+//            }
 
             settings.setWidth(width);
             settings.setHeight(height);

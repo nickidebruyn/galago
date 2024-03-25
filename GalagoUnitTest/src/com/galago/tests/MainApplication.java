@@ -43,6 +43,7 @@ import com.galago.tests.screens.WaterWaveScreen;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.math.Vector3f;
+import java.io.IOException;
 
 /**
  *
@@ -142,5 +143,8 @@ public class MainApplication extends Base3DApplication {
     @Override
     protected void initFonts(FontManager fontManager) {
     }
-
+    @Override
+    protected Object[] getIconList() throws IOException {
+        return null;
+    }
 }
