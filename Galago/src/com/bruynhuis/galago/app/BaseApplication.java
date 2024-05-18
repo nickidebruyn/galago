@@ -228,8 +228,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 
         AppSettings settings = new AppSettings(true);
         settings.setTitle(title);
-        
-        
+
         try {
             Object[] icons = getIconList();
             if (icons != null) {
@@ -238,15 +237,15 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         } catch (IOException ex) {
             Logger.getLogger(BaseApplication.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        
-        
+
         if (widthSample == 0 || heightSample == 0) {
             settings.setWidth((int) SCREEN_WIDTH);
             settings.setHeight((int) SCREEN_HEIGHT);
         } else {
             settings.setWidth((int) widthSample);
             settings.setHeight((int) heightSample);
+            settings.setResizable(true);
+            settings.setCenterWindow(true);            
         }
 
         settings.setVSync(false);
@@ -273,7 +272,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     public BaseApplication(String title, float width, float height, String gameSaveFileName, String gameFont, String splashImage, boolean resizable) {
         this(title, width, height, gameSaveFileName, gameFont, splashImage, resizable, 0, 0);
     }
-    
+
     protected abstract Object[] getIconList() throws IOException;
 
     /**
@@ -1261,7 +1260,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
      * @param score
      */
     public void doAddHighscore(String leaderboardID, int score) {
-        Properties properties = new Properties();   
+        Properties properties = new Properties();
         properties.put(ACTION, ACTION_ADD_SCORE);
         properties.put(SCORE, score + "");
         properties.put(LEADERBOARD, leaderboardID);
@@ -1340,10 +1339,9 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         properties.put(ID, achievementID);
         fireRemoteActionListener(properties);
     }
-    
+
     //No need to sign in and out of google anymore
     //https://developers.google.com/games/services/android/signin
-
 //    /**
 //     * If you are you are using android you can call this method from the game
 //     * to let the user sign into google play services.
@@ -1362,7 +1360,6 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 //        properties.put(ACTION, ACTION_GOOGLE_SIGNOUT);
 //        fireRemoteActionListener(properties);
 //    }
-
     /**
      * Send a message to the analytics tracking system.
      *
@@ -1791,7 +1788,6 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 //            } catch (LWJGLException e) {
 //                e.printStackTrace();
 //            }
-
             settings.setWidth(width);
             settings.setHeight(height);
 //      this.SCREEN_WIDTH = width;
