@@ -87,6 +87,8 @@ public class TextField extends ImageWidget implements InputType {
     protected TouchKeyNames touchKeyNames = new TouchKeyNames();
     private String textToUpdate;
 
+    private boolean backspaceDown = false;
+
     /**
      *
      * @param panel
@@ -142,7 +144,7 @@ public class TextField extends ImageWidget implements InputType {
             //Init the text
             bitmapText = bitmapFont.createLabel(id);
             bitmapText.setText("Text");             // the text
-            Rectangle rectangle = new Rectangle((-getWidth() * 0.5f) + padding, (getHeight() * 0.5f) - padding, getWidth() - (padding*2), (getHeight() * 0.5f) - (padding*2));
+            Rectangle rectangle = new Rectangle((-getWidth() * 0.5f) + padding, (getHeight() * 0.5f) - padding, getWidth() - (padding * 2), (getHeight() * 0.5f) - (padding * 2));
 //            System.out.println("TextField Rectange = " + rectangle);
             bitmapText.setBox(rectangle);
             bitmapText.setSize(fontStyle.getFontSize() * panel.getWindow().getScaleFactorHeight());      // font size
@@ -226,7 +228,7 @@ public class TextField extends ImageWidget implements InputType {
                                 CollisionResult cr = results.getCollision(i);
 //                                System.out.println("\t-> Hit: " + cr.getGeometry().getParent().getName());
 
-                                if (widgetNode.hasChild(cr.getGeometry())) {                                    
+                                if (widgetNode.hasChild(cr.getGeometry())) {
                                     if (isPressed) {
 //                                        System.out.println("\t\tField focus -> " + TextField.this.id);
                                         wasDown = true;
@@ -265,63 +267,82 @@ public class TextField extends ImageWidget implements InputType {
             }
 
             public void onKeyEvent(KeyInputEvent evt) {
-//                System.out.println("Keyinput ***************** Key = " + evt.getKeyCode());
+                String keyChar = keyNames.getName(evt.getKeyCode());
 
-                if (enabled && focus && evt.isReleased()) {
-                    String keyChar = keyNames.getName(evt.getKeyCode());
-                    System.out.println("Keyinput ***************** code = " + evt.getKeyCode());
-                    System.out.println("Keyinput ***************** char = " + keyChar);
+                if (enabled && focus) {
 
-                    if (evt.getKeyCode() == 14) {
-                        if (getText().length() > 0) {
-                            setText(getText().substring(0, getText().length() - 1));
+                    //WHEN KEY IS RELEASED/UP
+                    if (evt.isReleased()) {
+
+                        if (evt.getKeyCode() == 14) {
+                            System.out.println("Keyinput ***************** code = " + evt.getKeyCode());
+                            System.out.println("Keyinput ***************** char = " + keyChar);
+                            System.out.println("Keyinput ***************** Released = " + evt.isReleased());
+                            backspaceDown = false;
+
+                        } else if (evt.getKeyCode() == 12 && caps) {
+                            setText(getText() + "_");
+
+                        } else if (evt.getKeyCode() == 156 || evt.getKeyCode() == 28) {
+                            setText(getText() + "\n");
+
+                        } else if (evt.getKeyCode() == 15) {
+                            blur();
+
+                        } else if (keyChar != null && evt.getKeyCode() == 57) {
+                            setText(getText() + " ");
+
+//                        } else if (keyChar != null && evt.getKeyCode() == 211) {
+//                            setText("");
+
+                        } else if (keyChar != null && evt.getKeyCode() == 58) {
+                            caps = !caps;
+
+                        } else if (keyChar != null && (evt.getKeyCode() == 42 || evt.getKeyCode() == 54)) {
+                            caps = false;
+
+                        } else if (keyChar != null && keyChar.length() == 1) {
+                            if (!caps) {
+                                keyChar = keyChar.toLowerCase();
+                            }
+                            setText(getText() + keyChar);
+
+                        } else if (keyChar != null && keyChar.length() > 1 && keyChar.startsWith("Numpad")) {
+                            setText(getText() + keyChar.replaceFirst("Numpad ", "").trim());
                         }
-                    } else if (evt.getKeyCode() == 12 && caps) {
-                        setText(getText() + "_");
-                        
-                    } else if (evt.getKeyCode() == 156 || evt.getKeyCode() == 28) {
-                        setText(getText() + "\n");
-                        
-                    } else if (evt.getKeyCode() == 15) {
-                        blur();
 
-                    } else if (keyChar != null && evt.getKeyCode() == 57) {
-                        setText(getText() + " ");
-
-                    } else if (keyChar != null && evt.getKeyCode() == 58) {
-                        caps = !caps;
-
-                    } else if (keyChar != null && (evt.getKeyCode() == 42 || evt.getKeyCode() == 54)) {
-                        caps = false;
-
-                    } else if (keyChar != null && keyChar.length() == 1) {
-                        if (!caps) {
-                            keyChar = keyChar.toLowerCase();
+                        if (getText().length() > maxLength) {
+                            setText(getText().substring(0, maxLength));
                         }
-                        setText(getText() + keyChar);
-                        
-                    } else if (keyChar != null && keyChar.length() > 1 && keyChar.startsWith("Numpad")) {
-                        setText(getText() + keyChar.replaceFirst("Numpad ", "").trim());
+
+                        fireKeyboardListener(evt);
+
+                    } else {
+                        //WHEN KEY IS PRESSED/DOWN
+                        if (keyChar != null && (evt.getKeyCode() == 42 || evt.getKeyCode() == 54)) {
+                            caps = true;
+
+                        } else if (evt.getKeyCode() == 14) { //BACKSPACE
+//                            System.out.println("Keyinput ***************** code = " + evt.getKeyCode());
+//                            System.out.println("Keyinput ***************** char = " + keyChar);
+//                            System.out.println("Keyinput ***************** Released = " + evt.isReleased());
+//                            System.out.println("\nBACKASP: " + evt.getKeyCode());
+                            
+                            if (!backspaceDown) {
+                                backspaceDown = true;
+                                doBackSpace();
+                            }
+                            
+                            if (evt.isRepeating()) {
+                                doBackSpace();                                
+                                
+                            }
+
+                        }
+
+                        fireKeyboardListener(evt);
+
                     }
-
-                    if (getText().length() > maxLength) {
-                        setText(getText().substring(0, maxLength));
-                    }
-
-                    fireKeyboardListener(evt);
-
-                } else if (enabled && focus && !evt.isReleased()) {
-                    String keyChar = keyNames.getName(evt.getKeyCode());
-//                    System.out.println("Keyinput ***************** code = " + evt.getKeyCode());
-//                    System.out.println("Keyinput ***************** char = " + evt.getKeyChar());
-
-                    if (keyChar != null && (evt.getKeyCode() == 42 || evt.getKeyCode() == 54)) {
-                        caps = true;
-
-                    }
-
-                    fireKeyboardListener(evt);
-
                 }
 
             }
@@ -378,6 +399,7 @@ public class TextField extends ImageWidget implements InputType {
 //
 //                }
             }
+
         });
 
         //NICKI
@@ -391,15 +413,21 @@ public class TextField extends ImageWidget implements InputType {
                     p.setProperty(BaseApplication.NAME, getText());
                     window.getApplication().fireKeyboardInputListener(p, TextField.this);
                 }
-                
+
                 public void doBlur(String id) {
                     Properties p = new Properties();
                     p.setProperty(BaseApplication.NAME, getText());
                     window.getApplication().fireKeyboardInputListener(p, TextField.this);
-                }                
+                }
             });
         }
 
+    }
+
+    protected void doBackSpace() {
+        if (getText().length() > 0) {
+            setText(getText().substring(0, getText().length() - 1));
+        }
     }
 
     @Override
@@ -701,6 +729,5 @@ public class TextField extends ImageWidget implements InputType {
     public void setId(String id) {
         this.id = id;
     }
-    
-    
+
 }

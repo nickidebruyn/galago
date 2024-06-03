@@ -185,6 +185,11 @@ public class NavMeshPathfinder {
 
     public void goToNextWaypoint(DebugInfo debugInfo) {
         int from = getPath().getWaypoints().indexOf(nextWaypoint);
+        //Fix for waypoints that could be empty
+        if (getPath().getWaypoints().isEmpty()) {
+            return;            
+        }
+        
         nextWaypoint = getPath().getWaypoints().get(from + 1);
         //nextWaypoint = path.getFurthestVisibleWayPoint(nextWaypoint, debugInfo);//path.getOptimalVisibleWayPoint(nextWaypoint);
         int to = getPath().getWaypoints().indexOf(nextWaypoint);
