@@ -245,7 +245,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
             settings.setWidth((int) widthSample);
             settings.setHeight((int) heightSample);
             settings.setResizable(true);
-            settings.setCenterWindow(true);            
+            settings.setCenterWindow(true);
         }
 
         settings.setVSync(false);
@@ -1766,7 +1766,12 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
     }
 
     public void resizeScreen(boolean fullscreen, int width, int height) {
-        if (settings.isFullscreen() != fullscreen || width != settings.getWidth() || height != settings.getHeight()) {
+        resizeScreen(fullscreen, width, height, false);
+    }
+
+    public void resizeScreen(boolean fullscreen, int width, int height, boolean forceAlways) {
+        if (forceAlways || settings.isFullscreen() != fullscreen || width != settings.getWidth() || height != settings.getHeight()) {
+            System.out.println("GOING TO RESIZE SCREENS");
 
             settings.setFullscreen(fullscreen);
             if (fullscreen) {
@@ -1790,9 +1795,12 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 //            }
             settings.setWidth(width);
             settings.setHeight(height);
-//      this.SCREEN_WIDTH = width;
-            this.SCREEN_HEIGHT = height;
-            this.getContext().restart();
+
+            if (!forceAlways) {
+                this.SCREEN_WIDTH = width;
+                this.SCREEN_HEIGHT = height;                
+                this.getContext().restart();
+            }
 
             String currentScreen = getCurrentScreen().getScreenName();
             log("Current Screen = " + currentScreen);
