@@ -283,6 +283,75 @@ public class TextField extends ImageWidget implements InputType {
                         } else if (evt.getKeyCode() == 12 && caps) {
                             setText(getText() + "_");
 
+                        } else if (evt.getKeyCode() == 39 && caps) {
+                            setText(getText() + ":");
+
+                        } else if (evt.getKeyCode() == 2 && caps) {
+                            setText(getText() + "!");
+
+                        } else if (evt.getKeyCode() == 3 && caps) {
+                            setText(getText() + "@");
+
+                        } else if (evt.getKeyCode() == 4 && caps) {
+                            setText(getText() + "#");
+
+                        } else if (evt.getKeyCode() == 5 && caps) {
+                            setText(getText() + "$");
+
+                        } else if (evt.getKeyCode() == 6 && caps) {
+                            setText(getText() + "%");
+
+                        } else if (evt.getKeyCode() == 7 && caps) {
+                            setText(getText() + "^");
+
+                        } else if (evt.getKeyCode() == 8 && caps) {
+                            setText(getText() + "&");
+
+                        } else if (evt.getKeyCode() == 9 && caps) {
+                            setText(getText() + "*");
+
+                        } else if (evt.getKeyCode() == 10 && caps) {
+                            setText(getText() + "(");
+
+                        } else if (evt.getKeyCode() == 11 && caps) {
+                            setText(getText() + ")");
+
+                        } else if (evt.getKeyCode() == 12 && caps) {
+                            setText(getText() + "_");
+
+                        } else if (evt.getKeyCode() == 13 && caps) {
+                            setText(getText() + "+");
+
+                        } else if (evt.getKeyCode() == 26 && caps) {
+                            setText(getText() + "{");
+
+                        } else if (evt.getKeyCode() == 27 && caps) {
+                            setText(getText() + "}");
+
+                        } else if (evt.getKeyCode() == 0 && caps) {
+                            setText(getText() + "|");
+
+                        } else if (evt.getKeyCode() == 0 && caps) {
+                            setText(getText() + "|");
+
+                        } else if (evt.getKeyCode() == 39 && caps) {
+                            setText(getText() + ":");
+
+                        } else if (evt.getKeyCode() == 40 && caps) {
+                            setText(getText() + "\"");
+
+                        } else if (evt.getKeyCode() == 41 && caps) {
+                            setText(getText() + "~");
+
+                        } else if (evt.getKeyCode() == 51 && caps) {
+                            setText(getText() + "<");
+
+                        } else if (evt.getKeyCode() == 52 && caps) {
+                            setText(getText() + ">");
+
+                        } else if (evt.getKeyCode() == 53 && caps) {
+                            setText(getText() + "?");
+
                         } else if (evt.getKeyCode() == 156 || evt.getKeyCode() == 28) {
                             setText(getText() + "\n");
 
@@ -294,7 +363,6 @@ public class TextField extends ImageWidget implements InputType {
 
 //                        } else if (keyChar != null && evt.getKeyCode() == 211) {
 //                            setText("");
-
                         } else if (keyChar != null && evt.getKeyCode() == 58) {
                             caps = !caps;
 
@@ -327,15 +395,15 @@ public class TextField extends ImageWidget implements InputType {
 //                            System.out.println("Keyinput ***************** char = " + keyChar);
 //                            System.out.println("Keyinput ***************** Released = " + evt.isReleased());
 //                            System.out.println("\nBACKASP: " + evt.getKeyCode());
-                            
+
                             if (!backspaceDown) {
                                 backspaceDown = true;
                                 doBackSpace();
                             }
-                            
+
                             if (evt.isRepeating()) {
-                                doBackSpace();                                
-                                
+                                doBackSpace();
+
                             }
 
                         }

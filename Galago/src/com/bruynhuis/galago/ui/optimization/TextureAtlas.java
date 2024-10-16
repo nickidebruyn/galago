@@ -3,6 +3,7 @@
  * and open the template in the editor.
  */
 package com.bruynhuis.galago.ui.optimization;
+
 import com.jme3.asset.AssetKey;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.MatParamTexture;
