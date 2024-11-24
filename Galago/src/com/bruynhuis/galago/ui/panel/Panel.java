@@ -115,7 +115,7 @@ public class Panel extends ImageWidget {
     }
 
     /**
-     * remove all widgets.
+     * remove all widgets of current panel.
      */
     public void clear() {
         for (int i = 0; i < widgets.size(); i++) {
@@ -123,6 +123,23 @@ public class Panel extends ImageWidget {
             widget.remove();
         }
         widgets.clear();
+    }
+    
+    /**
+     * This will remove all child and local widget of the tree graph
+     */
+    public void cleanupAllWidgets() {
+        for (int i = 0; i < widgets.size(); i++) {
+            Widget widget = widgets.get(i);
+            if (widget instanceof Panel) {
+                ((Panel) widget).cleanupAllWidgets();
+            } else {
+                widget.remove();
+            }
+            
+        }
+        widgets.clear();
+        
     }
 
     @Override

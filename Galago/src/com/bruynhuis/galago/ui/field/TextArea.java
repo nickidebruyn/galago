@@ -26,7 +26,6 @@ import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
-import com.jme3.font.LineWrapMode;
 import com.jme3.font.Rectangle;
 import com.jme3.input.InputManager;
 import com.jme3.input.KeyNames;
@@ -63,6 +62,7 @@ public class TextArea extends ImageWidget implements InputType {
     protected Camera cam;
     protected CollisionResults results;
     protected Ray ray;
+    protected RawInputListener rawInputListener;
     protected ActionListener actionListener;
     private boolean enabled = true;
     private boolean wasDown = false;
@@ -76,10 +76,10 @@ public class TextArea extends ImageWidget implements InputType {
     protected int maxLength = 255;
     protected int maxLines = 5;
     protected float padding = 0;
-    
+
     protected boolean caps = false;
     protected boolean shift = false;
-    
+
     protected KeyboardListener keyboardListener;
     protected FocusListener focusListener;
     protected KeyNames keyNames = new KeyNames();
@@ -106,7 +106,7 @@ public class TextArea extends ImageWidget implements InputType {
         this(panel, "some_area", "Resources/textarea.png", width, height, 5, new FontStyle(FontManager.DEFAULT_FONT, 18), false);
 
     }
-    
+
     /**
      *
      * @param panel
@@ -161,7 +161,7 @@ public class TextArea extends ImageWidget implements InputType {
             bitmapText.setColor(ColorRGBA.White);// font color
             bitmapText.setAlignment(BitmapFont.Align.Center);
             bitmapText.setVerticalAlignment(BitmapFont.VAlign.Center);
-            
+
         } else {
             //Init the text
             trueTypeFont = panel.getWindow().getApplication().getFontManager().getTtfFonts(fontStyle);
@@ -173,7 +173,7 @@ public class TextArea extends ImageWidget implements InputType {
 
             widgetNode.attachChild(trueTypeContainer);
         }
-        
+
         widgetNode.addControl(new AbstractControl() {
             @Override
             protected void controlUpdate(float tpf) {
@@ -189,7 +189,6 @@ public class TextArea extends ImageWidget implements InputType {
             }
         });
 
-        
         this.inputManager = window.getInputManager();
         this.cam = window.getApplication().getCamera();
         this.results = new CollisionResults();
@@ -235,11 +234,11 @@ public class TextArea extends ImageWidget implements InputType {
 
                     }
                 }
-                
+
             }
         };
 
-        inputManager.addRawInputListener(new RawInputListener() {
+        rawInputListener = new RawInputListener() {
 
             public void beginInput() {
 
@@ -285,7 +284,7 @@ public class TextArea extends ImageWidget implements InputType {
 
                     } else if (keyChar != null && evt.getKeyCode() == 58) {
                         caps = !caps;
-                        
+
                     } else if (keyChar != null && (evt.getKeyCode() == 42 || evt.getKeyCode() == 54)) {
                         caps = false;
 
@@ -320,7 +319,7 @@ public class TextArea extends ImageWidget implements InputType {
 
             public void onTouchEvent(TouchEvent evt) {
 //                System.out.println("Touchinput ***************** Keycode = " + evt.getKeyCode());
-                
+
 //                if (enabled && focus && evt.getType().equals(TouchEvent.Type.KEY_DOWN)) {
 //                    String keyChar = touchKeyNames.getName(evt.getKeyCode());
 //                    System.out.println("\n\n\nTouchinput ***************** KeyCode = " + evt.getKeyCode());
@@ -368,12 +367,11 @@ public class TextArea extends ImageWidget implements InputType {
 //                    
 //                }
 //
-
             }
-        });
-        
+        };
+
         panel.add(this);
-        
+
         if (window.getApplication().isMobileApp()) {
             addFocusListener(new FocusListener() {
                 public void doFocus(String id) {
@@ -385,7 +383,7 @@ public class TextArea extends ImageWidget implements InputType {
                 @Override
                 public void doBlur(String id) {
                 }
-                
+
             });
         }
     }
@@ -394,7 +392,7 @@ public class TextArea extends ImageWidget implements InputType {
     protected boolean isBatched() {
         return false;
     }
-    
+
     @Override
     public void add(Node parent) {
         super.add(parent);
@@ -403,40 +401,42 @@ public class TextArea extends ImageWidget implements InputType {
             inputManager.addMapping(mappingName, new MouseButtonTrigger(0));
         }
 
+        inputManager.addRawInputListener(rawInputListener);
         inputManager.addListener(actionListener, TextArea.this.id + "MOUSE");
     }
 
     @Override
     public void remove() {
         super.remove();
+        inputManager.removeRawInputListener(rawInputListener);
         inputManager.removeListener(actionListener);
     }
-    
+
     public void addKeyboardListener(KeyboardListener keyboardListener) {
         this.keyboardListener = keyboardListener;
     }
-    
+
     protected void fireKeyboardListener(KeyInputEvent event) {
         if (keyboardListener != null) {
             keyboardListener.doKeyPressed(event);
         }
     }
-    
+
     public void addFocusListener(FocusListener focusListener1) {
         this.focusListener = focusListener1;
     }
-    
+
     protected void fireFocusListener(String id) {
         if (focusListener != null) {
             focusListener.doFocus(id);
         }
     }
-    
+
     protected void fireBlurListener(String id) {
         if (focusListener != null) {
             focusListener.doBlur(id);
         }
-    }    
+    }
 
     public void clear() {
         setText("");
@@ -638,9 +638,8 @@ public class TextArea extends ImageWidget implements InputType {
      * @param text
      */
     public void append(String text) {
-        
-//        System.out.println("######### SET TEXT: " + bitmapText.getText());
 
+//        System.out.println("######### SET TEXT: " + bitmapText.getText());
         if (bitmapText != null) {
             if (bitmapText.getText() == null || bitmapText.getText().length() == 0) {
                 bitmapText.setText(text);
@@ -656,7 +655,6 @@ public class TextArea extends ImageWidget implements InputType {
             }
 
         }
-
 
         updateScrolling();
     }
@@ -716,26 +714,30 @@ public class TextArea extends ImageWidget implements InputType {
             Debug.log("WARNING: FontSize not supported on TouchButton: " + id);
         }
     }
-    
+
     @Override
     public void setVisible(boolean visible) {
         super.setVisible(visible);
-        
+
         if (bitmapText != null) {
             if (visible && widgetNode.getCullHint().equals(Spatial.CullHint.Always)) {
+                inputManager.addRawInputListener(rawInputListener);
                 inputManager.addListener(actionListener, TextArea.this.id + "MOUSE");
                 bitmapText.setCullHint(Spatial.CullHint.Never);
-                
+
             } else if (!visible && widgetNode.getCullHint().equals(Spatial.CullHint.Never)) {
+                inputManager.removeRawInputListener(rawInputListener);
                 inputManager.removeListener(actionListener);
                 bitmapText.setCullHint(Spatial.CullHint.Always);
             }
 
         } else if (stringContainer != null) {
             if (visible && widgetNode.getCullHint().equals(Spatial.CullHint.Always)) {
+                inputManager.addRawInputListener(rawInputListener);
                 inputManager.addListener(actionListener, TextArea.this.id + "MOUSE");
                 trueTypeContainer.setCullHint(Spatial.CullHint.Never);
             } else if (!visible && widgetNode.getCullHint().equals(Spatial.CullHint.Never)) {
+                inputManager.removeRawInputListener(rawInputListener);
                 inputManager.removeListener(actionListener);
                 trueTypeContainer.setCullHint(Spatial.CullHint.Always);
             }

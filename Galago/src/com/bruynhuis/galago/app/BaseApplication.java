@@ -254,7 +254,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
         settings.setGammaCorrection(false);
         settings.setSettingsDialogImage(getSettingImage());
 
-        settings.setRenderer(AppSettings.LWJGL_OPENGL2);
+        //settings.setRenderer(AppSettings.LWJGL_OPENGL2);
 
 //        settings.setSettingsDialogImage(splashImage);
         setSettings(settings);
@@ -1798,7 +1798,7 @@ public abstract class BaseApplication extends SimpleApplication implements Touch
 
             if (!forceAlways) {
                 this.SCREEN_WIDTH = width;
-                this.SCREEN_HEIGHT = height;                
+                this.SCREEN_HEIGHT = height;
                 this.getContext().restart();
             }
 

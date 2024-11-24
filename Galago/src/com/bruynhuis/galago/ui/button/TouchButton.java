@@ -19,7 +19,6 @@ import com.bruynhuis.galago.ui.effect.Effect;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
 import com.jme3.font.Rectangle;
-import com.jme3.input.controls.ActionListener;
 import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
@@ -49,7 +48,6 @@ public class TouchButton extends ImageWidget implements Touchable {
     protected int uid;
     protected String id;
     protected ArrayList<TouchButtonListener> touchButtonListeners = new ArrayList<>();
-    protected ActionListener actionListener;
     private boolean enabled = true;
     private boolean wasDown = false;
     private boolean wasHovered = false;
@@ -97,7 +95,7 @@ public class TouchButton extends ImageWidget implements Touchable {
     public TouchButton(Panel panel, String id, String pictureFile, float width, float height, boolean lockscale) {
         this(panel, id, pictureFile, width, height, new FontStyle(FontManager.DEFAULT_FONT, 18), lockscale);
     }
-    
+
     public TouchButton(Panel panel, String id, String pictureFile, float width, float height, float pad, boolean lockscale) {
         this(panel, id, pictureFile, width, height, pad, new FontStyle(FontManager.DEFAULT_FONT, 18), lockscale);
     }
@@ -120,7 +118,7 @@ public class TouchButton extends ImageWidget implements Touchable {
         init();
 
     }
-    
+
     public TouchButton(Panel panel, String id, String pictureFile, float width, float height, FontStyle fontStyle, boolean lockscale) {
         this(panel, id, pictureFile, width, height, 0, new FontStyle(FontManager.DEFAULT_FONT, 18), lockscale);
     }
@@ -166,7 +164,6 @@ public class TouchButton extends ImageWidget implements Touchable {
 //        if (textStr == null || textStr.length() == 0 || textStr.equals(" ")) {
 //            textStr = ".";
 //        }
-        
         bitmapFont = panel.getWindow().getApplication().getFontManager().getBitmapFonts(fontStyle);
 
         if (bitmapFont != null) {
@@ -697,12 +694,12 @@ public class TouchButton extends ImageWidget implements Touchable {
     public void setMouseIsOver(boolean b) {
         this.mouseIsOver = b;
     }
-    
+
     public boolean isMouseIsOver() {
         return this.mouseIsOver;
     }
-    
-        public void updateFont(BitmapFont bitmapFont) {
+
+    public void updateFont(BitmapFont bitmapFont) {
         if (bitmapText != null) {
 
             BitmapText oldtext = bitmapText;

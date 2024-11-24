@@ -68,6 +68,7 @@ public class TextField extends ImageWidget implements InputType {
     protected String id;
     protected TouchButtonListener touchButtonListener;
     protected ActionListener actionListener;
+    protected RawInputListener rawInputListener;
     private boolean enabled = true;
     private boolean wasDown = false;
     protected BitmapFont bitmapFont;
@@ -247,7 +248,7 @@ public class TextField extends ImageWidget implements InputType {
             }
         };
 
-        inputManager.addRawInputListener(new RawInputListener() {
+        rawInputListener = new RawInputListener() {
             public void beginInput() {
             }
 
@@ -468,7 +469,7 @@ public class TextField extends ImageWidget implements InputType {
 //                }
             }
 
-        });
+        };
 
         //NICKI
         panel.add(this);
@@ -714,12 +715,16 @@ public class TextField extends ImageWidget implements InputType {
             inputManager.addMapping(mappingName, new MouseButtonTrigger(0));
         }
 
+        System.out.println("ADD RAW LISTENER: " + getId());
+        inputManager.addRawInputListener(rawInputListener);
         inputManager.addListener(actionListener, TextField.this.id + "MOUSE");
     }
 
     @Override
     public void remove() {
         super.remove();
+        System.out.println("REMOVE RAW LISTENER: " + getId());
+        inputManager.removeRawInputListener(rawInputListener);
         inputManager.removeListener(actionListener);
     }
 
@@ -741,19 +746,29 @@ public class TextField extends ImageWidget implements InputType {
 
         if (bitmapText != null) {
             if (visible && widgetNode.getCullHint().equals(Spatial.CullHint.Always)) {
+                System.out.println("ADD RAW LISTENER - V: " + getId());
+                inputManager.addRawInputListener(rawInputListener);
                 inputManager.addListener(actionListener, TextField.this.id + "MOUSE");
                 bitmapText.setCullHint(Spatial.CullHint.Never);
 
             } else if (!visible && widgetNode.getCullHint().equals(Spatial.CullHint.Never)) {
+                System.out.println("REMOVE RAW LISTENER - V: " + getId());
+                inputManager.removeRawInputListener(rawInputListener);
                 inputManager.removeListener(actionListener);
                 bitmapText.setCullHint(Spatial.CullHint.Always);
             }
 
         } else if (stringContainer != null) {
             if (visible && widgetNode.getCullHint().equals(Spatial.CullHint.Always)) {
+                
+                System.out.println("ADD RAW LISTENER: " + getId());
+                inputManager.addRawInputListener(rawInputListener);
                 inputManager.addListener(actionListener, TextField.this.id + "MOUSE");
                 trueTypeContainer.setCullHint(Spatial.CullHint.Never);
             } else if (!visible && widgetNode.getCullHint().equals(Spatial.CullHint.Never)) {
+                
+                System.out.println("REMOVE RAW LISTENER: " + getId());
+                inputManager.removeRawInputListener(rawInputListener);
                 inputManager.removeListener(actionListener);
                 trueTypeContainer.setCullHint(Spatial.CullHint.Always);
             }
